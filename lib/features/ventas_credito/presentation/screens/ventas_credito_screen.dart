@@ -226,9 +226,6 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
       case 'telefono':
         _editarTelefono(credito);
         break;
-      case 'enviarAviso':
-        _enviarAvisoWhatsApp(credito);
-        break;
       case 'eliminar':
         _eliminar(credito);
         break;
@@ -284,37 +281,6 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
         .actualizarTelefono(credito.id, nuevo);
   }
 
-  Future<void> _enviarAvisoWhatsApp(VentaCreditoModel credito) async {
-    final conectado = await ref
-        .read(presenciaAvisoWhatsappRepositoryProvider)
-        .estaConectado();
-    await ref
-        .read(ventaCreditoRepositoryProvider)
-        .solicitarAvisoWhatsApp(credito.id);
-    if (!mounted) return;
-    if (!conectado) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'No se pudo confirmar: la tarea programada que despacha los WhatsApp no dio señales de vida recientes en la PC principal. Quedó pedido igual, se manda apenas esa tarea vuelva a correr (ver tool/aviso_creditos_whatsapp/README.md).',
-            style: GoogleFonts.poppins(fontSize: 12.5),
-          ),
-          backgroundColor: Marca.primario,
-          duration: const Duration(seconds: 10),
-          showCloseIcon: true,
-        ),
-      );
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Aviso solicitado: se manda por WhatsApp en un par de minutos.',
-          style: GoogleFonts.poppins(fontSize: 12.5),
-        ),
-      ),
-    );
-  }
 
   Future<void> _verDetalleVenta(VentaCreditoModel credito) async {
     if (!mounted) return;
@@ -358,12 +324,6 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
             ? 'Agregar teléfono'
             : 'Editar teléfono',
       ),
-      if (!credito.liquidada && credito.telefono.isNotEmpty)
-        _opcionMenu(
-          valor: 'enviarAviso',
-          icono: Icons.send_outlined,
-          texto: 'Enviar estado de cuenta por WhatsApp',
-        ),
       const PopupMenuDivider(),
       _opcionMenu(
         valor: 'eliminar',

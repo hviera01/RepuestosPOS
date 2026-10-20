@@ -73,8 +73,6 @@ class _DetalleClienteScreenState extends ConsumerState<DetalleClienteScreen> {
                         const SizedBox(height: 16),
                         _seccionProductosTop(datos),
                         const SizedBox(height: 16),
-                        _seccionColores(datos),
-                        const SizedBox(height: 16),
                         _seccionMetodoPago(datos),
                         const SizedBox(height: 24),
                       ],
@@ -366,41 +364,6 @@ class _DetalleClienteScreenState extends ConsumerState<DetalleClienteScreen> {
   String _formatoCantidad(double cantidad) {
     if (cantidad == cantidad.roundToDouble()) return cantidad.toInt().toString();
     return cantidad.toStringAsFixed(2);
-  }
-
-
-  Widget _seccionColores(ClienteHistorialData datos) {
-    return _tarjeta(
-      titulo: 'Historial de códigos de color',
-      icono: Icons.palette_outlined,
-      child: datos.historialColores.isEmpty
-          ? Text('Este cliente no tiene códigos de color registrados.', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade500))
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final item in datos.historialColores)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(width: 80, child: Text(_fmtFecha(item.fecha), style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600))),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(item.nombreProducto, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600)),
-                              Text(item.codigosColor.join(', '), style: GoogleFonts.poppins(fontSize: 12, color: Marca.primario, fontWeight: FontWeight.w600)),
-                            ],
-                          ),
-                        ),
-                        Text('Fact. ${item.numeroDocumento}', style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-    );
   }
 
 
