@@ -1,5 +1,4 @@
 import '../../../../core/theme/marca.dart';
-import 'dart:ui';
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -91,51 +90,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(
-            'assets/images/fondo.jpg',
-            fit: BoxFit.cover,
-          ),
-          ImageFiltered(
-            imageFilter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-            child: Image.asset(
-              'assets/images/fondo.jpg',
-              fit: BoxFit.cover,
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  const Color(0xFF0A1230).withOpacity(0.55),
-                  const Color(0xFF0A1230).withOpacity(0.80),
-                ],
-              ),
-            ),
-          ),
+          Container(color: Marca.primario),
           Center(
             child: SingleChildScrollView(
               child: Container(
                 width: anchoTarjeta,
                 margin: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(32),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 52),
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 44),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.92),
-                        borderRadius: BorderRadius.circular(32),
-                        border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.35),
-                            blurRadius: 60,
-                            offset: const Offset(0, 30),
-                          ),
-                        ],
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -146,17 +114,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: Marca.primario,
-                              border: Border.all(color: Marca.primario, width: 3),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
-                                  blurRadius: 24,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
                             ),
                             child: const Icon(
-                              Icons.storefront_rounded,
+                              Icons.settings_outlined,
                               color: Colors.white,
                               size: 48,
                             ),

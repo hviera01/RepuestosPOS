@@ -66,10 +66,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white,
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 30, offset: const Offset(0, 12))],
                 ),
                 child: Icon(
-                  Icons.storefront_rounded,
+                  Icons.settings_outlined,
                   color: Marca.primario,
                   size: 56,
                 ),
@@ -78,11 +77,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               Text(
                 'REPUESTOS',
                 style: GoogleFonts.poppins(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: 1.2),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'La decisión correcta',
-                style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.7), fontSize: 12, letterSpacing: 0.6),
               ),
             ],
           ),
