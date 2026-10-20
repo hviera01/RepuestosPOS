@@ -2,6 +2,8 @@ import '../../../../core/theme/marca.dart';
 import '../../../../core/utils/permisos_usuario.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../../core/utils/busqueda_producto.dart';
+import '../../../../core/widgets/filtro_vehiculo_campos.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -125,6 +127,10 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
   // campo. Pedido explícito: "inicialmente siempre buscar en todo pero
   // poder ponerlo" si hace falta acotar la búsqueda a un campo puntual.
   String _campoFiltro = 'todo';
+  final _vehiculoCtrl = TextEditingController();
+  final _anioCtrl = TextEditingController();
+  FiltroVehiculo _vehiculo = const FiltroVehiculo();
+  FiltroVehiculo? _cacheVehiculoUsado;
 
   // --- Cache de la lista filtrada/ordenada y de los totales del título ---
   // Sin esto, cada `setState` -incluido tocar una fila solo para
@@ -178,7 +184,9 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
       'categoria' => mapaCategorias[p.idCategoria] ?? '',
       _ => p.textoBusqueda,
     };
-    return coincideFuzzy(texto, busqueda);
+    if (_campoFiltro == 'todo') return coincideProductoEstricto(p, busqueda);
+    final normalizado = normalizarTexto(texto);
+    return tokensDeConsulta(busqueda).every(normalizado.contains);
   }
 
   // Este negocio no cobra ISV: el precio guardado en el producto es el
@@ -205,6 +213,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
         _cacheBusquedaPorCodigoBarrasUsada == _busquedaPorCodigoBarras &&
         _cacheColumnaOrdenUsada == _columnaOrden &&
         _cacheOrdenAscendenteUsado == _ordenAscendente &&
+        identical(_cacheVehiculoUsado, _vehiculo) &&
         _cacheCampoFiltroUsado == _campoFiltro;
     if (sinCambios) {
       return (lista: _cacheListaFiltrada, mapaProductos: _cacheMapaProductos);
@@ -236,9 +245,10 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
           : lista
                 .where((p) => _coincideBusqueda(p, busqueda, mapaCategorias))
                 .toList();
-    } else if (vista == 'filtrados') {
+    } else if (vista == 'filtrados' && !_vehiculo.activo) {
       lista = [];
     }
+    lista = filtrarPorVehiculo(lista, _vehiculo);
     lista = _ordenarLista(lista, mapaProductos);
 
     _cacheProductosOrigen = productos;
@@ -250,6 +260,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     _cacheColumnaOrdenUsada = _columnaOrden;
     _cacheOrdenAscendenteUsado = _ordenAscendente;
     _cacheCampoFiltroUsado = _campoFiltro;
+    _cacheVehiculoUsado = _vehiculo;
     _cacheMapaProductos = mapaProductos;
     _cacheListaFiltrada = lista;
 
@@ -258,6 +269,8 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
 
   @override
   void dispose() {
+    _vehiculoCtrl.dispose();
+    _anioCtrl.dispose();
     _busquedaController.dispose();
     _focusNode.dispose();
     _scrollControllerTabla.dispose();
@@ -1162,6 +1175,12 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                       SizedBox(
                         width: esMovil ? constraints.maxWidth : 340,
                         child: _buscador(busqueda),
+                      ),
+                      FiltroVehiculoCampos(
+                        vehiculoCtrl: _vehiculoCtrl,
+                        anioCtrl: _anioCtrl,
+                        compacto: true,
+                        onBuscar: () => setState(() => _vehiculo = filtroDesdeCampos(_vehiculoCtrl, _anioCtrl)),
                       ),
                       OutlinedButton.icon(
                         key: _keyRefrescar,

@@ -2,6 +2,8 @@ import '../../../../core/theme/marca.dart';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'compatibilidad_editor.dart';
+import '../../data/compatibilidad_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/producto_model.dart';
@@ -59,6 +61,10 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
   final _codigoController = TextEditingController();
   final _codigoBarrasController = TextEditingController();
   final _nombreController = TextEditingController();
+  final _nombreBaseController = TextEditingController();
+  List<CompatibilidadModel> _compat = [];
+  bool _nombreAuto = false;
+  bool _escribiendoNombre = false;
   final _descripcionController = TextEditingController();
   final _stockController = TextEditingController(text: '0');
   final _precioCompraController = TextEditingController(text: '0');
@@ -142,6 +148,9 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
       _codigoController.text = p.codigo;
       _codigoBarrasController.text = p.codigoBarras;
       _nombreController.text = p.nombre;
+      _nombreBaseController.text = p.nombreBase;
+      _compat = List.of(p.compatibilidad);
+      _nombreAuto = p.nombreAutomatico;
       _descripcionController.text = p.descripcion;
       _stockController.text = p.stock.toString();
       _precioCompraController.text = p.precioCompra.toString();
@@ -161,9 +170,19 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
       if (widget.nombreInicial != null)
         _nombreController.text = widget.nombreInicial!;
     }
+    _nombreController.addListener(() {
+      if (!_escribiendoNombre && _nombreAuto) setState(() => _nombreAuto = false);
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _focusNombre.requestFocus();
     });
+  }
+
+  void _regenerarNombre() {
+    if (!_nombreAuto) return;
+    _escribiendoNombre = true;
+    _nombreController.text = generarNombreProducto(_nombreBaseController.text, _compat);
+    _escribiendoNombre = false;
   }
 
   @override
@@ -171,6 +190,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
     _codigoController.dispose();
     _codigoBarrasController.dispose();
     _nombreController.dispose();
+    _nombreBaseController.dispose();
     _descripcionController.dispose();
     _stockController.dispose();
     _precioCompraController.dispose();
@@ -331,6 +351,9 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
               imagenUrl: _imagenUrl,
               esCombo: _esCombo,
               componentes: componentes,
+              nombreBase: _nombreBaseController.text,
+              nombreAutomatico: _nombreAuto,
+              compatibilidad: _compat,
             )
             .timeout(const Duration(seconds: 12)),
       );
@@ -362,6 +385,9 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
             imagenUrl: _imagenUrl,
             esCombo: _esCombo ? true : null,
             componentes: _esCombo ? componentes : null,
+            nombreBase: _nombreBaseController.text,
+            nombreAutomatico: _nombreAuto,
+            compatibilidad: _compat,
           )
           .timeout(const Duration(seconds: 12));
       return true;
@@ -854,6 +880,22 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
         ),
       ),
       const SizedBox(height: 14),
+      if (!_esCombo) ...[
+        CompatibilidadEditor(
+          inicial: _compat,
+          nombreAutomatico: _nombreAuto,
+          nombreBaseCtrl: _nombreBaseController,
+          alCambiarLista: (lista) {
+            _compat = lista;
+            _regenerarNombre();
+          },
+          alCambiarAutomatico: (v) {
+            setState(() => _nombreAuto = v);
+            _regenerarNombre();
+          },
+        ),
+        const SizedBox(height: 14),
+      ],
       CampoTecladoCompacto(
         controller: _descripcionController,
         numerico: false,
