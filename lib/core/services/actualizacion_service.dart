@@ -6,6 +6,7 @@ import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../version_app.dart';
+import 'firma_actualizacion.dart';
 
 class ActualizacionDisponible {
   final int version;
@@ -227,36 +228,23 @@ class ActualizacionService {
       cliente.close();
     }
 
+    try {
+      await FirmaActualizacion.verificar(archivoDestino, '${actualizacion.urlDescarga}.firma');
+    } catch (e) {
+      if (archivoDestino.existsSync()) archivoDestino.deleteSync();
+      rethrow;
+    }
+
     if (Platform.isAndroid) {
       await OpenFile.open(archivoDestino.path);
       return;
     }
 
-    // El instalador de Inno Setup pide administrador (PrivilegesRequired=
-    // admin en el .iss, así reemplaza los archivos del programa), y
-    // Process.start (CreateProcess por debajo) NO puede lanzar un programa
-    // así si esta app -que corre como usuario normal, sin manifest de
-    // administrador- no está ya elevada: Windows lo rechaza en seco
-    // (ERROR_ELEVATION_REQUIRED) sin mostrar ningún aviso de permisos, así
-    // que la actualización nunca llegaba a instalarse -bug real reportado
-    // por el dueño: pedía actualizar, parecía funcionar, pero al volver a
-    // abrir seguía en la versión vieja-.
-    //
-    // Un primer intento de arreglo usó ShellExecute directo vía
-    // dart:ffi/package:win32, pero en la práctica tampoco terminó de
-    // aplicar la actualización -y además rompía la compilación Web-, así
-    // que se abandonó esa ruta por completo (nada de FFI acá). Esto en
-    // cambio delega en el propio `start` de cmd.exe (built-in de Windows,
-    // no un programa aparte): por dentro usa la misma ShellExecute del
-    // sistema operativo -la forma estándar y bien probada de lanzar un
-    // programa que pide elevación desde un proceso que no la tiene, la
-    // misma que dispara Windows cuando uno hace doble clic en el
-    // instalador manualmente-, sin agregar ninguna dependencia nueva. El
-    // primer argumento vacío ("") después de "start" es el título de
-    // ventana que ese comando espera cuando la ruta va entre comillas -si
-    // se omite, "start" interpreta la ruta misma como el título y falla en
-    // vez de abrir el archivo.
-    await Process.start('cmd', ['/c', 'start', '', archivoDestino.path], mode: ProcessStartMode.detached);
+    await Process.start(
+      archivoDestino.path,
+      ['/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/CLOSEAPPLICATIONS', '/RESTARTAPPLICATIONS'],
+      mode: ProcessStartMode.detached,
+    );
     exit(0);
   }
 }
