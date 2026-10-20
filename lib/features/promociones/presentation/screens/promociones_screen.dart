@@ -11,11 +11,6 @@ import '../widgets/promocion_form_dialog.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
 
-/// Mantenedor de "Descuentos y Promociones": alta, edición, activar/
-/// desactivar y baja. También sirve para "consultar todas las promociones
-/// vigentes" (filtro Vigentes / Todas) sin tener que ir producto por
-/// producto — ver también PromocionesVigentesDialog, la versión resumida
-/// que se abre desde Registrar Venta para el cajero.
 class PromocionesScreen extends ConsumerStatefulWidget {
   const PromocionesScreen({super.key});
 

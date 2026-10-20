@@ -6,9 +6,6 @@ import '../../data/promocion_model.dart';
 import '../../providers/promociones_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
 
-/// Consulta rápida de todas las promociones vigentes ahora mismo, para que
-/// el cajero no tenga que ir producto por producto en el buscador para
-/// enterarse qué está en oferta. Se abre desde Registrar Venta.
 class PromocionesVigentesDialog extends ConsumerWidget {
   const PromocionesVigentesDialog({super.key});
 

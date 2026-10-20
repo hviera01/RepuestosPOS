@@ -20,20 +20,11 @@ class BuscarClienteDialog extends ConsumerStatefulWidget {
 class _BuscarClienteDialogState extends ConsumerState<BuscarClienteDialog> {
   final _busquedaController = TextEditingController();
   final _focusBusqueda = FocusNode();
-  // A diferencia de la versión anterior (filtraba en vivo mostrando TODA la
-  // lista con la caja vacía), esto ahora funciona igual que Buscar Producto
-  // -pedido explícito del dueño: con una lista de clientes que va a seguir
-  // creciendo, mostrar todo de entrada no sirve-. La búsqueda solo corre al
-  // presionar Enter o tocar el botón, no en cada tecla; con la caja vacía
-  // no se muestra ningún cliente todavía.
   String? _busquedaAplicada;
 
   @override
   void initState() {
     super.initState();
-    // Sin `autofocus` por el mismo motivo que en BuscarProductoDialog: en
-    // Windows compite con la animación de apertura del diálogo y se pierde
-    // la primera tecla.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _focusBusqueda.requestFocus();
     });
@@ -50,15 +41,6 @@ class _BuscarClienteDialogState extends ConsumerState<BuscarClienteDialog> {
     setState(() => _busquedaAplicada = _busquedaController.text.trim());
   }
 
-  /// "Crear cliente nuevo" -pedido explícito del dueño (item 5, y ajustado
-  /// en una vuelta posterior porque el dueño no la encontraba escondida
-  /// detrás de una búsqueda fallida): visible siempre, apenas se abre el
-  /// diálogo, no solo cuando la búsqueda no encuentra a nadie. En vez de
-  /// depender solo de la creación silenciosa al confirmar la venta (ver
-  /// VentaRepository._resolverIdCliente), el cajero puede crearlo acá mismo,
-  /// con el nombre ya tipeado precargado, y queda vinculado a la venta al
-  /// instante -mismo contrato que elegir uno ya existente:
-  /// Navigator.pop(context, cliente).
   Future<void> _crearClienteNuevo() async {
     final nuevo = await showDialog<ClienteModel>(
       useRootNavigator: false,
@@ -241,9 +223,6 @@ class _BuscarClienteDialogState extends ConsumerState<BuscarClienteDialog> {
                             )
                             .toList();
                   if (lista.isEmpty) {
-                    // El botón "Crear cliente nuevo" ya vive siempre visible
-                    // arriba del buscador (ver Align más arriba); acá ya no
-                    // hace falta repetirlo.
                     return Center(
                       child: Text(
                         'No se encontraron clientes',

@@ -35,9 +35,6 @@ import '../../../../core/widgets/campo_teclado_compacto.dart';
 const _metodosPago = ['Efectivo', 'Transferencia', 'Tarjeta', 'Cheque'];
 
 class RegistrarCompraScreen extends ConsumerStatefulWidget {
-  // Id de la pestaña donde vive esta pantalla: los atajos de teclado
-  // (F10/F12) lo usan para saber si esta es la pestaña activa antes de
-  // responder (ver la misma explicación en RegistrarVentaScreen).
   final String? tabId;
 
   const RegistrarCompraScreen({super.key, this.tabId});
@@ -60,17 +57,10 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
   final Map<int, TextEditingController> _ctrlDescuento = {};
   final Map<int, TextEditingController> _ctrlMargen = {};
   final Map<int, TextEditingController> _ctrlPrecioVenta = {};
-  // _focusInline y _confirmarInline respaldan a _campoInlineNumero: ver el
-  // comentario junto a esa función para la explicación completa.
   final Map<String, FocusNode> _focusInline = {};
   final Map<String, VoidCallback> _confirmarInline = {};
   int _conteoItemsControladores = -1;
 
-  // Campo de código de barras invisible (ver _campoCodigoBarras) + detección
-  // de lector físico a nivel de hardware (ver _detectarEscaneoFisico): mismo
-  // mecanismo que RegistrarVentaScreen, para que un lector de código de
-  // barras físico agregue el producto a la compra sin que el usuario tenga
-  // que tocar nada.
   final _ctrlCodigoBarras = TextEditingController();
   final _focusCodigoBarras = FocusNode();
   final _bufferEscanerFisico = StringBuffer();
@@ -81,49 +71,22 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
       defaultTargetPlatform == TargetPlatform.android ||
       defaultTargetPlatform == TargetPlatform.iOS;
 
-  // Específicamente el navegador de un celular (no la app APK, no
-  // escritorio): ver _campoInlineNumero, donde hace que el teclado
-  // numérico en pantalla (el mismo diálogo que ya usa escritorio) se abra
-  // ahí también, en vez del teclado nativo del navegador.
   bool get _esWebMovil => kIsWeb && _esPlataformaMovil;
 
-  // Nodo "ancla" sin campo de texto detrás, usado solo en web móvil para
-  // robarle el foco a un campo justo después de confirmar con el teclado
-  // numérico en pantalla (ver el mismo mecanismo, con la misma explicación,
-  // en RegistrarVentaScreen/_focusAnclaMovil): _focusCodigoBarras es un
-  // TextField de verdad, y aunque esté invisible, el navegador del celular
-  // le abre su teclado nativo apenas recibe foco.
   final _focusAnclaMovil = FocusNode(debugLabel: 'ancla_teclado_web_movil');
 
-  // true mientras Buscar Producto (con su propio campo de texto libre) está
-  // abierto: pausa la detección del lector físico y el refoco automático
-  // para que no le compitan el foco a ese campo.
   bool _pausarLectorFisico = false;
 
-  // true mientras está abierto el diálogo de "ver la tabla más grande" (ver
-  // _expandirTablaProductos): esa tabla comparte los mismos
-  // TextEditingController/FocusNode que la de acá abajo, así que mientras
-  // tanto esta no monta sus filas.
   bool _tablaExpandida = false;
   void Function(void Function())? _refrescarDialogoExpandido;
 
-  // Autoguardado de "compra en espera": ver _programarAutoguardado. Así una
-  // compra en curso nunca vive SOLO en la memoria de esta pestaña -si el
-  // navegador la descarta/recarga sola, se corta el internet o se cierra la
-  // app, el borrador ya quedó en Firestore y se recupera desde "Compras en
-  // Espera"-.
   Timer? _debounceEnEspera;
 
   @override
   void initState() {
     super.initState();
-    // Atajos a nivel de hardware (no de foco): así funcionan sin importar
-    // qué campo de la pantalla tenga el foco en ese momento.
     HardwareKeyboard.instance.addHandler(_manejarAtajoTeclado);
 
-    // Si esta pestaña se abrió desde "Duplicar compra" en Detalle de Compra
-    // (ver DetalleCompraScreen), acá está esperando la compra de origen para
-    // precargar el carrito.
     final compraOrigen = ref.read(compraParaCargarProvider);
     if (compraOrigen != null) {
       ref.read(compraParaCargarProvider.notifier).limpiar();
@@ -135,9 +98,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
       _isvController.text = compraOrigen.isvPorcentaje.toStringAsFixed(0);
     }
 
-    // En escritorio, cada vez que el foco queda en nada se lo devuelve al
-    // campo de código de barras invisible: así un lector físico funciona en
-    // cualquier momento sin que el usuario tenga que tocar nada primero.
     if (!_esPlataformaMovil) {
       FocusManager.instance.addListener(_alCambiarFocoGlobal);
       WidgetsBinding.instance.addPostFrameCallback(
@@ -156,15 +116,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
   }
 
   bool _manejarAtajoTeclado(KeyEvent event) {
-    // Ver la explicación completa en RegistrarVentaScreen: F10 y F12 se
-    // capturan enteros -keyDown Y keyUp- antes que cualquier otro chequeo.
-    // Antes solo se devolvía `true` para el keyDown; el keyUp caía sin
-    // dueño y Windows se lo entregaba al campo de texto de Buscar Producto
-    // justo cuando estaba tomando el foco, y esa interrupción hacía perder
-    // la primera tecla real que se escribía ahí (solo en Windows). El beep
-    // de "modo menú" que F10 puede disparar a nivel de Windows se corta
-    // aparte, en el lado nativo (ver FlutterWindow::MessageHandler en
-    // windows/runner/flutter_window.cpp).
     if (event.logicalKey == LogicalKeyboardKey.f10 ||
         event.logicalKey == LogicalKeyboardKey.f12) {
       if (event is KeyDownEvent &&
@@ -187,11 +138,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     return _detectarEscaneoFisico(event);
   }
 
-  // Ver la explicación completa (idéntica) en RegistrarVentaScreen: arma un
-  // buffer con las teclas que llegan pegadas (un lector físico escribe mucho
-  // más rápido que una persona) y, apenas confirma que hay una ráfaga en
-  // curso, le quita el foco a lo que sea que lo tenga para que ningún
-  // control despierto reaccione a las teclas que todavía faltan por llegar.
   bool _detectarEscaneoFisico(KeyEvent event) {
     final ahora = DateTime.now();
     final ultimaTecla = _ultimaTeclaEscanerFisico;
@@ -307,13 +253,8 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     return resultado ?? false;
   }
 
-  // ---------- Producto ----------
 
   Future<void> _agregarProductoDesdeBusqueda() async {
-    // Mientras el buscador está abierto (tiene su propio campo de texto
-    // libre), se pausa la detección del lector físico y el refoco
-    // automático del código de barras invisible: si no, competían por el
-    // foco justo al escribir ahí.
     _pausarLectorFisico = true;
     try {
       final producto = await Navigator.of(context).push<ProductoModel>(
@@ -329,12 +270,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     }
   }
 
-  // Campo de código de barras de esta pantalla, siempre invisible (el
-  // llamador lo envuelve en un Offstage): en escritorio, layout y foco
-  // siguen funcionando aunque no se pinte nada, así que un lector de código
-  // de barras físico agrega el producto en cualquier momento sin necesitar
-  // un campo visible. En el celular se escanea con la cámara (ver
-  // _escanearConCamara).
   Widget _campoCodigoBarras() {
     return CampoTecladoCompacto(
       controller: _ctrlCodigoBarras,
@@ -365,9 +300,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     await _procesarCodigoEscaneado(codigo);
   }
 
-  /// Busca un producto por código exacto (código de barras o código interno)
-  /// y lo agrega directo a la compra, sin pasar por el modal de Buscar
-  /// Producto.
   Future<void> _procesarCodigoEscaneado(String codigo) async {
     if (!mounted) return;
     final texto = codigo.trim();
@@ -382,9 +314,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
         p.estado && (p.codigoBarras.trim() == t || p.codigo.trim() == t);
     var coincidencias = productos.where((p) => coincide(p, texto)).toList();
     if (coincidencias.isEmpty) {
-      // Ver variantesCodigoBarras: corrige tanto el código leído al revés
-      // (algunos celulares) como el "0" que iPhone agrega al principio de
-      // los códigos UPC-A (Android no lo agrega).
       for (final variante in variantesCodigoBarras(texto)) {
         coincidencias = productos.where((p) => coincide(p, variante)).toList();
         if (coincidencias.isNotEmpty) break;
@@ -403,11 +332,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     ref.read(carritoCompraProvider.notifier).quitarItem(index);
   }
 
-  /// Abre el selector de "venta anticipada" (ver VincularPendienteDialog):
-  /// para cuando el producto que se está comprando en esta línea es
-  /// distinto al que se facturó -el emparejamiento automático por
-  /// idProducto (ver CompraRepository.registrarCompra) no puede detectar
-  /// eso solo, así que se elige a mano-.
   Future<void> _abrirVincularPendiente(int index) async {
     final item = ref.read(carritoCompraProvider).items[index];
     final pendientes = ref.read(pendientesReposicionStreamProvider).value ?? [];
@@ -480,9 +404,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
 
   void _moverItem(int index, int nuevoIndex) {
     ref.read(carritoCompraProvider.notifier).moverItem(index, nuevoIndex);
-    // Ver el comentario equivalente en RegistrarVentaScreen: la cantidad de
-    // items no cambia con un reordenamiento, así que hay que forzar a mano
-    // la reconstrucción de los controladores cacheados por posición.
     _conteoItemsControladores = -1;
   }
 
@@ -551,8 +472,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     _sincronizarMargenControlador(index);
   }
 
-  /// Costo final por unidad (con descuento de línea e ISV de la compra ya
-  /// aplicados): la misma referencia que usa el margen de ganancia sugerido.
   double _costoFinalItem(dynamic item) {
     final isv = ref.read(carritoCompraProvider).isvPorcentaje;
     return redondearMoneda(
@@ -562,15 +481,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     );
   }
 
-  // `productos.precioVenta` siempre se guarda CON ISV incluido -es el precio
-  // final que paga el cliente en caja, igual como lo muestra Inventario (ver
-  // InventarioScreen._precioMostrado: "El precio guardado en el producto
-  // siempre incluye ISV")-. item.precioVentaNuevo viaja en ese mismo formato
-  // desde que se agrega el producto (ver CarritoCompraNotifier.
-  // agregarProductoDirecto: se copia tal cual de producto.precioVenta), así
-  // que acá el campo "Precio de venta" y el "Margen %" se leen/editan
-  // directo, sin convertir nada: lo que se ve en pantalla es exactamente lo
-  // que se va a guardar en el catálogo.
   double _precioVentaFinal(dynamic item) =>
       redondearMoneda((item.precioVentaNuevo as double?) ?? 0);
 
@@ -599,8 +509,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     return (ctrlMargen, ctrlPrecioVenta);
   }
 
-  /// [nuevoPrecioVentaFinal] es el precio final (con ISV) que se escribió en
-  /// el campo: se guarda tal cual, ver comentario arriba de [_precioVentaFinal].
   void _actualizarPrecioVentaCompra(int index, double nuevoPrecioVentaFinal) {
     if (nuevoPrecioVentaFinal < 0) {
       _mostrarMensaje('Precio inválido');
@@ -626,10 +534,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     _ctrlPrecioVenta[index]?.text = nuevoPrecioFinal.toStringAsFixed(2);
   }
 
-  /// Recalcula el % de margen mostrado a partir del precio de venta final y
-  /// el costo final vigentes. Se llama después de editar el precio de venta,
-  /// la cantidad, el costo unitario o el descuento de línea, para que el
-  /// margen mostrado nunca quede desactualizado.
   void _sincronizarMargenControlador(int index) {
     final carrito = ref.read(carritoCompraProvider);
     if (index >= carrito.items.length) return;
@@ -647,19 +551,10 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     return redondearMoneda(sinDescuento - (item.subtotal as double));
   }
 
-  // "Importe" de la fila se muestra BRUTO (cantidad × costo unitario, sin
-  // restarle el descuento de esa línea) a propósito, igual que en una
-  // factura de proveedor: el descuento de línea ya se ve aparte, en
-  // "Descuento" (ver _descuentoLineaMonto) y en el renglón "Descuentos y
-  // Rebajas" de los totales, no hace falta que también desaparezca del
-  // importe. item.subtotal (neto, usado para el ISV/Total a pagar reales y
-  // para lo que se guarda en Firestore) no cambia en ningún otro lado: esto
-  // es solo para este texto en pantalla.
   double _importeBrutoItem(dynamic item) => redondearMoneda(
     (item.precioCompra as double) * (item.cantidad as double),
   );
 
-  // ---------- Limpiar ----------
 
   void _limpiarTodo() {
     ref.read(carritoCompraProvider.notifier).limpiar();
@@ -712,11 +607,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     _limpiarTodo();
   }
 
-  // ---------- Compras en espera (autoguardado) ----------
 
-  /// Se llama en cada cambio del carrito (ver ref.listen en build): reinicia
-  /// el debounce para no golpear Firestore en cada tecla, y solo guarda si
-  /// ya hay algo que perder.
   void _programarAutoguardado(CarritoCompraState carrito) {
     _debounceEnEspera?.cancel();
     if (carrito.items.isEmpty) return;
@@ -756,8 +647,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
         ref.read(carritoCompraProvider.notifier).establecerIdEnEspera(id);
       }
     } catch (_) {
-      // Sin internet u otro error transitorio: no se pudo autoguardar esta
-      // vez, se reintenta solo con el próximo cambio del carrito.
     }
   }
 
@@ -779,7 +668,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
         : sesion.ajusteManual.toStringAsFixed(2);
   }
 
-  // ---------- Confirmar compra ----------
 
   Future<void> _confirmarCompra() async {
     final carrito = ref.read(carritoCompraProvider);
@@ -846,7 +734,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     }
   }
 
-  // ---------- UI ----------
 
   @override
   Widget build(BuildContext context) {
@@ -855,16 +742,10 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
       carritoCompraProvider,
       (previous, next) => _programarAutoguardado(next),
     );
-    // Si el diálogo de "ver la tabla más grande" está abierto, le pide que
-    // se vuelva a pintar con los datos ya leídos por este `ref` cada vez que
-    // el carrito cambia (ver _expandirTablaProductos).
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _refrescarDialogoExpandido?.call(() {}),
     );
 
-    // Ver _focusAnclaMovil: este Focus envuelve toda la pantalla para que
-    // ese nodo (usado solo en web móvil) siempre tenga dónde vivir, sin
-    // interferir con el foco de los campos de adentro.
     return Focus(
       focusNode: _focusAnclaMovil,
       canRequestFocus: true,
@@ -1563,9 +1444,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
               ),
             )
           else if (esMovil)
-            // Ver nota equivalente en registrar_venta_screen.dart: en móvil
-            // evitamos una lista con scroll propio anidada dentro del scroll
-            // de toda la pantalla.
             Column(
               children: [
                 for (var i = 0; i < carrito.items.length; i++) ...[
@@ -1580,10 +1458,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
               ],
             )
           else if (_tablaExpandida)
-            // Ver el comentario de _tablaExpandida: mientras el diálogo de
-            // "ver más grande" está abierto, esta tabla no monta sus filas
-            // (esas mismas filas ya están montadas allá, usando los mismos
-            // controladores).
             Expanded(
               child: Center(
                 child: Text(
@@ -1611,11 +1485,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     );
   }
 
-  // Muestra la tabla de productos sola, casi a pantalla completa, para
-  // cuando hay varios items y la vista normal se queda chica. Mismo patrón
-  // que RegistrarVentaScreen: el diálogo lee el carrito con el `ref` de esta
-  // pantalla (ref.read) en vez de watch/Consumer propio, porque showDialog
-  // lo inserta con el Navigator raíz, fuera del ProviderScope por pestaña.
   void _expandirTablaProductos() {
     setState(() => _tablaExpandida = true);
     showDialog(
@@ -1725,9 +1594,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     });
   }
 
-  // Versión chica de los totales + botón de confirmar, solo para la tabla
-  // expandida: una sola fila delgada, para que la tabla se quede con casi
-  // todo el espacio, que es para lo que se abrió este diálogo.
   Widget _barraTotalesCompacta(CarritoCompraState carrito) {
     Widget total(String etiqueta, double valor, {bool destacado = false}) {
       return Column(
@@ -1856,18 +1722,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     );
   }
 
-  // [claveFoco] identifica el campo (p.ej. "cantidad_2") para cachear su
-  // FocusNode entre reconstrucciones. Antes esto confirmaba solo al enviar
-  // (onSubmitted) o al tocar literalmente fuera del campo (onTapOutside): en
-  // el celular, si el usuario tocaba un botón directamente (sin pasar antes
-  // por un área vacía), el valor tecleado se perdía. Ahora se confirma al
-  // perder el foco por cualquier motivo (FocusNode.addListener), que es lo
-  // único que cubre "cualquier forma de salir del campo". El listener del
-  // FocusNode se crea una sola vez (putIfAbsent) pero llama indirectamente a
-  // través de _confirmarInline[claveFoco], que se refresca en cada build:
-  // así siempre usa el [valorActual]/[alConfirmar] vigentes en vez de quedar
-  // atado a los del primer build (que sería el bug si el listener capturara
-  // esos parámetros directamente).
   Widget _campoInlineNumero(
     String claveFoco,
     TextEditingController controlador,
@@ -1877,12 +1731,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     String? prefijo,
     bool dosDecimales = false,
   }) {
-    // Antes esto agrupaba "Android/iOS" sin importar si era la app (APK) o
-    // el navegador del celular, y ambos se quedaban con el teclado nativo
-    // del sistema. Ahora solo la app nativa lo conserva: el navegador del
-    // celular (ver _esWebMovil) pasa a abrir el mismo teclado numérico en
-    // pantalla que ya usa escritorio (mismo arreglo que en
-    // RegistrarVentaScreen).
     final esMovilNativo = !kIsWeb && _esPlataformaMovil;
 
     final focusNode = _focusInline.putIfAbsent(claveFoco, () {
@@ -1902,14 +1750,8 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
       if (esMovilNativo) {
         if (focusNode.hasFocus) focusNode.unfocus();
       } else if (_esWebMovil) {
-        // En web móvil no puede ser _focusCodigoBarras (ver el comentario
-        // de _focusAnclaMovil): eso abriría el teclado nativo del celular.
         _focusAnclaMovil.requestFocus();
       } else {
-        // Igual que en RegistrarVentaScreen: pedirle el foco a otro campo
-        // concreto (el de código de barras invisible) en vez de solo
-        // soltarlo evita que, al cerrar el diálogo del teclado numérico,
-        // Flutter le devuelva el foco a este campo y reseleccione el texto.
         _focusCodigoBarras.requestFocus();
       }
     }
@@ -1970,9 +1812,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
 
     if (esMovilNativo) return campo;
 
-    // En escritorio, el clic debe abrir el teclado numérico de una vez, sin
-    // que se alcance a ver el cursor de texto parpadeando primero (ver el
-    // mismo arreglo y explicación completa en RegistrarVentaScreen).
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: abrirTecladoNumerico,
@@ -2368,13 +2207,6 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
             spacing: 24,
             runSpacing: 10,
             children: [
-              // "Subtotal" se muestra BRUTO (antes de los descuentos de
-              // línea y del descuento global) a propósito, para que el
-              // orden de esta tarjeta se lea igual que en una factura de
-              // proveedor: Subtotal → Descuentos y Rebajas → ISV → Total.
-              // carrito.subtotal (ya neto) no cambia en ningún otro lado -
-              // el ISV y el Total a pagar siguen calculándose sobre ese
-              // valor neto real, esto es solo para esta fila de texto-.
               _filaTotalTexto(
                 'Subtotal',
                 carrito.subtotal +

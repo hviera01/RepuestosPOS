@@ -11,11 +11,6 @@ import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/widgets/pdf_preview_dialog.dart';
 import '../../../negocio/providers/negocio_provider.dart';
 
-/// Una fila del estado de cuenta: o una factura nueva (aumenta la deuda) o
-/// el total abonado en un día (sin importar si el pago se repartió entre
-/// varias facturas -pedido explícito del dueño: agrupar por día, no por
-/// factura ni por operación, para poder ver "tal día se abonaron L.9,000"
-/// aunque hayan sido 3 abonos a 3 facturas distintas-).
 class _MovimientoCuenta {
   final DateTime fecha;
   final bool esCargo;
@@ -57,14 +52,6 @@ class _EstadoCuentaProveedorDialogState
   bool _cargando = true;
   String? _error;
   List<_MovimientoCuenta> _movimientos = [];
-  // Saldo corriendo después de cada movimiento, precalculado una sola vez
-  // acá (mismo índice que _movimientos) — NUNCA calcularlo dentro de un
-  // itemBuilder de una lista con scroll: Flutter arma esas filas de forma
-  // perezosa y no garantiza orden ni una sola pasada (menos aún al rotar la
-  // pantalla, que reconstruye todo desde cero), así que una variable mutable
-  // compartida ahí daba saldos distintos según cómo se scrolleaba -reportado
-  // por el dueño: en el PDF (una sola pasada synchronous) siempre salía bien,
-  // pero en la lista de la pantalla el último monto cambiaba solo-.
   List<double> _saldosCorrientes = [];
   double _totalFacturado = 0;
   double _totalAbonado = 0;
@@ -91,16 +78,6 @@ class _EstadoCuentaProveedorDialogState
       final abonos = resultados[1] as List<AbonoCompraModel>;
       final comprasPorId = {for (final c in compras) c.id: c};
 
-      // El "cargo" de cada factura al estado de cuenta no siempre es su
-      // montoTotal: algunas facturas se registraron con un saldoPendiente ya
-      // menor al total (un pago hecho antes de digitalizar el crédito, sin
-      // abono registrado para esa diferencia -caso real: Ventura, facturas
-      // 00052894 y 00052953-). El saldoAnterior del primer abono (si hay
-      // abonos) es la deuda real que entró al sistema; si nunca hubo abonos,
-      // es el saldoPendiente actual. Usar montoTotal a ciegas acá hacía que
-      // el saldo corriendo del estado de cuenta no cuadrara con el saldo
-      // pendiente real (reportado por el dueño: quedaba una diferencia igual
-      // a esos pagos previos no registrados).
       final abonosPorCompra = <String, List<AbonoCompraModel>>{};
       for (final a in abonos) {
         abonosPorCompra.putIfAbsent(a.idCompra, () => []).add(a);
@@ -177,9 +154,6 @@ class _EstadoCuentaProveedorDialogState
 
       movimientos.sort((a, b) => a.fecha.compareTo(b.fecha));
 
-      // Mismo criterio que arriba: sumar el cargo real que entró a la cuenta
-      // (no el montoTotal de la factura), para que Total Facturado - Total
-      // Abonado dé siempre exactamente el Saldo Pendiente Actual.
       final totalFacturado = movimientos
           .where((m) => m.esCargo)
           .fold<double>(0, (s, m) => s + m.monto);

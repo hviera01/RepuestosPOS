@@ -26,19 +26,8 @@ class HistorialStockModel {
     );
   }
 
-  /// Cuánto cambió el stock en este movimiento (con signo).
   double get delta => stockNuevo - stockAnterior;
 
-  /// Tipo de movimiento -pedido explícito del dueño: "poder ver el detalle
-  /// de si es venta, si es compra, etc"-. No se guarda como campo propio en
-  /// Firestore: no hacía falta tocar cada punto del código que escribe un
-  /// historial (venta, compra, ajuste manual, anulaciones, reembasado) para
-  /// lograrlo, y así también funciona retroactivo para movimientos ya
-  /// guardados. Se INFIERE del texto de [motivo] (cada escritor ya usa un
-  /// prefijo fijo y reconocible, ver ProductoRepository/VentaRepository/
-  /// CompraRepository) y, si no matchea ninguno -motivo personalizado en un
-  /// ajuste manual-, del signo de [delta] (que siempre es correcto,
-  /// independiente del texto).
   TipoMovimientoStock get tipo {
     if (motivo.startsWith('Anulación de venta')) return TipoMovimientoStock.anulacionVenta;
     if (motivo.startsWith('Venta ')) return TipoMovimientoStock.venta;

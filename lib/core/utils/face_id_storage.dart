@@ -1,17 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Claves de SharedPreferences donde queda el Face ID activado en este
-// navegador (ver LoginScreen y NegocioScreen: la activación puede pasar
-// desde cualquiera de las dos). El código y la clave se guardan en base64
-// -no es cifrado real, solo evita que queden a simple vista en el storage-
-// porque esta app no usa Firebase Auth: el login es código+clave contra
-// Firestore (ver AuthRepository), así que no hay forma de "pasar" un login
-// ya hecho sin volver a mandar esos dos datos. Quien lea el storage del
-// navegador (por ejemplo con las herramientas de desarrollador) puede
-// recuperarlos igual: Face ID acá evita que se vean tipeados cada vez, no
-// reemplaza guardar algo sensible en un dispositivo que no sea de
-// confianza.
 const prefsFaceIdCredencial = 'faceId_credencial';
 const prefsFaceIdCodigo = 'faceId_codigo';
 const prefsFaceIdClave = 'faceId_clave';

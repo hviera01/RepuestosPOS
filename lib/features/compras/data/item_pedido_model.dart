@@ -1,5 +1,3 @@
-/// Una línea del pedido de compra: no se guarda en Firestore, solo vive
-/// mientras se arma el PDF para enviarle al proveedor.
 class ItemPedidoModel {
   final String idProducto;
   final String codigo;

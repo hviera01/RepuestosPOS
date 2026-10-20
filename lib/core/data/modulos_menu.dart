@@ -29,17 +29,6 @@ class ModuloMenu {
   });
 }
 
-// Pantallas que puede ver un Empleado por defecto -mismo criterio que ya
-// usa el proyecto hermano `variedades_lopsi` para este rol: ahí Ventas
-// (Registrar/Ver Detalle/Celulares), Clientes, Proveedores y Ventas/Compras
-// a Crédito quedan con nivelMinimo Empleado, y todo lo demás (Mantenedor,
-// Usuarios, el módulo de Compras completo, Reportes) queda con nivelMinimo
-// Semi Administrador o Administrador-. `repuestos_pos` no tiene "Celulares", así
-// que ese moduleKey no aplica acá. Se usa como valor inicial de
-// `pantallasPermitidas` al crear un Empleado nuevo (ver
-// usuario_form_dialog.dart) y como respaldo en el menú (ver
-// core/utils/permisos_modulo.dart) para los Empleados que ya existían antes
-// de este cambio y todavía no tienen `pantallasPermitidas` configurado.
 const Set<String> pantallasPermitidasEmpleadoPorDefecto = {
   'ventas_registrar',
   'ventas_detalle',
@@ -108,10 +97,6 @@ List<ModuloMenu> obtenerModulos() {
         SubModulo(titulo: 'Proveedores', icono: Icons.local_shipping_outlined, moduleKey: 'proveedores'),
       ],
     ),
-    // La función de "referidores" (heredada de Super Color, un negocio de
-    // pinturas donde pintores/contratistas traían clientes) se quitó por
-    // completo a pedido del dueño: no aplica a este negocio, así que no
-    // existe ni como módulo de menú ni como flag dentro de Clientes.
     ModuloMenu(
       titulo: 'Sucursales',
       icono: Icons.store_mall_directory_outlined,

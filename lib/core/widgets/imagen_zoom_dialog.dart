@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'imagen_producto_network.dart';
 
-/// Muestra una foto de producto grande, para verla de cerca — se abre desde
-/// el ícono de foto en Buscar Producto y desde la miniatura en el detalle
-/// de producto. Tocar afuera de la imagen o el botón de cerrar la cierra.
 class ImagenZoomDialog extends StatelessWidget {
   final String url;
 

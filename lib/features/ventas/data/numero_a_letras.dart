@@ -45,8 +45,6 @@ String _convertirMenosDeMil(int numero) {
   return letras.trim();
 }
 
-/// Convierte un monto en lempiras a su representación en letras,
-/// ej: 1250.50 -> "mil doscientos cincuenta lempiras con 50/100 centavos".
 String convertirNumeroALetras(double monto) {
   if (monto == 0) return 'cero lempiras con 00/100 centavos';
 

@@ -3,22 +3,6 @@ import 'dart:js_interop_unsafe';
 import 'dart:math';
 import 'dart:typed_data';
 
-// WebAuthn (Face ID/Touch ID desde el navegador) vía interop directo con la
-// API del navegador, sin ningún paquete adicional -mismo estilo que
-// beep_web.dart, que ya usa dart:js_interop + dart:js_interop_unsafe para
-// hablar con Web Audio API-.
-//
-// Importante: esto NO es un login "passkey" de verdad contra un servidor.
-// Esta app no usa Firebase Auth ni tiene backend propio para WebAuthn (el
-// login es código+clave contra Firestore, ver AuthRepository), así que acá
-// no se verifica ninguna firma del lado del servidor. Face ID solo se usa
-// como candado local: sirve para confirmar "sos el mismo dueño del celular
-// que activó esto", y si lo confirma, se reusa el código+clave que ya se
-// guardaron (ver webauthn.dart y LoginScreen) para hacer el login normal de
-// siempre. Quien tenga acceso a ejecutar JavaScript en este sitio (por
-// ejemplo, un XSS) podría leer esas credenciales guardadas sin pasar por
-// Face ID -la promesa de esta función es solo evitar que la clave quede
-// tipeada a la vista cada vez, no una bóveda a prueba de todo-.
 
 JSObject get _navigator => globalContext.getProperty('navigator'.toJS) as JSObject;
 
@@ -41,12 +25,6 @@ Uint8List _bytesAleatorios(int cantidad) {
   return Uint8List.fromList(List.generate(cantidad, (_) => aleatorio.nextInt(256)));
 }
 
-// A diferencia de autenticadorPlataformaDisponible/verificarCredencial (que
-// tragan cualquier error y devuelven false/null, porque ahí un fallo debe
-// caer en silencio al login manual sin asustar al usuario en cada intento),
-// esta función deja que la excepción suba: LoginScreen la muestra en un
-// SnackBar, porque acá sí hace falta poder ver el motivo real (por ejemplo,
-// "NotAllowedError" de Safari) para diagnosticar por qué no se activó.
 Future<String?> registrarCredencial({required String usuarioId, required String usuarioNombre}) async {
   final credentials = _navigator.getProperty('credentials'.toJS) as JSObject?;
   if (credentials == null) return null;
@@ -111,8 +89,6 @@ Future<bool> verificarCredencial(String credencialIdBase64Url) async {
     final resultado = await promesa.toDart;
     return resultado != null;
   } catch (_) {
-    // Cancelado, no coincide el credencial (por ejemplo, se borró el Face
-    // ID del teléfono), o cualquier otro error: no verificado.
     return false;
   }
 }
@@ -122,10 +98,6 @@ String _base64UrlDesdeBuffer(JSArrayBuffer buffer) {
   return _base64Url(bytes);
 }
 
-// Implementación mínima de base64url (RFC 4648 §5, sin relleno) para no
-// depender de dart:convert acá: ArrayBuffer/Uint8Array son justo lo que ya
-// se maneja en este archivo, y así se evita mezclar dos formas de trabajar
-// con bytes.
 const _alfabeto = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
 
 String _base64Url(Uint8List bytes) {

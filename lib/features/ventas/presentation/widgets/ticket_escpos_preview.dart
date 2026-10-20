@@ -10,14 +10,6 @@ import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/utils/logo_escpos.dart';
 import '../../../../core/utils/texto_utils.dart';
 
-/// Reproduce en pantalla, con widgets normales de Flutter (no un PDF), el
-/// mismo contenido y el mismo orden que imprime de verdad
-/// VentaTicketEscPosService en la impresora térmica -la vía que se usa en
-/// Windows para el ticket de venta, ver PdfPreviewDialog-. No es
-/// pixel-perfecto (una impresora térmica real usa su propia tipografía de
-/// matriz de puntos), pero muestra las mismas secciones, los mismos datos y
-/// en el mismo orden, a diferencia de la vista previa en PDF -que en ese
-/// camino ya no es lo que de verdad se manda a imprimir-.
 class TicketEscPosPreview extends StatelessWidget {
   final VentaModel venta;
   final NegocioModel negocio;
@@ -31,10 +23,6 @@ class TicketEscPosPreview extends StatelessWidget {
     final formatoFecha = DateFormat('dd/MM/yyyy hh:mm a');
     final formatoDia = DateFormat('dd/MM/yyyy');
 
-    // Este negocio no cobra ISV en su venta normal (VentaSinFacturar): solo
-    // se aplica el 15% si esta venta es Factura o Boleta formal (ver
-    // CarritoVentaState._aplicaIsv), igual que en VentaTicketEscPosService
-    // (esta vista tiene que mostrar exactamente lo mismo que va a imprimirse).
     final esFacturable = venta.tipoDocumento == 'Factura' || venta.tipoDocumento == 'Boleta';
     final mostrarConIsv = esFacturable && negocio.facturaPreciosConIsv;
     double precioMostrado(item) => mostrarConIsv ? redondearMoneda((item.precioVenta as double) * 1.15) : item.precioVenta as double;
@@ -46,10 +34,6 @@ class TicketEscPosPreview extends StatelessWidget {
 
     final descuentosYRebajas = venta.descuentosYRebajas;
 
-    // quitarTildes acá también: esta vista previa tiene que mostrar
-    // exactamente lo que va a salir impreso (ver el comentario de la
-    // clase), y el ticket real no lleva tildes -muchas impresoras térmicas
-    // no tienen bien configurada la página de códigos y las imprimen mal-.
     Widget linea(String texto, {bool centrado = false, bool negrita = false, double tamano = 12}) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 1),
@@ -79,11 +63,6 @@ class TicketEscPosPreview extends StatelessWidget {
           child: Container(height: 1, color: Colors.black26),
         );
 
-    // El nombre del producto ocupa la misma proporción de ancho (8/12) que
-    // la columna de cantidad/precio de la fila de abajo, dejando la columna
-    // de la derecha (donde va IMPORTE) siempre limpia -si el nombre es
-    // largo y se parte en dos líneas, esa segunda línea nunca llega hasta
-    // ahí-, igual que en el ticket real.
     Widget nombreProducto(String texto) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 1),
@@ -97,18 +76,9 @@ class TicketEscPosPreview extends StatelessWidget {
       );
     }
 
-    // Mismo decode que el ticket real (recortado sin margen en blanco/
-    // transparente, ver logo_escpos.dart), re-encodeado a PNG para
-    // Image.memory: así la vista previa queda igual de "pegada" al nombre
-    // que la impresión de verdad, en vez de mostrar el logo tal cual lo
-    // subió el negocio (que puede traer margen de sobra).
     final logoDecodificado = decodificarLogoEscPos(negocio.logoBnBase64);
     final Uint8List? logoBytes = logoDecodificado == null ? null : Uint8List.fromList(img.encodePng(logoDecodificado));
 
-    // Mismo ancho que se usa de verdad al imprimir (ver
-    // NegocioModel.anchoTicketMm/VentaTicketEscPosService): la proporción
-    // entre 58mm y 80mm (384/576 puntos ESC/POS reales) se traslada acá para
-    // que el mismo texto envuelva en los mismos puntos que en el papel real.
     final anchoContenedor = negocio.anchoTicketMm == 58 ? 320.0 * 384 / 576 : 320.0;
 
     return Container(
@@ -188,10 +158,6 @@ class TicketEscPosPreview extends StatelessWidget {
           if (negocio.rangoPrefijo.isNotEmpty || negocio.rangoDesde.isNotEmpty)
             linea('Rango Aut.: ${negocio.rangoPrefijo}${negocio.rangoDesde} al ${negocio.rangoPrefijo}${negocio.rangoHasta}'),
           if (negocio.fechaLimiteEmision != null) linea('Fecha Límite: ${formatoDia.format(negocio.fechaLimiteEmision!)}'),
-          // Pedido explícito del dueño: quitar el resto del pie legal
-          // ("ORIGINAL: CLIENTE"/"COPIA: OBLIGADO TRIBUTARIO EMISOR"/"LA
-          // FACTURA ES BENEFICIO DE TODOS"), dejando solo el agradecimiento
-          // y el ORIGINAL/COPIA de más abajo.
           const SizedBox(height: 6),
           linea('¡GRACIAS POR SU COMPRA!', centrado: true, negrita: true),
           const SizedBox(height: 10),
@@ -206,10 +172,6 @@ class TicketEscPosPreview extends StatelessWidget {
     return cantidad.toStringAsFixed(2);
   }
 
-  // Ver el mismo comentario/pedido en venta_export_service.dart: si el
-  // nombre del negocio tiene más de una palabra, la primera va sola en su
-  // propia línea (la marca corta, "CK") y el resto abajo (la razón social
-  // completa, "S DE R.L. DE C.V."), igual que en el ticket real.
   List<Widget> _encabezadoNombreNegocio(String nombre, Widget Function(String, {bool centrado, bool negrita, double tamano}) linea) {
     final nombreMayus = nombre.toUpperCase().trim();
     final espacio = nombreMayus.indexOf(' ');

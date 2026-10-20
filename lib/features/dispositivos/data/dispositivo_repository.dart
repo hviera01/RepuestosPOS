@@ -6,9 +6,6 @@ import 'dispositivo_model.dart';
 class DispositivoRepository with ConRedMixin {
   final _db = Supabase.instance.client;
 
-  /// Se llama al iniciar sesión: actualiza (o crea, la primera vez) el
-  /// registro de este equipo con la versión instalada y quién inició sesión
-  /// ahora. No bloquea el arranque si falla -es solo informativo-.
   Future<void> reportar({required int versionApp, required String usuario}) async {
     try {
       final id = await obtenerIdDispositivo();
@@ -20,7 +17,6 @@ class DispositivoRepository with ConRedMixin {
         'ultima_conexion': DateTime.now().toIso8601String(),
       });
     } catch (_) {
-      // Silencioso a propósito: ver comentario arriba.
     }
   }
 

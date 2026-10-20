@@ -5,15 +5,8 @@ import '../../../productos/data/pendiente_reposicion_model.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
 
-/// Sentinel que VincularPendienteDialog devuelve cuando el usuario toca
-/// "Quitar vínculo" (a diferencia de cancelar, que devuelve null y no
-/// cambia nada). Se compara con `identical(...)`, nunca con `==`.
 const quitarVinculoPendiente = Object();
 
-/// Deja elegir a cuál venta anticipada (ver PendienteReposicionModel) repone
-/// esta línea de la compra -para cuando el producto comprado es distinto al
-/// que se facturó y el emparejamiento automático por idProducto no alcanza
-/// (ver ItemCompraModel.idPendienteReposicionVinculado)-.
 class VincularPendienteDialog extends StatefulWidget {
   final List<PendienteReposicionModel> pendientes;
   final String? idVinculadoActual;

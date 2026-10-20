@@ -1,7 +1,3 @@
-/// Un registro histórico del costo de un producto, calculado cada vez que se
-/// registra una compra que lo incluye: precio unitario ingresado, menos el
-/// descuento de línea (importe gravado), más el ISV de la compra — ese
-/// resultado es el que se guarda como `precioCompra` vigente del producto.
 class HistorialPrecioCompraModel {
   final String id;
   final String idCompra;

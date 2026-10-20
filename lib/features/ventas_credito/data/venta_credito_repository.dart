@@ -24,8 +24,6 @@ class VentaCreditoRepository with ConRedMixin {
 
   Stream<List<VentaCreditoModel>> obtenerCreditos() => _tabla.observar();
 
-  /// El registro de `ventas_credito` de una venta a crédito se crea con el
-  /// mismo id que la venta (ver `registrar_venta` en supabase/schema.sql).
   Future<VentaCreditoModel?> obtenerPorId(String id) {
     return conRed(() async {
       final filas = await _db.from('ventas_credito').select().eq('id', id).limit(1);
@@ -50,8 +48,6 @@ class VentaCreditoRepository with ConRedMixin {
     });
   }
 
-  /// Créditos de un cliente vinculado. Prioriza [idCliente]; si no hay, cae
-  /// a [documentoCliente].
   Future<List<VentaCreditoModel>> obtenerCreditosDeCliente({String? idCliente, String? documentoCliente}) {
     return conRed(() async {
       List<Map<String, dynamic>> filas;
@@ -89,14 +85,10 @@ class VentaCreditoRepository with ConRedMixin {
         }));
   }
 
-  /// Cambia (o agrega) el teléfono de contacto de ESTE crédito puntual, sin
-  /// tocar el registro de 'clientes'.
   Future<void> actualizarTelefono(String id, String telefono) {
     return conRed(() => _db.from('ventas_credito').update({'telefono': telefono.trim()}).eq('id', id));
   }
 
-  /// Pide que se mande YA el aviso de WhatsApp de crédito vencido — el envío
-  /// real lo hace el script Node aparte, acá solo se marca el pedido.
   Future<void> solicitarAvisoWhatsApp(String idCredito) {
     return conRed(() => _db.from('ventas_credito').update({
           'solicitud_aviso_whatsapp': true,
@@ -176,9 +168,6 @@ class VentaCreditoRepository with ConRedMixin {
       for (final factura in facturas) {
         await _db.from('ventas_credito').update({'saldo_pendiente': 0, 'fusionada': true}).eq('id', factura.id);
       }
-      // Si una de las facturas que se está uniendo ya era, a su vez, el
-      // resultado de una unión anterior, se guardan sus facturas de origen
-      // reales en vez de su propio id.
       final facturasOrigenPlanas = <FacturaOrigenModel>[
         for (final factura in facturas)
           if (factura.esFusion)
@@ -203,7 +192,6 @@ class VentaCreditoRepository with ConRedMixin {
     return conRed(() => _db.from('ventas_credito').delete().eq('id', id));
   }
 
-  /// Crea en lote los créditos de venta de una importación desde Excel.
   Future<int> importarCreditos(List<FilaImportacionVentaCredito> filas) {
     return conRed(() async {
       final validas = filas.where((f) => f.valido).toList();

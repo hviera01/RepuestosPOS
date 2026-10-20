@@ -4,16 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../data/promocion_model.dart';
 import '../../../../core/utils/formato_moneda.dart';
 
-/// Diálogo interactivo que se muestra al agregar (o al ajustar la cantidad
-/// de) un producto que cumple una promoción vigente y aplicable a la
-/// condición/método de pago de la venta en curso. El cajero decide si se
-/// aplica o no — si rechaza, el producto sigue a precio normal.
 class PromocionDetectadaDialog extends StatelessWidget {
   final PromocionModel promocion;
-  // Contexto adicional para explicar la oferta en combo/regalo: precio
-  // normal por unidad del producto base (con ISV), para mostrar cuánto se
-  // ahorra. Para comboMultiproducto es el total normal (con ISV) de los
-  // productos del combo ya en el carrito.
   final double? precioUnitarioBase;
 
   const PromocionDetectadaDialog({super.key, required this.promocion, this.precioUnitarioBase});

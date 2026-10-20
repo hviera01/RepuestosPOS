@@ -32,15 +32,6 @@ class SideMenu extends ConsumerWidget {
       actualizacion = await ActualizacionService.buscarActualizacion();
     } catch (e) {
       if (!context.mounted) return;
-      // Distinto del caso "ya estás al día": acá el chequeo ni siquiera se
-      // pudo completar (sin internet, GitHub no responde, un problema de
-      // certificado SSL específico de ese equipo, etc.) — antes esto se
-      // confundía con "ya tenés la última versión", lo que hacía parecer que
-      // nunca había actualizaciones nuevas aunque sí las hubiera. Como
-      // respaldo práctico para cuando el chequeo automático nunca logra
-      // conectarse en un equipo puntual: un diálogo con un botón
-      // "Actualizar" que abre DIRECTO la descarga del instalador más nuevo,
-      // sin depender del mismo mecanismo que está fallando acá.
       await mostrarDialogoActualizacionRespaldo(context, e.toString());
       return;
     }
@@ -61,9 +52,6 @@ class SideMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
     final usuario = authState.usuario;
-    // La regla de quién ve qué vive en un único lugar compartido con
-    // HomeScreen -ver puedeVerSubModulo-, para que ambos menús (el lateral
-    // de acá y la grilla de Inicio) no vuelvan a desincronizarse.
     bool puedeVer(SubModulo s) => puedeVerSubModulo(usuario, s);
 
     final modulos = obtenerModulos().where((m) {

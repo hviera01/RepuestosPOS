@@ -21,9 +21,6 @@ import '../../../../core/widgets/campo_teclado_compacto.dart';
 import '../../../../core/tutorial/tutorial_modelos.dart';
 import '../../../../core/tutorial/tutorial_boton.dart';
 
-/// Un componente agregado a la receta de un combo mientras se está armando
-/// en el formulario (antes de guardar). [cantidad] vive en un controller
-/// propio para poder editarse con teclado numérico normal, línea por línea.
 class _ComponenteEnConstruccion {
   final ProductoModel producto;
   final TextEditingController cantidadController;
@@ -38,11 +35,6 @@ class _ComponenteEnConstruccion {
 class ProductoFormDialog extends ConsumerStatefulWidget {
   final ProductoModel? producto;
 
-  // Precargan código/nombre al crear un producto NUEVO (producto == null);
-  // se ignoran si se está editando uno existente. Vienen de EscanearFactura
-  // (ver Registrar Compra > Escanear Factura, web móvil): cuando una línea
-  // leída de la factura no coincide con nada del inventario, evita que el
-  // cajero tenga que volver a tipear lo que la IA ya leyó bien.
   final String? codigoInicial;
   final String? nombreInicial;
 
@@ -71,18 +63,8 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
   final _precioVentaController = TextEditingController(text: '0');
   final _precioVenta2Controller = TextEditingController();
   final _precioVenta3Controller = TextEditingController();
-  // Sin `autofocus`: en Windows, pedir el foco durante el primer build (que
-  // es lo que hace `autofocus`) compite con la animación de apertura del
-  // Dialog y se pierde la primera tecla que se escribe. Pidiéndolo a mano
-  // después del primer frame (mismo mecanismo ya usado en
-  // registrar_venta_screen para este problema) el foco queda firme antes de
-  // que llegue cualquier tecla.
   final _focusNombre = FocusNode();
 
-  // --- GlobalKeys para el tutorial guiado (ver lib/core/tutorial/) ---
-  // Este diálogo solo se abre UNA vez a la vez (no vive dentro de una
-  // lista), así que no hay riesgo de que dos widgets compartan la misma key
-  // al mismo tiempo.
   final _keyCodigo = GlobalKey();
   final _keyCodigoBarras = GlobalKey();
   final _keyNombre = GlobalKey();
@@ -105,19 +87,9 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
   bool _guardando = false;
   String? _error;
 
-  // Combo/Kit: solo se puede activar al crear (no se cambia el tipo de un
-  // producto ya existente). Reemplaza "Existencia inicial" + "Precio Compra"
-  // por un armador de receta: cada componente es un producto individual ya
-  // existente (no otro combo) con la cantidad que lleva cada unidad del
-  // combo. El costo se recalcula solo, en vivo, sumando cantidad×precioCompra
-  // de cada componente.
   bool _esCombo = false;
   final List<_ComponenteEnConstruccion> _componentesCombo = [];
   final _busquedaComponenteController = TextEditingController();
-  // Al editar un combo ya existente, su lista de componentes (guardada como
-  // solo id+cantidad) recién se puede armar en pantalla cuando el stream de
-  // productos trae los datos completos (nombre, precioCompra) de cada uno;
-  // esta bandera evita repetir esa carga en cada rebuild.
   bool _componentesInicializados = false;
 
   double get _costoSumadoCombo {
@@ -130,11 +102,6 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
     return total;
   }
 
-  // Foto del producto: se sube a Cloudinary apenas se elige (no recién al
-  // guardar), así el usuario ve enseguida si la subida falló en vez de
-  // enterarse hasta el final. _imagenUrl es lo que se manda a crear/
-  // actualizar; _imagenPreviewBytes es la vista previa local mientras sube
-  // (o si la subida falló y no hay URL todavía).
   String _imagenUrl = '';
   Uint8List? _imagenPreviewBytes;
   bool _subiendoImagen = false;
@@ -253,11 +220,6 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
     });
   }
 
-  /// Manda la foto YA subida a remove.bg (plan gratis, 50/mes, resolución
-  /// miniatura) y sube el resultado (PNG con transparencia) de vuelta a
-  /// Cloudinary, reemplazando la foto del producto -pedido explícito del
-  /// dueño-. Sirve tanto para una foto recién subida como para una que ya
-  /// tenía el producto desde antes.
   Future<void> _quitarFondo() async {
     if (_imagenUrl.isEmpty) return;
     setState(() => _quitandoFondo = true);
@@ -446,17 +408,8 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
     }
   }
 
-  // Se está creando (widget.producto == null) o editando uno ya existente.
   bool get _editando => widget.producto != null;
 
-  // --- Pasos compartidos entre "Crear Producto nuevo" y "Editar un
-  // Producto existente" (mismo formulario, mismos campos) -pedido explícito
-  // del dueño: separar ambos como entradas de menú CLARAS y DISTINTAS, con
-  // aclaración de que al editar los campos ya vienen precargados-. El texto
-  // de cada paso se ajusta un poco según el modo; el paso de "¿Es un combo?"
-  // y el de "Eliminar" ni se arman como problema si el widget no está en
-  // pantalla en ese modo (el framework de tutorial ya salta solo los pasos
-  // cuyo GlobalKey no tiene un widget real montado, ver tutorial_boton.dart).
   List<TutorialPaso> _pasosFormulario() => [
     TutorialPaso(
       key: _keyCodigo,
@@ -604,10 +557,6 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
     final categoriasAsync = ref.watch(categoriasStreamProvider);
     final tamano = MediaQuery.of(context).size;
     final esMovil = tamano.width < 540;
-    // En pantalla ancha (PC) el formulario se organiza en dos columnas -pedido
-    // explícito del dueño: que aproveche el ancho disponible y no haya que
-    // scrollear-, así que el diálogo necesita bastante más ancho que el
-    // angosto de una sola columna que sigue usando el celular.
     final anchoDisponibleDesktop = tamano.width - 120;
     final anchoDialog = esMovil
         ? tamano.width - 48
@@ -621,10 +570,6 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
         ? 760.0
         : (altoDisponibleDesktop < 520 ? 520.0 : altoDisponibleDesktop);
 
-    // Al editar un combo ya existente, arma _componentesCombo a partir de la
-    // receta guardada (solo id+cantidad) apenas el stream de productos trae
-    // los datos completos de cada componente. Una sola vez por apertura del
-    // diálogo (ver _componentesInicializados).
     if (!_componentesInicializados && editando && widget.producto!.esCombo) {
       final productosDisponibles = ref.watch(productosStreamProvider).value;
       if (productosDisponibles != null) {
@@ -708,10 +653,6 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                       ),
                     ),
                     const SizedBox(height: 18),
-                    // En pantalla ancha (PC) se reparte en dos columnas para
-                    // aprovechar el ancho del diálogo y evitar el scroll del
-                    // formulario largo; en celular/tablet angosto se apilan
-                    // igual que siempre (una sola columna).
                     if (esMovil)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -813,8 +754,6 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
     );
   }
 
-  /// Columna izquierda del formulario en pantalla ancha (o el primer tramo
-  /// de la única columna en celular/tablet): identidad del producto.
   List<Widget> _camposIdentidad(
     AsyncValue<List<CategoriaModel>> categoriasAsync,
   ) {
@@ -935,8 +874,6 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
     ];
   }
 
-  /// Columna derecha del formulario en pantalla ancha (o el segundo tramo
-  /// de la única columna en celular/tablet): combo/precios/estado.
   List<Widget> _camposPrecioEstado(bool editando) {
     return [
       if (!editando) ...[
@@ -1402,10 +1339,6 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
               ),
             ),
           ),
-        // "Quitar fondo" (remove.bg, plan gratis) -pedido explícito del
-        // dueño-: solo tiene sentido si la foto YA está subida de verdad
-        // (_imagenUrl, no una vista previa local todavía sin subir) porque
-        // remove.bg necesita una URL pública para descargarla.
         if (!_subiendoImagen && !_quitandoFondo && _imagenUrl.isNotEmpty)
           Positioned(
             bottom: -8,

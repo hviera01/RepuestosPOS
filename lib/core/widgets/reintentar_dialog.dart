@@ -3,17 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Ejecuta [accion] y, si falla (por ejemplo por un timeout de red), muestra
-/// un diálogo bien visible en el centro de la pantalla explicando que
-/// probablemente falló la conexión a internet, con la opción de reintentar
-/// la misma acción sin tener que cerrar el formulario y perder lo escrito.
-///
-/// Antes, cuando fallaba una acción como guardar un producto, el error solo
-/// se mostraba como un texto chico en el formulario, y a veces ni quedaba
-/// claro si el cambio se había hecho o no. Este diálogo lo deja explícito.
-///
-/// Devuelve el resultado de [accion] si tuvo éxito, o null si el usuario
-/// tocó "Cancelar" en vez de reintentar.
 Future<T?> ejecutarConReintento<T>(
   BuildContext context,
   Future<T> Function() accion,
@@ -69,7 +58,6 @@ Future<T?> ejecutarConReintento<T>(
         ),
       );
       if (reintentar != true) return null;
-      // Vuelve a intentar accion() en la siguiente vuelta del while.
     }
   }
 }

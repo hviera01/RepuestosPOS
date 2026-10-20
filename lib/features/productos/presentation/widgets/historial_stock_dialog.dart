@@ -50,14 +50,6 @@ class _HistorialStockDialogState extends ConsumerState<HistorialStockDialog> {
     }).toList();
   }
 
-  /// Solo venta/compra (y sus anulaciones) están ligadas a un documento
-  /// real que se pueda abrir -pedido explícito del dueño: "al tocar la fila
-  /// pueda abrirse el detalle de venta o la compra que es". Ajustes
-  /// manuales/reembasados no tienen documento propio, no son tocables.
-  /// El número sale del propio texto de [HistorialStockModel.motivo] (ver
-  /// el getter `tipo`, mismo criterio: no hizo falta guardar un idVenta/
-  /// idCompra en cada historial para lograr esto, y así funciona también
-  /// retroactivo para movimientos ya guardados).
   String? _numeroDocumentoDesde(HistorialStockModel r) {
     switch (r.tipo) {
       case TipoMovimientoStock.venta:
@@ -92,9 +84,6 @@ class _HistorialStockDialogState extends ConsumerState<HistorialStockDialog> {
     final formatoDia = DateFormat('dd/MM/yyyy');
     final tamano = MediaQuery.of(context).size;
     final esMovil = tamano.width < 640;
-    // 1040 en vez de 720 -pedido explícito del dueño: la columna MOTIVO se
-    // desbordaba con movimientos cuyo motivo es más largo que un simple
-    // "venta"/"compra".
     final anchoDialog = esMovil ? tamano.width - 24 : (tamano.width - 64 < 1040 ? tamano.width - 64 : 1040.0);
     final altoDialog = tamano.height < 640 ? tamano.height - 40 : 580.0;
 

@@ -1,6 +1,3 @@
-/// Un registro histórico de venta de un producto: precio unitario con ISV al
-/// que se vendió (ya con el descuento de línea aplicado), en el orden en que
-/// se fueron registrando las ventas.
 class HistorialVentaProductoModel {
   final String id;
   final String idVenta;

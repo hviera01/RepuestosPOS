@@ -2,24 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 
-/// Lo que arma el diálogo -pedido explícito del dueño: "un modal de cuando
-/// es envío... datos de envío y la opción de si imprimir guía de envío"-.
-/// [imprimir] solo aplica al usarse desde Registrar Venta (si se marca,
-/// además de guardar los datos se imprime la guía apenas se confirme la
-/// venta); reimprimir/generar desde Detalle Venta ignora ese campo -ahí el
-/// botón que abre este diálogo ya deja claro que la intención es imprimir-.
 class DatosEnvioResultado {
   final String nombre;
   final String direccion;
   final String telefono;
   final bool imprimir;
-  // true = formato "volteado" -pedido explícito del dueño, aclarado
-  // después de una primera versión que solo agrandaba el texto sin
-  // rotarlo, que no era lo que pedía-: se imprime como una imagen ya
-  // rotada 90°, letra enorme, hay que girar la tira de lado para leerla
-  // (ver VentaTicketEscPosService.generarGuiaEnvio). false = el ticket
-  // compacto normal, texto ESC/POS derecho. Se dejan las DOS opciones
-  // siempre disponibles, nunca se reemplaza una por la otra.
   final bool formatoGrande;
   const DatosEnvioResultado({required this.nombre, required this.direccion, required this.telefono, required this.imprimir, required this.formatoGrande});
 }
@@ -28,8 +15,6 @@ class DatosEnvioDialog extends StatefulWidget {
   final String nombreInicial;
   final String direccionInicial;
   final String telefonoInicial;
-  // false desde Detalle Venta (ya se sabe que se va a imprimir; el checkbox
-  // ahí no aporta nada, ver arriba) -true (default) desde Registrar Venta.
   final bool mostrarOpcionImprimir;
 
   const DatosEnvioDialog({
@@ -45,10 +30,6 @@ class DatosEnvioDialog extends StatefulWidget {
 }
 
 class _DatosEnvioDialogState extends State<DatosEnvioDialog> {
-  // .toUpperCase() en el valor inicial también -pedido explícito del dueño:
-  // "que lo que yo escriba siempre se escriba en mayúsculas"-, para que un
-  // nombre/dirección prellenado desde el cliente (que puede venir en
-  // minúscula de antes) también quede en mayúscula acá.
   late final _ctrlNombre = TextEditingController(text: widget.nombreInicial.toUpperCase());
   late final _ctrlDireccion = TextEditingController(text: widget.direccionInicial.toUpperCase());
   late final _ctrlTelefono = TextEditingController(text: widget.telefonoInicial);

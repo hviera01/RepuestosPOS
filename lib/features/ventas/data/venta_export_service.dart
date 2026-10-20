@@ -18,11 +18,6 @@ class VentaExportService {
   static const _colorGrisClaro = PdfColor.fromInt(0xFFF2F3F7);
   static const _colorBorde = PdfColor.fromInt(0xFFE0E2E8);
 
-  /// PDF formal en tamaño carta, pensado para descargar/compartir/archivar
-  /// (distinto al ticket térmico de 80mm que se usa para imprimir en punto
-  /// de venta). [preciosConIsv] es la elección del usuario en pantalla (ver
-  /// el selector en Detalle de Venta); si no se manda, cae al valor por
-  /// defecto del negocio, igual que hacía antes.
   Future<Uint8List> generarPdfDetalleVenta(VentaModel venta, NegocioModel negocio, {bool? preciosConIsv}) async {
     final conIsv = preciosConIsv ?? negocio.facturaPreciosConIsv;
     final doc = pw.Document();
@@ -197,10 +192,6 @@ class VentaExportService {
   pw.Widget _tablaItemsFormal(VentaModel venta, bool conIsv) {
     final estiloEncabezado = pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.white);
     final estiloCelda = const pw.TextStyle(fontSize: 9);
-    // Este negocio no cobra ISV en su venta normal: el toggle de "ver
-    // precios con/sin ISV" solo tiene efecto real cuando la venta de verdad
-    // lo cobra (Factura/Boleta formal, ver CarritoVentaState._aplicaIsv) —
-    // si no, el precio que se ve YA es el precio final, sin ajuste.
     final esFacturable = venta.tipoDocumento == 'Factura' || venta.tipoDocumento == 'Boleta';
     final mostrarConIsv = esFacturable && conIsv;
     double precioMostrado(dynamic item) => mostrarConIsv ? redondearMoneda((item.precioVenta as double) * 1.15) : item.precioVenta as double;
@@ -280,11 +271,6 @@ class VentaExportService {
 
   pw.Widget _bloqueTotales(VentaModel venta) {
     final descuentosYRebajas = venta.descuentosYRebajas;
-    // Este negocio no cobra ISV en su venta normal (VentaSinFacturar): el
-    // desglose "Gravado 15%"/"ISV (15%)" solo se imprime si esta venta es
-    // Factura o Boleta formal (ver CarritoVentaState._aplicaIsv). El resto
-    // (Subtotal, Descuentos, Importe exento/exonerado, TOTAL) se imprime
-    // siempre igual.
     final esFacturable = venta.tipoDocumento == 'Factura' || venta.tipoDocumento == 'Boleta';
 
     return pw.Container(
@@ -318,8 +304,6 @@ class VentaExportService {
       children: [
         pw.Divider(color: _colorBorde),
         if (!esCotizacion) ...[
-          // Datos fiscales de la factura: siempre se incluyen en documentos
-          // fiscales (Factura/Boleta/Venta Sin Facturar), nunca en cotizaciones.
           pw.Text('CAI: ${negocio.cai.isEmpty ? 'N/D' : negocio.cai}', style: estiloFiscal),
           pw.Text('Rango autorizado: ${negocio.rangoPrefijo}${negocio.rangoDesde} al ${negocio.rangoPrefijo}${negocio.rangoHasta}', style: estiloFiscal),
           pw.Text('Fecha límite de emisión: ${negocio.fechaLimiteEmision != null ? formatoDia.format(negocio.fechaLimiteEmision!) : 'N/D'}', style: estiloFiscal),
@@ -342,28 +326,8 @@ class VentaExportService {
     );
   }
 
-  // [forzarCopia] es para cuando se reimprime desde Detalle de Venta y el
-  // usuario elige explícitamente si quiere una hoja que diga "ORIGINAL" o
-  // "COPIA": si se manda, se imprime solo esa (una sola página), sin importar
-  // negocio.facturaImprimirCopia. Si se deja en null, es el comportamiento de
-  // siempre (al momento de la venta): ORIGINAL, y además COPIA si el negocio
-  // tiene esa opción activada.
-  //
-  // [formatoImpresora] es el `format` que el propio paquete `printing` le
-  // pasa a `onLayout` con el tamaño de página real que espera la impresora
-  // seleccionada en Windows (según su configuración en el sistema). En web
-  // sale centrado sin este dato porque el navegador reescala/ubica solo,
-  // pero en el .exe de Windows, si armamos el PDF con un ancho fijo de 80mm
-  // que no coincide exactamente con lo que el driver de la impresora tiene
-  // configurado, el resultado queda con el contenido pegado a un lado en vez
-  // de centrado. Si viene un formato que parece de rollo térmico (entre 40 y
-  // 120mm de ancho) se usa ese ancho real en vez del fijo; si no, se sigue
-  // usando 80mm como hasta ahora.
   Future<Uint8List> generarPdfFactura(VentaModel venta, NegocioModel negocio, {bool? forzarCopia, PdfPageFormat? formatoImpresora}) async {
     final doc = pw.Document();
-    // maxDimension más alto que el default acá: el logo del ticket ahora se
-    // imprime más grande (ver _construirPaginaTicket), y con la resolución
-    // chica que alcanza para un logo de cabecera normal se vería borroso.
     final logo = decodificarLogoPdf(negocio.logoBnBase64, maxDimension: 400);
     final anchoMm = _anchoValidoDesdeFormato(formatoImpresora);
 
@@ -379,11 +343,6 @@ class VentaExportService {
     return doc.save();
   }
 
-  /// Un único PDF con el ticket de cada venta en páginas separadas — para
-  /// cuando varias facturas de crédito se unieron en un solo saldo (ver
-  /// "Ver facturas unidas" en Ventas a Crédito) pero igual se quiere
-  /// imprimir cada una tal como habría salido individualmente, en vez de
-  /// una sola hoja combinada.
   Future<Uint8List> generarPdfFacturasPorSeparado(List<VentaModel> ventas, NegocioModel negocio, {PdfPageFormat? formatoImpresora}) async {
     final doc = pw.Document();
     final logo = decodificarLogoPdf(negocio.logoBnBase64, maxDimension: 400);
@@ -401,49 +360,15 @@ class VentaExportService {
     return anchoMm;
   }
 
-  // pw.MultiPage en vez de pw.Page: antes esto usaba una altura "infinita"
-  // (double.infinity) para que el ticket se ajuste a lo que ocupe el
-  // contenido, pensado para el rollo continuo de la térmica. Funciona bien
-  // en la vista previa (el paquete mide el contenido real antes de
-  // mostrarlo), pero al imprimir directo sin pasar por esa vista previa,
-  // algunos drivers de impresora en Windows no manejan bien una altura
-  // infinita y terminaban cortando el ticket a la mitad (palabras y cifras
-  // cortadas).
-  //
-  // A propósito NO se usa un techo modesto que fuerce a las facturas largas
-  // a partirse en una página 2+: una factura, a diferencia de un traslado
-  // interno, es algo que se le entrega al cliente, y no se quiere que salga
-  // partida en dos pedazos de papel con corte en el medio. Por eso el alto
-  // se calcula lo más ajustado posible a lo que realmente va a imprimirse
-  // (ver _estimarAlturaTicketMm, que ahora sí considera nombres largos que
-  // se parten en varias líneas) y ese valor se manda tal cual, sin techo
-  // artificial -solo un tope de seguridad muy alto para no volver a caer en
-  // el caso "altura infinita" del párrafo de arriba-. Solo si una factura
-  // fuera excepcionalmente larga y llegara a tocar ese tope de seguridad,
-  // MultiPage la sigue en una página 2+ (con su propio "Página X de Y", ver
-  // el footer más abajo) — un caso extremo que no debería darse en el uso
-  // normal.
   pw.Page _construirPaginaTicket(VentaModel venta, NegocioModel negocio, pw.MemoryImage? logo, {required bool esCopia, double? anchoMm}) {
     final formatoFecha = DateFormat('dd/MM/yyyy HH:mm');
     final formatoDia = DateFormat('dd/MM/yyyy');
-    // Ancho real de la impresora (ver _anchoValidoDesdeFormato) si vino uno
-    // que parece de rollo térmico; si no, el fijo de siempre.
     final anchoPaginaMm = anchoMm ?? 80.0;
-    // En 58mm la letra se achica más -pedido explícito del dueño mostrando
-    // un ticket de referencia de un POS de tarjeta bien aprovechado: "si hay
-    // que hacer la letra más pequeña no importa, quiero todo claro y
-    // ordenado"-. En 80mm queda igual que siempre.
     final esAngosto = anchoPaginaMm <= 58;
     final fSmall = esAngosto ? 6.5 : 7.5;
     final fNormal = esAngosto ? 7.0 : 8.0;
     final alturaMm = _estimarAlturaTicketMm(venta, negocio, tieneLogo: logo != null, anchoMm: anchoMm);
 
-    // Este negocio no cobra ISV en su venta normal (VentaSinFacturar): solo
-    // se aplica el 15% si esta venta es Factura o Boleta formal (ver
-    // CarritoVentaState._aplicaIsv). El total y el desglose de ISV siempre
-    // reflejan el monto real de la venta; esto solo cambia cómo se ve el
-    // precio unitario y el importe de cada línea (con o sin ISV incluido),
-    // según la configuración del negocio -y solo cuando de verdad aplica-.
     final esFacturable = venta.tipoDocumento == 'Factura' || venta.tipoDocumento == 'Boleta';
     final mostrarConIsv = esFacturable && negocio.facturaPreciosConIsv;
     double precioMostrado(dynamic item) => mostrarConIsv ? redondearMoneda((item.precioVenta as double) * 1.15) : item.precioVenta as double;
@@ -455,31 +380,11 @@ class VentaExportService {
 
     final descuentosYRebajas = venta.descuentosYRebajas;
 
-    // En la web (imprime a través del diálogo del navegador) y en Android
-    // (ESC/POS por red, ni siquiera pasa por acá) 5mm de margen imprime
-    // perfecto. Pero en el .exe de Windows, imprimiendo nativo (con o sin
-    // vista previa), sigue saliendo recortado a lo ancho aun con esos 5mm:
-    // el controlador de la impresora en Windows debe estar interpretando un
-    // área imprimible más angosta que los 80mm declarados, y a diferencia
-    // del navegador, no reescala el contenido para que quepa — lo recorta
-    // tal cual. La solución robusta sin poder probar en la impresora real es
-    // darle más margen de sobra SOLO en Windows nativo, dejando la web y el
-    // APK exactamente como están (que ya imprimen bien).
-    // En un rollo angosto (58mm) 9mm de margen a cada lado se come casi un
-    // tercio del papel -pedido explícito del dueño tras ver el ticket real
-    // "amontonado": las columnas (CANT/DESCRIPCIÓN/IMPORTE, TOTAL A PAGAR)
-    // terminaban con tan poco ancho disponible que el texto se pegaba entre
-    // sí-. En 80mm el margen grande sigue igual que antes (defensivo contra
-    // drivers de Windows que recortan el área imprimible real).
     final margenMm = (!kIsWeb && Platform.isWindows) ? (anchoPaginaMm <= 58 ? 4.0 : 9.0) : 5.0;
 
     return pw.MultiPage(
         maxPages: 2000,
       pageFormat: PdfPageFormat(anchoPaginaMm * PdfPageFormat.mm, alturaMm * PdfPageFormat.mm, marginAll: margenMm * PdfPageFormat.mm),
-      // Mismo mecanismo que traslado_export_service.dart (Auto Frenos
-      // Oriente): "Página X de Y" solo aparece si de verdad hay más de una
-      // página (pagesCount se sabe recién en el segundo pase de MultiPage),
-      // así que el caso normal de una sola página no muestra nada de más.
       footer: (context) {
         if (context.pagesCount <= 1) return pw.SizedBox();
         return pw.Padding(
@@ -489,9 +394,6 @@ class VentaExportService {
           ),
         );
       },
-      // En la página 2+ el encabezado completo del negocio no se repite
-      // (solo se imprime una vez, al principio); esto deja claro que la
-      // hoja es la continuación de la misma factura.
       header: (context) {
         if (context.pageNumber <= 1) return pw.SizedBox();
         return pw.Padding(
@@ -504,10 +406,6 @@ class VentaExportService {
       },
       build: (context) {
         return [
-            // Ancho fijo (en vez de alto) para que se vea grande y nítido sin
-            // desbordar el ticket de 80mm, sea cual sea la proporción del
-            // logo que suba el negocio: antes salía muy chico porque solo se
-            // limitaba el alto a 50pt.
             if (logo != null) pw.Center(child: pw.Image(logo, width: 140)),
             if (negocio.nombre.isNotEmpty)
               ..._encabezadoNombreNegocio(negocio.nombre),
@@ -538,12 +436,6 @@ class VentaExportService {
               pw.Text('Observaciones: ${venta.observaciones}', style: pw.TextStyle(fontSize: fNormal)),
             ],
             _separador(),
-            // _filaFlex (no Row+spaceBetween a secas) para que "IMPORTE"/el
-            // monto de cada línea NUNCA se apachurre contra la columna de la
-            // izquierda ni se envuelva -pedido explícito del dueño tras ver
-            // un ticket real con "DESCRIPCIÓNIMPORTE" pegado-: el texto de
-            // la izquierda es el que cede espacio (Expanded) si hace falta,
-            // el de la derecha siempre se dibuja completo, a su ancho real.
             _filaFlex('CANT  DESCRIPCIÓN', 'IMPORTE', style: pw.TextStyle(fontSize: fSmall)),
             _separador(),
             ...venta.detalle.map((item) => pw.Padding(
@@ -551,9 +443,6 @@ class VentaExportService {
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      // Sin negrita: en la impresora térmica el texto en
-                      // negrita se ve más "manchado" y termina siendo menos
-                      // claro que el peso normal, sobre todo en letra chica.
                       pw.Text(item.nombreProducto, style: pw.TextStyle(fontSize: fSmall)),
                       _filaFlex(
                         '${_formatoCantidad(item.cantidad)} x ${formatearMoneda(precioMostrado(item))}${item.descuentoPorcentaje > 0 ? ' (-${_formatoCantidad(item.descuentoPorcentaje)}%)' : ''}',
@@ -595,10 +484,6 @@ class VentaExportService {
               pw.Text('Rango Aut.: ${negocio.rangoPrefijo}${negocio.rangoDesde} al ${negocio.rangoPrefijo}${negocio.rangoHasta}', style: pw.TextStyle(fontSize: fSmall)),
             if (negocio.fechaLimiteEmision != null)
               pw.Text('Fecha Límite: ${formatoDia.format(negocio.fechaLimiteEmision!)}', style: pw.TextStyle(fontSize: fSmall)),
-            // Pedido explícito del dueño: quitar el resto del pie legal
-            // ("ORIGINAL: CLIENTE"/"COPIA: OBLIGADO TRIBUTARIO EMISOR"/"LA
-            // FACTURA ES BENEFICIO DE TODOS"), dejando solo el agradecimiento
-            // y el ORIGINAL/COPIA de más abajo.
             pw.SizedBox(height: 4),
             pw.Center(child: pw.Text('¡GRACIAS POR SU COMPRA!', style: pw.TextStyle(fontSize: fNormal))),
             pw.SizedBox(height: 10),
@@ -611,21 +496,7 @@ class VentaExportService {
     );
   }
 
-  // Estima cuánto va a ocupar el ticket según lo que realmente se va a
-  // imprimir (mismas condiciones que el `build` de arriba), para que el
-  // rollo térmico no quede con un espacio en blanco larguísimo al final ni,
-  // al revés, tan corto que MultiPage tenga que partir el ticket en más de
-  // una página (en un rollo continuo eso es peor que un poco de papel de
-  // más: por larga que sea, la factura tiene que salir en una sola página).
-  // Por eso el número base ya incluye un margen de sobra generoso: es mejor
-  // que sobre un poco de papel en blanco al final a que se corte en dos.
   double _estimarAlturaTicketMm(VentaModel venta, NegocioModel negocio, {required bool tieneLogo, double? anchoMm}) {
-    // Bloque fijo que siempre se imprime: tipo/fecha/atendido/condición,
-    // cliente + id, encabezado de tabla, los 7 separadores entre secciones,
-    // los 8 renglones de totales (incluye "Descuentos y rebajas"), "son:",
-    // forma de pago, avisos legales de original/copia, agradecimiento y el
-    // "ORIGINAL"/"COPIA" final — más margen de la página y colchón de
-    // seguridad.
     double alto = 200.0;
 
     if (tieneLogo) alto += 20.0;
@@ -642,29 +513,12 @@ class VentaExportService {
     if (venta.regExonerado.isNotEmpty) alto += 6.0;
     if (venta.regSag.isNotEmpty) alto += 6.0;
     if (venta.descuentoGlobal > 0) alto += 6.0;
-    // "Rango Aut.: 000-0001-01-00005401 al 000-0001-01-00006000" es largo y
-    // casi siempre se parte en dos líneas dentro de los 80mm.
     if (negocio.rangoPrefijo.isNotEmpty || negocio.rangoDesde.isNotEmpty) alto += 10.0;
     if (negocio.fechaLimiteEmision != null) alto += 6.0;
 
-    // "Pago con tarjeta"/"Transferencia" son una sola línea (ya contadas en
-    // el bloque fijo), pero "Mixto" imprime un renglón por cada método
-    // usado -antes no se contaba nada acá, así que una venta con Efectivo +
-    // Tarjeta + Transferencia se quedaba corta exactamente en esas líneas-.
     if (venta.metodoPago == 'Mixto') alto += venta.pagosMixtos.length * 6.0;
 
-    // Cada producto: nombre (puede partirse en varias líneas si es largo,
-    // algo común en repuestos/ferretería) + el renglón de cantidad/importe.
-    // Antes esto sumaba un valor fijo por producto sin importar el largo del
-    // nombre, así que una factura con muchos productos de nombre largo
-    // (varias líneas cada uno) se quedaba corta y el ticket salía cortado en
-    // impresoras/drivers que no manejan bien una segunda página en el rollo
-    // continuo -ver el comentario grande más arriba-. Ahora se estima cuántas
-    // líneas ocupa cada nombre según el ancho real de la página, con un
-    // cálculo deliberadamente conservador (menos caracteres por línea de los
-    // que probablemente entran) para quedarse corto de papel en blanco antes
-    // que corto de contenido.
-    const margenMmEstimado = 9.0; // el mayor de los dos casos (ver más arriba)
+    const margenMmEstimado = 9.0;
     final anchoUtilMm = (anchoMm ?? 80.0) - margenMmEstimado * 2;
     final caracteresPorLinea = (anchoUtilMm / 1.7).floor().clamp(18, 60);
     for (final item in venta.detalle) {
@@ -672,19 +526,11 @@ class VentaExportService {
       alto += lineasNombre * 3.6 + 7.0;
     }
 
-    // Observaciones es texto libre: se estima igual que el nombre de
-    // producto (mismo caracteresPorLinea), más el separador extra que la
-    // envuelve (ver _construirPaginaTicket).
     if (venta.observaciones.isNotEmpty) {
       final lineasObservaciones = (venta.observaciones.length / caracteresPorLinea).ceil().clamp(1, 10);
       alto += lineasObservaciones * 3.6 + 8.0;
     }
 
-    // Sin techo modesto acá a propósito (ver comentario grande en
-    // _construirPaginaTicket): una factura no se quiere partida en dos
-    // pedazos de papel salvo caso extremo. El único límite es de seguridad,
-    // para no repetir el problema de "altura infinita" con una factura
-    // absurdamente larga (miles de líneas).
     return alto.clamp(0, 3000);
   }
 
@@ -696,12 +542,6 @@ class VentaExportService {
   }
 
   pw.Widget _filaTotal(String etiqueta, double valor, {bool negrita = false, bool angosto = false}) {
-    // Nada de FontWeight.bold acá: el negrito real (Helvetica-Bold) se ve
-    // "manchado" en la impresora térmica, los trazos gruesos casi se tocan
-    // entre sí a esa resolución (mismo problema que ya se evitó para los
-    // nombres de producto, ver comentario más arriba). El total se destaca
-    // con trazo normal pero un poco más grande y con letras más separadas,
-    // que a esta resolución se lee más claro que el negrito real.
     final estilo = pw.TextStyle(
       fontSize: negrita ? (angosto ? 8.0 : 9.0) : (angosto ? 7.0 : 8.0),
       fontWeight: pw.FontWeight.normal,
@@ -713,14 +553,6 @@ class VentaExportService {
     );
   }
 
-  // Fila de dos columnas que NUNCA deja que [derecha] se corte, se envuelva
-  // a una segunda línea, ni se apachurre contra [izquierda] -pedido
-  // explícito del dueño tras ver "TOTAL A PAGAR:L.100.0" cortado en un
-  // ticket real-: a diferencia de Row+spaceBetween (que reparte el espacio
-  // sobrante pero deja que cualquiera de los dos textos se envuelva si no
-  // caben ambos), acá [izquierda] va en un Expanded (absorbe el wrap si
-  // hace falta) e [derecha] va sin restricción de ancho, así que siempre se
-  // dibuja completo en una sola línea con su ancho real.
   pw.Widget _filaFlex(String izquierda, String derecha, {required pw.TextStyle style}) {
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -732,11 +564,6 @@ class VentaExportService {
     );
   }
 
-  // Ver el pedido explícito del dueño con el ticket real "CK S DE R.L. / DE
-  // C.V." partido en un lugar raro: si el nombre del negocio tiene más de
-  // una palabra, la primera va sola en su propia línea (la marca corta,
-  // "CK") y el resto abajo (la razón social completa, "S DE R.L. DE C.V."),
-  // en vez de dejar que el motor de PDF lo envuelva donde le quede.
   List<pw.Widget> _encabezadoNombreNegocio(String nombre) {
     final nombreMayus = nombre.toUpperCase().trim();
     final estilo = pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold);

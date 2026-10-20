@@ -43,9 +43,6 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
   List<VentaCreditoModel> _listaCompleta = [];
   List<VentaCreditoModel> _listaActual = [];
 
-  // Claves del tutorial guiado (ver core/tutorial) -solo se resaltan los
-  // widgets reales de esta pantalla, no hay ninguno "de mentira" creado
-  // aparte para esto-.
   final _keyStatTotal = GlobalKey();
   final _keyBuscador = GlobalKey();
   final _keySelectorVista = GlobalKey();
@@ -310,12 +307,6 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
     }
   }
 
-  /// Cambia (o agrega) el teléfono de contacto de este crédito puntual -a
-  /// propósito NO toca el registro de 'clientes' aunque esté vinculado, ver
-  /// VentaCreditoRepository.actualizarTelefono-. Es el número que usa el
-  /// aviso automático de crédito vencido por WhatsApp
-  /// (tool/aviso_creditos_whatsapp), así que sirve sobre todo para completar
-  /// créditos viejos/manuales/importados que nunca tuvieron uno.
   Future<void> _editarTelefono(VentaCreditoModel credito) async {
     final controller = TextEditingController(text: credito.telefono);
     final nuevo = await showDialog<String>(
@@ -365,18 +356,7 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
         .actualizarTelefono(credito.id, nuevo);
   }
 
-  /// "Enviar aviso ahora": marca el pedido en el propio crédito (ver
-  /// VentaCreditoRepository.solicitarAvisoWhatsApp) y avisa que va a tardar
-  /// un par de minutos -el envío real lo hace la tarea programada
-  /// tool/aviso_creditos_whatsapp/escuchar.js (corre cada 2 minutos en la PC
-  /// principal), no esta app-.
   Future<void> _enviarAvisoWhatsApp(VentaCreditoModel credito) async {
-    // Chequeo de presencia PRIMERO (ver PresenciaAvisoWhatsappRepository,
-    // mismo patrón que la impresión en vivo): si la tarea programada de
-    // esa PC está desactivada o dejó de correr, antes esto "funcionaba" (no
-    // tiraba error) pero no mandaba nada y no había forma de saber por qué
-    // -bug real reportado por el dueño-. Ahora se avisa de inmediato en vez
-    // de dejarlo esperando en silencio.
     final conectado = await ref
         .read(presenciaAvisoWhatsappRepositoryProvider)
         .estaConectado();
@@ -408,19 +388,6 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
     );
   }
 
-  /// Los créditos importados desde el Excel del sistema anterior (ver
-  /// VentaCreditoImportService) no tienen un documento de venta real
-  /// asociado (ver VentaCreditoModel.sinVentaOrigen) -se crearon directo en
-  /// `ventas_credito`, con id propio-, así que DetalleVentaScreen nunca los
-  /// va a encontrar. Algunos de ellos habían recibido después, en el
-  /// Firestore original, su detalle de productos en una subcolección propia
-  /// (backfill puntual del 2026-08-17, cruzado contra la base vieja por
-  /// cliente+monto+fecha); esa subcolección no tiene tabla equivalente en el
-  /// esquema de Supabase (edge case no cubierto por la migración, ver
-  /// reporte de la tarea), así que por ahora esos créditos puntuales
-  /// simplemente abren el camino normal -DetalleVentaScreen ya sabe mostrar
-  /// "no encontrada" cuando el id no corresponde a ninguna venta real, no
-  /// hay riesgo de que truene-.
   Future<void> _verDetalleVenta(VentaCreditoModel credito) async {
     if (!mounted) return;
     Navigator.of(context).push(
@@ -463,9 +430,6 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
             ? 'Agregar teléfono'
             : 'Editar teléfono',
       ),
-      // No exige que ya esté vencida -pedido explícito del dueño: poder
-      // mandar el estado de cuenta aunque la factura todavía no llegue a su
-      // fecha-. Solo hace falta que tenga saldo pendiente y teléfono.
       if (!credito.liquidada && credito.telefono.isNotEmpty)
         _opcionMenu(
           valor: 'enviarAviso',
@@ -1139,10 +1103,6 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
     );
   }
 
-  /// Igual que _celda, pero para la columna CLIENTE: agrega el teléfono de
-  /// este crédito como subtítulo chico (tocable, atajo directo a "Editar
-  /// teléfono"), resaltado en rojo cuando falta -mismo criterio que
-  /// _chipTelefono en la vista de tarjetas-.
   Widget _celdaCliente(int flex, VentaCreditoModel credito) {
     final sinTelefono = credito.telefono.isEmpty;
     return Expanded(
@@ -1156,12 +1116,6 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Sin maxLines/ellipsis a propósito -pedido explícito del
-                // dueño: "quiero siempre ver los nombres de clientes
-                // completos", sobre todo en tablet horizontal (cae en esta
-                // misma tabla "de escritorio" con columnas más angostas que
-                // en una PC de verdad)-: si el nombre no entra en una
-                // línea, baja a una segunda en vez de cortarse.
                 Flexible(
                   child: Text(
                     credito.nombreCliente,
@@ -1356,10 +1310,6 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
     );
   }
 
-  /// Motivo del último intento fallido de "Enviar estado de cuenta por
-  /// WhatsApp" (ver VentaCreditoModel.errorAvisoWhatsApp / escuchar.js) —
-  /// visible en la pantalla para que el dueño sepa qué falló sin tener que
-  /// abrir la consola de la PC.
   Widget _avisoErrorWhatsApp(String error) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -1387,10 +1337,6 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
     );
   }
 
-  /// Igual que _chipInfo, pero tocable (atajo directo a "Editar teléfono"
-  /// sin pasar por el menú) y resaltado en rojo cuando falta -para que se
-  /// note de un vistazo cuáles créditos no van a recibir el aviso automático
-  /// de crédito vencido por WhatsApp (tool/aviso_creditos_whatsapp).
   Widget _chipTelefono(VentaCreditoModel credito) {
     final sinTelefono = credito.telefono.isEmpty;
     return InkWell(

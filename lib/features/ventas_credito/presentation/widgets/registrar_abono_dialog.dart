@@ -11,11 +11,6 @@ import '../../../auth/providers/auth_provider.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
 
-/// Claves para el tutorial guiado (ver core/tutorial) -este archivo las
-/// expone a nivel de módulo para que ventas_credito_screen.dart arme los
-/// pasos del tutorial que continúan una vez que se abre este diálogo (si el
-/// diálogo no está abierto, esos pasos se saltan solos, ver
-/// TutorialBoton._iniciarTutorial).
 final tutorialKeyMontoAbono = GlobalKey();
 final tutorialKeyFechaAbono = GlobalKey();
 final tutorialKeyConfirmarAbono = GlobalKey();

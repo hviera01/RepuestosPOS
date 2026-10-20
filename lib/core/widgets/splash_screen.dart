@@ -2,10 +2,6 @@ import '../theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Pantalla de bienvenida con el logo, mostrada brevemente antes de
-/// [siguiente] (normalmente AuthGate) mientras arranca la app. Es una
-/// pantalla Flutter pura (no nativa), así que se ve igual en Android,
-/// Windows y Web sin tocar la configuración nativa de cada plataforma.
 class SplashScreen extends StatefulWidget {
   final Widget siguiente;
 
@@ -31,8 +27,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   Future<void> _irASiguiente() async {
-    // Duración total pensada para que la animación se alcance a ver
-    // completa incluso en equipos rápidos, sin sentirse una espera larga.
     await Future<void>.delayed(const Duration(milliseconds: 1300));
     if (!mounted) return;
     Navigator.of(context).pushReplacement(

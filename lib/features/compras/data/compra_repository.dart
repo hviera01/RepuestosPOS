@@ -8,7 +8,6 @@ import 'item_compra_model.dart';
 class CompraRepository with ConRedMixin {
   final _db = Supabase.instance.client;
 
-  // ---------- Compras en espera (borrador autoguardado) ----------
 
   Stream<List<CompraEnEsperaModel>> obtenerComprasEnEspera() {
     return conRedStream(() => _db
@@ -35,10 +34,6 @@ class CompraRepository with ConRedMixin {
 
   String _formatearCorrelativo(int numero) => numero.toString().padLeft(8, '0');
 
-  /// Registra una compra completa — ver `registrar_compra` en
-  /// supabase/schema.sql: hace atómicamente lo que en Firestore era una
-  /// Transaction (contador, detalle, stock, lotes de costo, historial,
-  /// emparejamiento con ventas anticipadas).
   Future<CompraModel> registrarCompra({
     required String noFactura,
     required String idProveedor,
@@ -118,8 +113,6 @@ class CompraRepository with ConRedMixin {
     });
   }
 
-  /// Busca por número de documento (correlativo interno) o por número de
-  /// factura (el que trae la factura física del proveedor).
   Future<CompraModel?> obtenerCompraPorNumeroDocumento(String numeroDocumento) {
     return conRed(() async {
       final texto = numeroDocumento.trim();
@@ -147,8 +140,6 @@ class CompraRepository with ConRedMixin {
     });
   }
 
-  /// Anula una compra: la marca como 'Anulada', descuenta el inventario que
-  /// había sumado — ver `anular_compra` en supabase/schema.sql.
   Future<void> anularCompra({
     required String id,
     required String usuario,

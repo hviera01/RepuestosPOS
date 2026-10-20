@@ -1,6 +1,3 @@
-/// Un renglón de un pago mixto: parte del total pagada con un método
-/// específico (por ejemplo, la porción en Efectivo de una venta pagada
-/// mitad Efectivo/mitad Tarjeta). Ver CarritoVentaState.pagosMixtos.
 class PagoDetalle {
   final String metodoPago;
   final double monto;

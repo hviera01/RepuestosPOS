@@ -38,20 +38,6 @@ class _AppShellState extends ConsumerState<AppShell> {
   bool _menuAbierto = false;
   bool _dialogoActualizacionAbierto = false;
 
-  // Esta es "la PC principal" (con impresora térmica conectada) solo cuando
-  // corre como app de escritorio nativa: ni en el navegador (ahí no hay
-  // forma de mandar un PDF directo a una impresora sin diálogo) ni en el
-  // celular. Solo esta plataforma envía latido de presencia y procesa
-  // solicitudes de impresión en vivo, ver PresenciaImpresionRepository.
-  //
-  // Valor inicial: cualquier escritorio (comportamiento de siempre, para no
-  // perder ninguna impresión mientras se resuelve la comprobación de abajo).
-  // Se corrige solo -sin bloquear el arranque- en _confirmarPcPrincipal:
-  // si el dueño marcó un hostname específico como principal (ver
-  // NegocioModel.pcPrincipalHostname y Dispositivos > "Marcar como PC
-  // principal" -pedido explícito: su propia PC, sin impresora, también se
-  // comportaba como si lo fuera-) y ESTE equipo no es ese, deja de actuar
-  // como principal.
   bool _esPcPrincipal =
       !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
   Timer? _latidoTimer;
@@ -86,8 +72,6 @@ class _AppShellState extends ConsumerState<AppShell> {
       _calentarImpresion();
     }
 
-    // Reporta este equipo (versión instalada + quién inició sesión) al
-    // módulo de Dispositivos. Silencioso: ver DispositivoRepository.reportar.
     final usuario = ref.read(authProvider).usuario;
     ref
         .read(dispositivoRepositoryProvider)
@@ -96,12 +80,6 @@ class _AppShellState extends ConsumerState<AppShell> {
           usuario: usuario?.nombreCompleto ?? '',
         );
 
-    // Solo en Windows/Android: ver ActualizacionService. No bloquea el
-    // arranque -si no hay internet o GitHub no responde a tiempo, sigue de
-    // largo sin avisar nada-. Además de una vez al abrir la app, se repite
-    // cada 10 minutos mientras quede abierta: así, si alguien deja la app
-    // abierta todo el día y se publica una versión nueva mientras tanto, el
-    // aviso igual le llega sin que tenga que cerrar y volver a abrir.
     if (ActualizacionService.aplica) {
       _chequearActualizacion();
       _actualizacionTimer = Timer.periodic(
@@ -111,9 +89,6 @@ class _AppShellState extends ConsumerState<AppShell> {
     }
   }
 
-  // Ver comentario grande en _esPcPrincipal. No bloquea el arranque: hasta
-  // que esto resuelva, el equipo sigue actuando como principal (valor
-  // inicial), así que no se pierde ninguna impresión por la espera.
   Future<void> _confirmarPcPrincipal() async {
     final negocio = await ref
         .read(negocioRepositoryProvider)
@@ -132,26 +107,6 @@ class _AppShellState extends ConsumerState<AppShell> {
     );
   }
 
-  // Reportado por el dueño: una venta impresa en vivo desde el celular (la
-  // PRIMERA impresión de la sesión, apenas se abre esta PC, sin que nadie
-  // haya tocado nada localmente todavía) salió con el ticket bien, pero con
-  // un tramo larguísimo de papel en blanco antes de cortar; probando
-  // reimprimir localmente ahí mismo -ya con la app abierta un rato- salió
-  // perfecto. Mismo mecanismo en ambos casos (Printing.directPrintPdf con un
-  // PdfPageFormat propio, no el que reporte el driver -ver
-  // venta_export_service.dart-), así que la diferencia no está en qué se le
-  // pide al driver sino en CUÁNDO: el plugin de impresión de Windows, la
-  // primera vez que se usa en una sesión nueva, puede no terminar de negociar
-  // el tamaño de página real con el driver antes de imprimir y cae en el
-  // tamaño por defecto (más largo) del driver -en local no se nota porque
-  // para cuando alguien reimprime a mano ya hubo un intento anterior en esa
-  // misma sesión (aunque sea remoto y fallido) que "despertó" el plugin-.
-  // Se dispara un chequeo de impresoras inofensivo (no imprime nada) apenas
-  // arranca esta PC, ANTES de que llegue cualquier solicitud real -remota o
-  // local-, para que esa negociación ya esté hecha cuando haga falta de
-  // verdad. Nunca bloquea el arranque ni avisa nada si falla (sin
-  // impresora/sin permisos/lo que sea): es pura prevención, no una función
-  // que alguien esté esperando.
   Future<void> _calentarImpresion() async {
     if (kIsWeb || !Platform.isWindows) return;
     try {
@@ -178,26 +133,11 @@ class _AppShellState extends ConsumerState<AppShell> {
     super.dispose();
   }
 
-  // Se dispara sola apenas una venta hecha desde el celular pide impresión
-  // en vivo (ver RegistrarVentaScreen). No pregunta nada: imprime directo
-  // en la impresora configurada en esta PC, sin ningún diálogo. Si falla o
-  // no hay impresora configurada, no insiste: la venta ya había quedado
-  // como pendienteImpresion, así que sigue disponible ahí para resolverla
-  // a mano.
   Future<void> _procesarSolicitudImpresionEnVivo(VentaModel venta) async {
     if (_idsSolicitudEnProceso.contains(venta.id)) return;
     _idsSolicitudEnProceso.add(venta.id);
     try {
       final ventaRepo = ref.read(ventaRepositoryProvider);
-      // [venta] ya llegó completa del stream salvo el detalle (que el
-      // stream no trae, ver obtenerVentasConSolicitudImpresionEnVivo) —
-      // incluida la elección de copia/original, así que no hace falta
-      // releer el documento entero de nuevo: alcanza con pedir el detalle.
-      // Esa lectura y la del negocio no dependen una de la otra, así que
-      // van juntas; la limpieza de la solicitud tampoco espera a nada de
-      // esto. Entre los tres ahorros (menos vueltas a Firestore, en
-      // paralelo, sin esperar la limpieza) la impresión sale lo antes
-      // posible.
       unawaited(ventaRepo.marcarSolicitudImpresionEnVivo(venta.id, false));
       final futureDetalle = ventaRepo.obtenerDetalleVenta(venta.id);
       final futureNegocio = ref
@@ -228,10 +168,6 @@ class _AppShellState extends ConsumerState<AppShell> {
     }
   }
 
-  // Mismo mecanismo que _procesarSolicitudImpresionEnVivo, pero para la
-  // guía de envío -pedido explícito del dueño-. No hace falta pedir el
-  // detalle (generarGuiaEnvio no lo usa, solo nombre/dirección/teléfono de
-  // envío, ya presentes en [venta]).
   Future<void> _procesarSolicitudImpresionGuiaEnvio(VentaModel venta) async {
     final idProceso = 'guia_${venta.id}';
     if (_idsSolicitudEnProceso.contains(idProceso)) return;

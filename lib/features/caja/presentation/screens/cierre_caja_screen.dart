@@ -38,8 +38,6 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
   bool _cargando = true;
   bool _guardando = false;
 
-  // Claves para el tutorial guiado (ver lib/core/tutorial/): apuntan a los
-  // widgets reales de esta pantalla, no a copias de mentira.
   final _keyDesde = GlobalKey();
   final _keyHasta = GlobalKey();
   final _keyMontoInicial = GlobalKey();
@@ -61,9 +59,6 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
     super.dispose();
   }
 
-  // Editable: el usuario puede escribir el monto inicial que quiere que
-  // quede registrado, no solo ver el que ya venía calculado (igual que en
-  // Lopsi).
   double get _montoInicial =>
       double.tryParse(_montoInicialController.text.replaceAll(',', '').trim()) ?? 0;
 
@@ -111,13 +106,6 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
     }
   }
 
-  // Solo corrige el número guardado del monto inicial del periodo YA
-  // seleccionado (_fechaInicio) — no lo mueve a "ahora" ni toca el resto de
-  // los datos ya cargados (ingresos/egresos del periodo, total real
-  // tecleado, etc.). Antes esto colapsaba _fechaInicio a _fechaFin y
-  // limpiaba el total real, lo que hacía "desaparecer" de la vista todo lo
-  // acumulado desde el inicio real del periodo con solo corregir este monto
-  // (mismo bug ya corregido en Lopsi).
   Future<void> _guardarMontoInicial() async {
     if (_montoInicial <= 0) {
       _mostrarMensaje('Monto inicial inválido', esError: true);
@@ -163,11 +151,6 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
       if (!mounted) return;
       _totalRealController.clear();
       _observacionesController.clear();
-      // Recarga fresco desde Supabase (en vez de reconstruir el estado a
-      // mano) para que _fechaInicio quede exactamente en lo que
-      // registrarCierre acaba de guardar como próximo periodo (00:00 del
-      // mismo día calendario del cierre, ver registrar_cierre_caja en
-      // supabase/schema.sql).
       await _cargarTodo();
     } catch (e) {
       _mostrarMensaje('Error al registrar el cierre: $e', esError: true);
@@ -182,12 +165,6 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
         .obtenerNegocioActual();
     if (!mounted) return;
 
-    // Igual que Registrar Venta (ver registrar_venta_screen._manejarImpresion):
-    // con "imprimir sin preguntar" activo en Negocio, el ticket de cierre se
-    // manda directo a la térmica configurada sin mostrar ninguno de los tres
-    // diálogos de abajo (¿generar reporte? · ¿en qué formato? · vista
-    // previa) — antes se mostraban los tres sin importar esta configuración,
-    // lo que se sentía como "pregunta el diálogo de imprimir dos veces".
     if (negocio.modoImpresion == ModoImpresion.directo) {
       await _imprimirCierreDirecto(cierre, negocio);
       return;
@@ -272,15 +249,6 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
     }
   }
 
-  // Imprime el ticket térmico de cierre directo, sin ningún diálogo de por
-  // medio: la contraparte de _preguntarReporte para cuando Negocio tiene
-  // "imprimir sin preguntar" activo. Mismas ramas por plataforma que
-  // registrar_venta_screen._manejarImpresion, pero sin la infraestructura de
-  // "venta pendiente de impresión" (no aplica acá, esto no es una venta) ni
-  // impresión remota de respaldo: en Android/iOS, o en escritorio sin
-  // impresora térmica configurada, no hay ningún destino al que mandar el
-  // ticket sin preguntar, así que ahí se cae a la vista previa de siempre en
-  // vez de fallar en silencio.
   Future<void> _imprimirCierreDirecto(
     CierreCajaModel cierre,
     NegocioModel negocio,
@@ -320,9 +288,6 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
       }
       return;
     }
-    // Sin impresora térmica configurada (o en Android/iOS nativo, donde no
-    // hay un destino directo al que mandar el ticket): se muestra la vista
-    // previa de siempre en vez de dejar el cierre sin ningún ticket.
     if (!mounted) return;
     final impresora = negocio.impresoraTermicaUrl.isEmpty
         ? null
@@ -344,11 +309,6 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
     );
   }
 
-  // Antes fecha inicio/fin del periodo eran fijas (solo texto, no se podían
-  // tocar): inicio salía siempre del último cierre guardado y fin siempre
-  // era "ahora". Ahora se pueden editar las dos a mano (por ejemplo para
-  // recalcular un periodo distinto al que quedó guardado), recalculando los
-  // totales del rango elegido al confirmar (igual que en Lopsi).
   Future<void> _seleccionarFechaHora(bool esInicio) async {
     final actual = esInicio ? _fechaInicio : _fechaFin;
     final fecha = await showDatePicker(
@@ -472,9 +432,6 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
     );
   }
 
-  // Tutorial guiado: "abrir caja" (dejar el monto inicial correcto sin
-  // cerrarla) explicado como tema aparte de "cerrar caja" -son dos
-  // momentos distintos del turno-.
   TutorialTema _temaAbrirCaja() {
     return TutorialTema(
       titulo: 'Cómo dejar el monto inicial de la caja',

@@ -2,14 +2,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/data/base_repository.dart';
 import 'promocion_model.dart';
 
-/// Colección chica (se arman a mano, no crecen como las ventas) y se
-/// consulta en vivo durante una venta en curso -por eso usa `.stream()`
-/// igual que productos/categorías/clientes-. Las listas de productos de cada
-/// promoción viven normalizadas en `promocion_productos` (catálogo VIVO, ver
-/// comentario en supabase/schema.sql), así que además del stream de
-/// `promociones` hace falta resolver esa tabla puente (con el nombre ACTUAL
-/// de cada producto, vía join) cada vez que la lista cambia -esta colección
-/// es chica, así que ese round-trip extra por cambio es barato-.
 class PromocionRepository with ConRedMixin {
   final _db = Supabase.instance.client;
 
@@ -29,7 +21,6 @@ class PromocionRepository with ConRedMixin {
         .select('id_promocion, rol, productos(id, nombre)')
         .inFilter('id_promocion', ids);
 
-    // Agrupa por promoción y rol: {idPromocion: {rol: [(id, nombre), ...]}}
     final porPromocion = <String, Map<String, List<(String, String)>>>{};
     for (final fila in puente) {
       final idPromocion = fila['id_promocion'] as String;

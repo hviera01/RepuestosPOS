@@ -1,51 +1,6 @@
--- ============================================================================
--- Repuestos POS — esquema Postgres (Supabase)
--- Migración desde Firestore. Ver lib/features/**/data/*_model.dart y
--- *_repository.dart para el origen de cada tabla (comentado abajo, tabla por
--- tabla). Nombres en snake_case por convención de Postgres, aunque el
--- código Dart siga en camelCase -el mapeo lo hace la capa de datos Dart en
--- una fase posterior, este archivo no la toca-.
---
--- No se migran 'colores' ni 'formulas' (módulos ya eliminados del código: el
--- negocio de pinturas de la app original no aplica a Repuestos POS).
---
--- No se migran 'roles' (lib/features/roles/data está vacío: los roles son
--- solo dos constantes de texto -Roles.administrador/Roles.empleado en
--- core/constants/roles.dart-, guardadas tal cual como texto en
--- usuarios.rol; no hay una colección/tabla de catálogo real detrás).
---
--- No se migra cliente_historial_model.dart ni MovimientoFinanciero
--- (egreso_model.dart): son vistas agregadas que hoy se arman en memoria
--- (Future.wait sobre ventas/créditos/abonos), no datos guardados aparte.
--- Se pueden seguir armando igual con consultas SQL sobre las tablas reales.
---
--- No se migra item_pedido_model.dart (compras): es una lista que solo vive
--- en memoria mientras se arma el PDF del pedido al proveedor, nunca se
--- guarda en Firestore.
---
--- No se migra escaneosRemotos (ventas/data/escaneo_remoto_repository.dart):
--- son sesiones de emparejamiento celular-PC de segundos de vida (código de
--- 6 caracteres + eventos), pensadas para borrarse solas al terminar. Encajan
--- mejor como un canal de Supabase Realtime (broadcast/presence) que como
--- filas de Postgres -no hay nada de eso que valga la pena conservar
--- históricamente-. Se deja fuera de este esquema a propósito; si hace falta
--- persistencia real más adelante, se agrega aparte.
--- ============================================================================
 
--- ----------------------------------------------------------------------------
--- Extensión para poder usar gen_random_uuid() como default de las PK uuid.
--- ----------------------------------------------------------------------------
 create extension if not exists pgcrypto;
 
--- ============================================================================
--- CONFIGURACIÓN / INFRAESTRUCTURA (sin *_model.dart propio: viven como un
--- solo documento en Firestore, o son soporte interno de otros repositorios)
--- ============================================================================
-
--- 'configuracion/negocio' (negocio_model.dart / negocio_repository.dart).
--- Fila única de configuración del negocio -RTN, CAI, permisos especiales,
--- impresión, etc-. Igual que en Firestore, se fuerza a una sola fila con el
--- check (id = 1).
 create table negocio_config (
   id smallint primary key default 1 check (id = 1),
   nombre text not null default '',
@@ -62,8 +17,6 @@ create table negocio_config (
   logo_color_base64 text not null default '',
   logo_bn_base64 text not null default '',
   clave_especial_hash text not null default '',
-  -- Map<String,bool> de PermisosEspeciales (negocio_model.dart): qué acción
-  -- pide la clave especial. Estructura libre, no se consulta por SQL -jsonb-.
   permisos jsonb not null default '{}'::jsonb,
   impresora_termica_url text not null default '',
   impresora_termica_nombre text not null default '',
@@ -74,50 +27,28 @@ create table negocio_config (
   modo_impresion text not null default 'preguntar' check (modo_impresion in ('preguntar', 'directo')),
   impresora_red_ip text not null default '',
   impresora_red_puerto integer not null default 9100,
-  -- Impresora térmica Bluetooth (Android, ver NegocioModel.impresoraBluetoothId):
-  -- mac address y nombre del dispositivo ya emparejado.
   impresora_bluetooth_id text not null default '',
   impresora_bluetooth_nombre text not null default '',
-  -- Ancho del rollo térmico del ticket de venta (ver NegocioModel.anchoTicketMm):
-  -- 58 = angosto/32 columnas ESC/POS, 80 = el de siempre/48 columnas.
   ancho_ticket_mm smallint not null default 80 check (ancho_ticket_mm in (58, 80)),
   teclado_compacto_tablet boolean not null default false,
   pc_principal_hostname text not null default '',
   imprimir_facturas boolean not null default true,
-  -- Ver NegocioModel.impresoraUsbUsarDriverWindows: true = en Windows el
-  -- ticket se manda como PDF por el driver de la impresora en vez de bytes
-  -- ESC/POS crudos por USB (impresoras que no hablan ESC/POS genérico,
-  -- como la Star POP10, que usa su propio protocolo StarPRNT).
   impresora_usb_usar_driver_windows boolean not null default false
 );
 comment on table negocio_config is 'Fila única (id=1) — reemplaza el doc configuracion/negocio de Firestore.';
 
--- 'contadores/{clave}' (ver VentaRepository/CompraRepository._claveContador):
--- correlativo compartido de numeroDocumento por tipo de documento ('venta',
--- 'cotizacion', 'ventaSinFacturar', 'compra', ...).
 create table contadores (
   clave text primary key,
   ultimo integer not null default 0
 );
 comment on table contadores is 'Correlativo del próximo numeroDocumento por tipo (reemplaza contadores/{clave}).';
 
--- 'presenciaImpresion/pcPrincipal' + 'presenciaAvisoWhatsapp/escuchador'
--- (PresenciaImpresionRepository / PresenciaAvisoWhatsappRepository): latido
--- periódico de "sigo viva" de la PC principal / de la tarea programada de
--- WhatsApp. Ambos documentos tenían la MISMA forma (solo un timestamp), así
--- que se consolidan en una sola tabla de 2 filas en vez de 2 tablas de 1
--- fila cada una.
 create table presencia (
-  id text primary key, -- 'pc_principal' | 'aviso_whatsapp_escuchador'
+  id text primary key,
   ultimo_latido timestamptz
 );
 comment on table presencia is 'Latido de presencia (reemplaza presenciaImpresion/pcPrincipal y presenciaAvisoWhatsapp/escuchador).';
 
--- ============================================================================
--- CATÁLOGOS
--- ============================================================================
-
--- categoria_model.dart / categoria_repository.dart ('categorias')
 create table categorias (
   id uuid primary key default gen_random_uuid(),
   descripcion text not null,
@@ -127,7 +58,6 @@ create table categorias (
 create index idx_categorias_descripcion on categorias (descripcion);
 comment on table categorias is 'Reemplaza la colección categorias.';
 
--- cliente_model.dart / cliente_repository.dart ('clientes')
 create table clientes (
   id uuid primary key default gen_random_uuid(),
   dni text not null default '',
@@ -135,28 +65,15 @@ create table clientes (
   direccion text not null default '',
   telefono text not null default '',
   estado boolean not null default true,
-  -- Denormalizado, se actualiza solo al registrar una venta real (ver
-  -- VentaRepository.registrarVenta) — detecta clientes inactivos sin
-  -- recorrer todas sus ventas.
   fecha_ultima_compra timestamptz,
-  -- Acá vivían id_referidor / es_referidor (la función de "referidores"
-  -- heredada de Super Color, negocio de pinturas donde pintores/contratistas
-  -- traían clientes). Se quitaron a pedido del dueño: no aplica a este
-  -- negocio, y las columnas ya se dropearon en la base real.
-  -- Campo interno (no viene de ClienteModel.toMap()): nombre normalizado
-  -- (mayúsculas/tildes/espacios colapsados) para que VentaRepository pueda
-  -- encontrar un cliente por nombre sin exigir igualdad exacta de string.
   nombre_normalizado text not null default '',
   fecha_registro timestamptz not null default now()
 );
--- El DNI puede repetirse vacío (ClienteRepository solo valida duplicado
--- cuando dni.isNotEmpty), así que la unicidad es parcial.
 create unique index uq_clientes_dni on clientes (dni) where dni <> '';
 create index idx_clientes_nombre_completo on clientes (nombre_completo);
 create index idx_clientes_nombre_normalizado on clientes (nombre_normalizado);
 comment on table clientes is 'Reemplaza la colección clientes.';
 
--- proveedor_model.dart / proveedor_repository.dart ('proveedores')
 create table proveedores (
   id uuid primary key default gen_random_uuid(),
   rtn text not null default '',
@@ -168,10 +85,6 @@ create table proveedores (
 create index idx_proveedores_razon_social on proveedores (razon_social);
 comment on table proveedores is 'Reemplaza la colección proveedores.';
 
--- usuario_model.dart (auth/ y usuarios/) + auth_repository.dart +
--- usuario_repository.dart ('usuarios'). Login CUSTOM (no Supabase Auth):
--- hash+sal propios (ver core/utils/clave_hash.dart) y bloqueo temporal por
--- intentos fallidos.
 create table usuarios (
   id uuid primary key default gen_random_uuid(),
   documento text not null,
@@ -179,7 +92,7 @@ create table usuarios (
   correo text not null default '',
   rol text not null,
   estado boolean not null default true,
-  clave text not null, -- hash (con sal, o legado sin sal — ver ClaveHash)
+  clave text not null,
   sal text not null default '',
   intentos_fallidos integer not null default 0,
   bloqueado_hasta timestamptz,
@@ -188,7 +101,6 @@ create table usuarios (
 create unique index uq_usuarios_documento on usuarios (documento);
 comment on table usuarios is 'Reemplaza la colección usuarios. Login propio (código de acceso = documento + clave), NO usa Supabase Auth.';
 
--- producto_model.dart / producto_repository.dart ('productos')
 create table productos (
   id uuid primary key default gen_random_uuid(),
   codigo text not null,
@@ -196,9 +108,6 @@ create table productos (
   nombre text not null,
   descripcion text not null default '',
   id_categoria uuid references categorias (id) on delete restrict,
-  -- Cantidades en numeric(14,3) (no (12,2)): a diferencia de los montos en
-  -- Lempiras, una existencia puede necesitar más de 2 decimales (galones,
-  -- litros, fracciones de unidad).
   stock numeric(14, 3) not null default 0,
   precio_compra numeric(12, 2) not null default 0,
   precio_venta numeric(12, 2) not null default 0,
@@ -207,9 +116,6 @@ create table productos (
   estado boolean not null default true,
   imagen_url text not null default '',
   es_combo boolean not null default false,
-  -- Receta de un combo/kit: [{idProducto, cantidad}] (ComponenteProductoModel).
-  -- jsonb a propósito -estructura anidada que no hace falta consultar por
-  -- SQL, mismo criterio que el resto de "snapshots"-.
   componentes jsonb not null default '[]'::jsonb,
   fecha_registro timestamptz not null default now()
 );
@@ -219,12 +125,6 @@ create index idx_productos_codigo_barras on productos (codigo_barras);
 create index idx_productos_nombre on productos (nombre);
 comment on table productos is 'Reemplaza la colección productos.';
 
--- ============================================================================
--- COMPRAS (necesarias antes de los hijos de productos que referencian
--- compras: lotes de costo e historial de precios de compra)
--- ============================================================================
-
--- compra_model.dart / compra_repository.dart ('compras')
 create table compras (
   id uuid primary key default gen_random_uuid(),
   tipo_documento text not null default 'Factura',
@@ -257,7 +157,6 @@ create index idx_compras_estado on compras (estado);
 create index idx_compras_fecha_registro on compras (fecha_registro);
 comment on table compras is 'Reemplaza la colección compras (cabecera; ver compra_items para el detalle, antes un array embebido/subcolección detalle).';
 
--- item_compra_model.dart — subcolección 'detalle' de cada compra.
 create table compra_items (
   id uuid primary key default gen_random_uuid(),
   id_compra uuid not null references compras (id) on delete cascade,
@@ -268,13 +167,7 @@ create table compra_items (
   cantidad numeric(14, 3) not null,
   subtotal numeric(12, 2) not null default 0,
   descuento_porcentaje numeric(6, 2) not null default 0,
-  -- Nuevo precio de venta a aplicar al producto al registrar la compra (null
-  -- = no cambiar).
   precio_venta_nuevo numeric(12, 2),
-  -- Vínculo manual a una venta anticipada de OTRO producto de catálogo (ver
-  -- PendienteReposicionModel) — la FK real se agrega más abajo con ALTER
-  -- TABLE porque pendientes_reposicion se crea después (depende, a su vez,
-  -- de ventas/venta_items).
   id_pendiente_reposicion_vinculado uuid,
   numero_documento_venta_vinculada text,
   nombre_producto_venta_vinculada text
@@ -283,9 +176,6 @@ create index idx_compra_items_id_compra on compra_items (id_compra);
 create index idx_compra_items_id_producto on compra_items (id_producto);
 comment on table compra_items is 'Detalle de compras (antes subcolección compras/{id}/detalle).';
 
--- compra_en_espera_model.dart ('comprasEnEspera'). Igual que en Firestore,
--- [items] queda embebido tal cual (jsonb) -ahí NO era una subcolección real,
--- a diferencia de compras/detalle-.
 create table compras_en_espera (
   id uuid primary key default gen_random_uuid(),
   fecha timestamptz not null default now(),
@@ -300,17 +190,11 @@ create table compras_en_espera (
   descuento_global_porcentaje numeric(6, 2) not null default 0,
   isv_porcentaje numeric(6, 2) not null default 15,
   ajuste_manual numeric(12, 2) not null default 0,
-  items jsonb not null default '[]'::jsonb -- ItemCompraModel[] embebido
+  items jsonb not null default '[]'::jsonb
 );
 create index idx_compras_en_espera_fecha on compras_en_espera (fecha);
 comment on table compras_en_espera is 'Reemplaza comprasEnEspera (borradores de compra guardados).';
 
--- compra_credito_model.dart ('comprasCredito'). OJO: en Firestore este doc
--- se crea con el MISMO id que la compra origen cuando viene de una compra
--- real (ver CompraRepository). Acá no se fuerza esa igualdad con una FK
--- (rompería para créditos manuales sin compra real) — la app la respeta al
--- insertar (usa el mismo uuid en compras.id y compras_credito.id cuando
--- corresponde).
 create table compras_credito (
   id uuid primary key default gen_random_uuid(),
   id_proveedor uuid references proveedores (id) on delete restrict,
@@ -329,7 +213,6 @@ create index idx_compras_credito_id_proveedor on compras_credito (id_proveedor);
 create index idx_compras_credito_fecha_vencimiento on compras_credito (fecha_vencimiento);
 comment on table compras_credito is 'Reemplaza comprasCredito.';
 
--- abono_compra_model.dart — subcolección 'abonosCompra' de cada crédito de compra.
 create table compra_credito_abonos (
   id uuid primary key default gen_random_uuid(),
   id_compra_credito uuid not null references compras_credito (id) on delete cascade,
@@ -348,14 +231,6 @@ create index idx_compra_credito_abonos_id_compra_credito on compra_credito_abono
 create index idx_compra_credito_abonos_fecha on compra_credito_abonos (fecha);
 comment on table compra_credito_abonos is 'Reemplaza comprasCredito/{id}/abonosCompra.';
 
--- ============================================================================
--- PRODUCTOS: hijos que referencian compras (lotes de costo FIFO e historial
--- de precio de compra)
--- ============================================================================
-
--- lote_costo_model.dart / lote_costo_repository.dart — subcolección 'lotes'
--- de cada producto. Motor de costeo FIFO real (no un historial de solo
--- lectura): se consume/actualiza en cada venta, compra y ajuste de stock.
 create table producto_lotes_costo (
   id uuid primary key default gen_random_uuid(),
   id_producto uuid not null references productos (id) on delete cascade,
@@ -363,10 +238,8 @@ create table producto_lotes_costo (
   cantidad_restante numeric(14, 3) not null,
   costo_unitario numeric(12, 2) not null,
   fecha timestamptz not null,
-  origen text not null default 'compra', -- 'compra' | 'ajuste' | 'inicial'
+  origen text not null default 'compra',
   id_compra uuid references compras (id) on delete set null,
-  -- Orden manual (0 = sale primero). Null = FIFO por fecha (comportamiento
-  -- de siempre) — ver LoteCostoRepository.reordenarLotes.
   prioridad integer
 );
 create index idx_producto_lotes_costo_id_producto on producto_lotes_costo (id_producto);
@@ -374,7 +247,6 @@ create index idx_producto_lotes_costo_id_compra on producto_lotes_costo (id_comp
 create index idx_producto_lotes_costo_fecha on producto_lotes_costo (fecha);
 comment on table producto_lotes_costo is 'Reemplaza productos/{id}/lotes (costeo FIFO real, no solo historial).';
 
--- historial_precio_compra_model.dart — subcolección 'historialPreciosCompra'.
 create table producto_historial_precios_compra (
   id uuid primary key default gen_random_uuid(),
   id_producto uuid not null references productos (id) on delete cascade,
@@ -395,8 +267,6 @@ create index idx_producto_hist_precios_compra_id_compra on producto_historial_pr
 create index idx_producto_hist_precios_compra_fecha on producto_historial_precios_compra (fecha);
 comment on table producto_historial_precios_compra is 'Reemplaza productos/{id}/historialPreciosCompra.';
 
--- historial_stock_model.dart — subcolección 'historial' (todo movimiento de
--- stock: venta, compra, ajuste manual, anulaciones, reembasado).
 create table producto_historial_stock (
   id uuid primary key default gen_random_uuid(),
   id_producto uuid not null references productos (id) on delete cascade,
@@ -410,11 +280,6 @@ create index idx_producto_historial_stock_id_producto on producto_historial_stoc
 create index idx_producto_historial_stock_fecha on producto_historial_stock (fecha);
 comment on table producto_historial_stock is 'Reemplaza productos/{id}/historial. El tipo de movimiento (venta/compra/ajuste/...) se sigue infiriendo del texto de motivo, igual que HistorialStockModel.tipo en Dart.';
 
--- ============================================================================
--- VENTAS
--- ============================================================================
-
--- venta_model.dart / venta_repository.dart ('ventas')
 create table ventas (
   id uuid primary key default gen_random_uuid(),
   tipo_documento text not null default 'Factura',
@@ -439,16 +304,12 @@ create table ventas (
   reg_sag text not null default '',
   descuento_global numeric(6, 2) not null default 0,
   observaciones text not null default '',
-  -- Desglose cuando metodo_pago == 'Mixto': [{metodoPago, monto}]. Vacío en
-  -- cualquier otro caso (PagoDetalle.listaToMaps).
   pagos_mixtos jsonb not null default '[]'::jsonb,
   usuario_anulacion text not null default '',
   motivo_anulacion text not null default '',
   fecha_anulacion timestamptz,
   pendiente_impresion boolean not null default false,
   solicitud_impresion_en_vivo boolean not null default false,
-  -- null = no es un reimprimir con elección explícita (venta recién
-  -- confirmada); true/false si es reimpresión de copia/original.
   solicitud_impresion_es_copia boolean,
   es_envio boolean not null default false,
   envio_nombre text not null default '',
@@ -457,22 +318,15 @@ create table ventas (
   solicitud_impresion_guia_envio boolean not null default false,
   solicitud_impresion_guia_grande boolean not null default false
 );
--- El dueño puede reservar/consultar el próximo numeroDocumento (ver
--- reservarProximoNumeroFactura), así que se busca seguido por este campo.
 create index idx_ventas_numero_documento on ventas (numero_documento);
 create index idx_ventas_id_cliente on ventas (id_cliente);
 create index idx_ventas_estado on ventas (estado);
 create index idx_ventas_fecha_registro on ventas (fecha_registro);
--- Índices parciales: estos 3 flags se consultan con streams filtrados
--- (where ==true) para impresión/guía remota, exactamente igual que hoy.
 create index idx_ventas_solicitud_impresion_en_vivo on ventas (id) where solicitud_impresion_en_vivo;
 create index idx_ventas_pendiente_impresion on ventas (id) where pendiente_impresion;
 create index idx_ventas_solicitud_impresion_guia_envio on ventas (id) where solicitud_impresion_guia_envio;
 comment on table ventas is 'Reemplaza la colección ventas (cabecera; ver venta_items para el detalle, antes subcolección detalle).';
 
--- item_venta_model.dart — subcolección 'detalle' de cada venta (YA era una
--- subcolección real en Firestore, no un array embebido: acá se normaliza
--- igual, como tabla hija con FK).
 create table venta_items (
   id uuid primary key default gen_random_uuid(),
   id_venta uuid not null references ventas (id) on delete cascade,
@@ -485,29 +339,14 @@ create table venta_items (
   precio_compra_usado numeric(12, 2) not null default 0,
   reembasado boolean not null default false,
   descuento_porcentaje numeric(6, 2) not null default 0,
-  -- Receta congelada de combo al momento de vender (ComponenteComboSnapshot[]).
   componentes jsonb not null default '[]'::jsonb,
-  -- "Venta anticipada": costo provisional hasta que la reponga una compra real.
   pendiente_compra boolean not null default false,
-  -- Códigos de color usados en la línea (texto libre; el catálogo de
-  -- colores/fórmulas del negocio de pinturas original no aplica acá).
   codigos_color text[] not null default '{}'
 );
 create index idx_venta_items_id_venta on venta_items (id_venta);
 create index idx_venta_items_id_producto on venta_items (id_producto);
 comment on table venta_items is 'Detalle de ventas (antes subcolección ventas/{id}/detalle).';
 
--- Sin *_model.dart propio (soporte interno de anular_venta): registro de qué
--- lote(s) de producto_lotes_costo cubrió el costeo FIFO de cada venta -por
--- producto real, agrupado igual que calcular_cantidades_descuento, nunca
--- por línea/combo suelto- y cuánto se tomó de cada uno (ver
--- consumir_fifo_lotes). Antes esto no se guardaba en ningún lado, así que
--- anular una venta no tenía forma de saber a qué lote devolverle la
--- cantidad y en su lugar creaba SIEMPRE un lote nuevo 'ajuste' al costo
--- promedio ponderado (ver el comentario grande de anular_venta más abajo).
--- [revertido] evita devolver dos veces si algo raro llama a esto fuera del
--- flujo normal de anular_venta (esa función además ya rechaza anular una
--- venta que ya está en estado 'Anulada').
 create table venta_consumo_lotes (
   id uuid primary key default gen_random_uuid(),
   id_venta uuid not null references ventas (id) on delete cascade,
@@ -522,7 +361,6 @@ create index idx_venta_consumo_lotes_id_producto on venta_consumo_lotes (id_prod
 create index idx_venta_consumo_lotes_id_lote on venta_consumo_lotes (id_lote);
 comment on table venta_consumo_lotes is 'Detalle de consumo FIFO por venta: qué lote(s) de producto_lotes_costo cubrieron cada producto vendido y cuánto -para poder devolver la cantidad al lote original al anular en vez de crear uno nuevo, ver anular_venta-.';
 
--- historial_venta_producto_model.dart — subcolección 'historialVentas'.
 create table producto_historial_ventas (
   id uuid primary key default gen_random_uuid(),
   id_producto uuid not null references productos (id) on delete cascade,
@@ -542,8 +380,6 @@ create index idx_producto_hist_ventas_id_venta on producto_historial_ventas (id_
 create index idx_producto_hist_ventas_fecha on producto_historial_ventas (fecha);
 comment on table producto_historial_ventas is 'Reemplaza productos/{id}/historialVentas.';
 
--- venta_en_espera_model.dart ('ventasEnEspera'). [items] queda embebido tal
--- cual (jsonb) -en Firestore tampoco era subcolección real-.
 create table ventas_en_espera (
   id uuid primary key default gen_random_uuid(),
   fecha timestamptz not null default now(),
@@ -559,23 +395,15 @@ create table ventas_en_espera (
   reg_sag text not null default '',
   observaciones text not null default '',
   descuento_global numeric(6, 2) not null default 0,
-  items jsonb not null default '[]'::jsonb, -- ItemVentaModel[] embebido
-  -- 'manual' (Guardar en Espera real, reserva stock) | 'automatico'
-  -- (autoguardado silencioso, nunca reserva stock — ver OrigenVentaEnEspera).
+  items jsonb not null default '[]'::jsonb,
   origen text not null default 'automatico',
   stock_reservado boolean not null default false,
-  -- Foto INMUTABLE de lo reservado (idProducto -> cantidad) — no se
-  -- recalcula de items al leer, ver comentario grande en VentaEnEsperaModel.
   cantidades_reservadas jsonb not null default '{}'::jsonb
 );
 create index idx_ventas_en_espera_fecha on ventas_en_espera (fecha);
 create index idx_ventas_en_espera_origen on ventas_en_espera (origen);
 comment on table ventas_en_espera is 'Reemplaza ventasEnEspera (borradores de venta, con o sin reserva real de stock).';
 
--- venta_credito_model.dart ('ventasCredito'). Igual que compras_credito: en
--- Firestore comparte id con la venta origen cuando aplica; acá tampoco se
--- fuerza con FK (créditos manuales/importados/fusionados no tienen venta
--- real detrás — ver sin_venta_origen).
 create table ventas_credito (
   id uuid primary key default gen_random_uuid(),
   documento_cliente text not null default '',
@@ -587,18 +415,10 @@ create table ventas_credito (
   fecha_registro timestamptz not null default now(),
   fecha_vencimiento timestamptz,
   fusionada boolean not null default false,
-  -- Teléfono de contacto de ESTE crédito puntual — independiente del
-  -- teléfono del cliente (editable acá sin pisar el del cliente).
   telefono text not null default '',
   solicitud_aviso_whatsapp boolean not null default false,
   error_aviso_whatsapp text,
-  -- true si este crédito no tiene un documento de venta real asociado
-  -- (manual, importado, o nacido de "Unir Facturas").
   sin_venta_origen boolean not null default false,
-  -- Facturas que se combinaron para formar este crédito (solo "Unir
-  -- Facturas"): [{id, numeroDocumento, saldoPendiente}]. jsonb porque son
-  -- ids que pueden apuntar a créditos que ya no son consultables como fila
-  -- real (encadenamiento de fusiones) — snapshot histórico, no catálogo vivo.
   facturas_origen jsonb not null default '[]'::jsonb
 );
 create index idx_ventas_credito_numero_documento on ventas_credito (numero_documento);
@@ -608,7 +428,6 @@ create index idx_ventas_credito_fecha_vencimiento on ventas_credito (fecha_venci
 create index idx_ventas_credito_solicitud_aviso_whatsapp on ventas_credito (id) where solicitud_aviso_whatsapp;
 comment on table ventas_credito is 'Reemplaza ventasCredito.';
 
--- abono_model.dart — subcolección 'abonos' de cada crédito de venta.
 create table venta_credito_abonos (
   id uuid primary key default gen_random_uuid(),
   id_venta_credito uuid not null references ventas_credito (id) on delete cascade,
@@ -625,14 +444,6 @@ create index idx_venta_credito_abonos_id_venta_credito on venta_credito_abonos (
 create index idx_venta_credito_abonos_fecha on venta_credito_abonos (fecha);
 comment on table venta_credito_abonos is 'Reemplaza ventasCredito/{id}/abonos.';
 
--- ============================================================================
--- pendientes_reposicion: depende de ventas + venta_items + productos +
--- categorias, así que se crea después de todos esos.
--- ============================================================================
-
--- pendiente_reposicion_model.dart ('pendientesReposicion'). Rastrea una
--- línea de venta "pendiente de compra" (venta anticipada) hasta que la
--- próxima compra del producto la reponga (ver PendienteReposicionRepository).
 create table pendientes_reposicion (
   id uuid primary key default gen_random_uuid(),
   id_venta uuid references ventas (id) on delete cascade,
@@ -645,7 +456,7 @@ create table pendientes_reposicion (
   cantidad_pendiente numeric(14, 3) not null,
   costo_registrado numeric(12, 2) not null,
   fecha_registro timestamptz not null default now(),
-  estado text not null default 'Pendiente', -- 'Pendiente' | 'Completado' | 'Cancelado'
+  estado text not null default 'Pendiente',
   fecha_completado timestamptz,
   usuario text not null default ''
 );
@@ -655,8 +466,6 @@ create index idx_pendientes_reposicion_id_producto on pendientes_reposicion (id_
 create index idx_pendientes_reposicion_id_venta on pendientes_reposicion (id_venta);
 comment on table pendientes_reposicion is 'Reemplaza pendientesReposicion.';
 
--- Ahora sí se pueden cerrar las 2 referencias que quedaron pendientes más
--- arriba (forward references a tablas que no existían todavía):
 alter table producto_lotes_costo
   add constraint fk_producto_lotes_costo_id_compra
   foreign key (id_compra) references compras (id) on delete set null;
@@ -667,11 +476,6 @@ alter table compra_items
 
 create index idx_compra_items_pendiente_reposicion on compra_items (id_pendiente_reposicion_vinculado);
 
--- ============================================================================
--- EGRESOS / PROMOCIONES / DISPOSITIVOS / CAJA
--- ============================================================================
-
--- egreso_model.dart / egreso_repository.dart ('egresos')
 create table egresos (
   id uuid primary key default gen_random_uuid(),
   fecha timestamptz not null,
@@ -689,38 +493,20 @@ create index idx_egresos_categoria on egresos (categoria);
 create index idx_egresos_metodo_pago on egresos (metodo_pago);
 comment on table egresos is 'Reemplaza egresos. El "libro financiero" (MovimientoFinanciero) sigue siendo una consulta agregada sobre ventas/ventas_credito/venta_credito_abonos/compras/compras_credito/compra_credito_abonos/egresos, no una tabla aparte.';
 
--- promocion_model.dart / promocion_repository.dart ('promociones'). A
--- diferencia de los combos de venta/compra (que SÍ son snapshots
--- históricos, jsonb), las listas de productos de una promoción son un
--- catálogo VIVO y editable -no hace falta preservar el nombre viejo de un
--- producto si lo renombran-, así que en vez de repetir los arrays paralelos
--- idsProductos/nombresProductos (y sus 2 pares hermanos) tal cual venían de
--- Firestore, se normalizan en la tabla puente promocion_productos: permite
--- además la consulta natural "¿qué promociones aplican a este producto?"
--- sin tener que traer todas las promociones activas al cliente.
 create table promociones (
   id uuid primary key default gen_random_uuid(),
   nombre text not null,
-  -- 'porcentaje' | 'precioFijo' | 'comboCantidad' | 'comboMultiproducto' | 'regalo'
   tipo text not null check (
     tipo in ('porcentaje', 'precioFijo', 'comboCantidad', 'comboMultiproducto', 'regalo')
   ),
-  -- porcentaje: 0-100. precioFijo: precio especial en Lempiras (con ISV).
   valor numeric(12, 2) not null default 0,
-  -- comboCantidad/regalo: producto sobre el que se cuenta la cantidad llevada.
   id_producto_base uuid references productos (id) on delete restrict,
   cantidad_requerida integer not null default 1,
-  -- comboCantidad/comboMultiproducto: precio total del combo/paquete.
   precio_combo numeric(12, 2) not null default 0,
-  -- regalo: cantidad regalada de CADA producto en rol='regalo'.
   cantidad_regalo integer not null default 1,
   fecha_inicio timestamptz not null,
   fecha_fin timestamptz,
-  -- 'Todos' | 'Contado' | 'Credito' (pese al nombre histórico "alcancePago",
-  -- filtra por CONDICIÓN — no se renombra para no romper promos ya creadas).
   alcance_pago text not null default 'Todos',
-  -- Vacío = todos los métodos de pago; si no, uno o más de 'Efectivo' |
-  -- 'Tarjeta' | 'Transferencia'. 'Mixto' nunca matchea una lista restringida.
   metodos_pago_alcance text[] not null default '{}',
   activo boolean not null default true,
   creado_en timestamptz not null default now(),
@@ -735,9 +521,6 @@ create table promocion_productos (
   id uuid primary key default gen_random_uuid(),
   id_promocion uuid not null references promociones (id) on delete cascade,
   id_producto uuid not null references productos (id) on delete cascade,
-  -- 'individual': target de porcentaje/precioFijo (antes idsProductos).
-  -- 'combo': miembro de comboMultiproducto (antes idsProductosCombo).
-  -- 'regalo': producto regalado (antes idsProductosRegalo).
   rol text not null check (rol in ('individual', 'combo', 'regalo')),
   unique (id_promocion, id_producto, rol)
 );
@@ -745,9 +528,6 @@ create index idx_promocion_productos_id_promocion on promocion_productos (id_pro
 create index idx_promocion_productos_id_producto on promocion_productos (id_producto);
 comment on table promocion_productos is 'Tabla puente promociones <-> productos (ver comentario en promociones).';
 
--- dispositivo_model.dart / dispositivo_repository.dart ('dispositivos'). El
--- id NO es un uuid autogenerado: es el id de dispositivo (hostname, ver
--- core/utils/device_id.dart) que la app misma decide y usa como doc.id.
 create table dispositivos (
   id text primary key,
   plataforma text not null default '',
@@ -758,7 +538,6 @@ create table dispositivos (
 create index idx_dispositivos_ultima_conexion on dispositivos (ultima_conexion);
 comment on table dispositivos is 'Reemplaza dispositivos. id = identificador de equipo (hostname), no un uuid generado por la base.';
 
--- cierre_caja_model.dart / cierre_caja_repository.dart ('cierresCaja')
 create table cierres_caja (
   id uuid primary key default gen_random_uuid(),
   fecha_inicio timestamptz not null,
@@ -781,9 +560,6 @@ create table cierres_caja (
 create index idx_cierres_caja_fecha_fin on cierres_caja (fecha_fin);
 comment on table cierres_caja is 'Reemplaza cierresCaja.';
 
--- 'cajaEstado/actual' (CierreCajaRepository.obtenerEstadoCaja/guardarMontoInicial):
--- desde cuándo corre el turno de caja actual y con cuánto arrancó -se
--- actualiza solo, con el totalReal del último cierre-. Fila única (singleton).
 create table caja_estado (
   id smallint primary key default 1 check (id = 1),
   fecha_desde timestamptz not null default now(),
@@ -792,20 +568,6 @@ create table caja_estado (
   actualizado_en timestamptz
 );
 comment on table caja_estado is 'Fila única (id=1) — reemplaza cajaEstado/actual.';
-
--- ============================================================================
--- RLS: el login es CUSTOM (usuarios propios, hash+sal, sin Supabase Auth) —
--- no existe auth.uid() ni sesión de Supabase real detrás de cada acción, así
--- que no hay forma de escribir políticas por usuario. Se activa RLS en TODAS
--- las tablas (buena práctica / requisito para exponerlas via API), pero con
--- una política abierta ("using (true) with check (true)") que deja pasar
--- cualquier operación autenticada con la anon key — es lo más parecido al
--- comportamiento actual: app de escritorio/celular de confianza, detrás de
--- su propio login, sin multi-tenancy real entre negocios distintos. Esto es
--- una decisión deliberada, no un descuido: si en el futuro se necesita
--- aislar datos por negocio/sucursal, acá es donde se agregarían políticas
--- reales basadas en algún claim propio (no en auth.uid()).
--- ============================================================================
 
 do $$
 declare
@@ -833,26 +595,6 @@ begin
   end loop;
 end $$;
 
--- ============================================================================
--- REALTIME: se habilita replication solo en las tablas que hoy se leen con
--- .snapshots() (Stream) en Firestore, según lo pedido -confirmado
--- repositorio por repositorio-:
---   - productos: ProductoRepository.obtenerProductos() -> Stream
---   - negocio: NegocioRepository.obtenerNegocio() -> Stream
---   - ventas: VentaRepository tiene 3 streams sobre la colección ventas
---     (obtenerVentasConSolicitudImpresionEnVivo, ...GuiaEnvio,
---     obtenerVentasPendientesImpresion) — todos sobre la fila de ventas, no
---     sobre venta_items.
---   - ventas_credito: VentaCreditoRepository.obtenerCreditos()/obtenerAbonos() -> Stream
---   - caja: CierreCajaRepository.obtenerHistorial() -> Stream (cierresCaja).
---     cajaEstado se lee con Future puntual (obtenerEstadoCaja), pero se
---     incluye igual por ser chica y consultarse justo antes de cada cierre.
---   - dispositivos: DispositivoRepository.obtenerDispositivos() -> Stream
--- (categorias/clientes/proveedores/promociones también usan Stream hoy,
--- pero quedan fuera de la lista pedida explícitamente — se pueden agregar
--- después con el mismo alter publication si hace falta.)
--- ============================================================================
-
 alter publication supabase_realtime add table
   productos,
   negocio_config,
@@ -863,32 +605,11 @@ alter publication supabase_realtime add table
   caja_estado,
   dispositivos;
 
--- ============================================================================
--- Repuestos POS — funciones Postgres para operaciones ATÓMICAS que en
--- Firestore corrían dentro de una Transaction (contadores, costeo FIFO,
--- registrar/anular venta y compra, reservas de stock de "en espera", abonos
--- de crédito con cadena dependiente, cierre de caja). Ver el comentario de
--- cada función para el porqué. Aplicado con tool/supabase_sql.dart y luego
--- documentado (append) en supabase/schema.sql.
--- ============================================================================
-
--- Falta en el esquema original: los reportes necesitan poder ordenar por el
--- momento REAL de creación (creadoEn en Firestore), distinto de
--- fecha_registro (fecha de negocio, que el cajero puede atrasar a mano).
 alter table ventas add column if not exists creado_en timestamptz not null default now();
 
--- Falta en el esquema original: en Firestore cada línea de detalle llevaba
--- un campo 'orden' (id autogenerado no garantiza el orden de lectura) — acá
--- las filas tampoco vienen garantizadas en orden de inserción sin un ORDER
--- BY explícito, así que hace falta la misma columna.
 alter table venta_items add column if not exists orden integer;
 alter table compra_items add column if not exists orden integer;
 
--- ----------------------------------------------------------------------------
--- incrementar_contador: reemplaza el patrón lectura+escritura de
--- VentaRepository._claveContador/CompraRepository -dos cajeros no pueden
--- sacar el mismo número-. Un solo UPDATE/INSERT atómico.
--- ----------------------------------------------------------------------------
 create or replace function incrementar_contador(p_clave text) returns integer
 language plpgsql as $$
 declare
@@ -909,20 +630,6 @@ language sql immutable as $$
   end;
 $$;
 
--- ----------------------------------------------------------------------------
--- consumir_fifo_lotes: consume [p_cantidad] de los lotes de un producto (el
--- más viejo primero, o por prioridad manual — ver reordenar_lotes), bloqueando
--- las filas tocadas (FOR UPDATE) para que dos ventas concurrentes del mismo
--- producto no consuman el mismo lote dos veces. Devuelve el costo unitario
--- promedio ponderado de lo consumido (usa p_costo_fallback para lo que no
--- alcance a cubrir ningún lote).
--- [p_id_venta] es opcional (solo lo manda registrar_venta): cuando se manda,
--- deja un registro en venta_consumo_lotes de qué lote(s) se tocaron y cuánto
--- -para que anular_venta pueda devolver la cantidad al lote ORIGINAL en vez
--- de crear uno nuevo-. Los demás llamadores (registrar_salida_stock) no
--- mandan nada y quedan exactamente igual que antes: esa salida no se anula
--- por este mecanismo.
--- ----------------------------------------------------------------------------
 create or replace function consumir_fifo_lotes(p_id_producto uuid, p_cantidad numeric, p_costo_fallback numeric, p_id_venta uuid default null)
 returns numeric
 language plpgsql as $$
@@ -959,12 +666,6 @@ begin
 end;
 $$;
 
--- ----------------------------------------------------------------------------
--- sincronizar_precio_compra_activo: productos.precio_compra refleja el lote
--- que el FIFO va a consumir A CONTINUACIÓN (ver comentario grande en
--- lote_costo_repository.dart original). Se llama luego de cualquier
--- operación que toque lotes.
--- ----------------------------------------------------------------------------
 create or replace function sincronizar_precio_compra_activo(p_id_producto uuid) returns void
 language plpgsql as $$
 declare
@@ -995,16 +696,6 @@ begin
 end;
 $$;
 
--- ----------------------------------------------------------------------------
--- calcular_cantidades_descuento: dado un array de ítems (ItemVentaModel.toMap
--- en camelCase, con 'componentes' si es combo), expande cada combo en sus
--- componentes (mismo criterio que VentaRepository._expandirComponentes) y
--- agrupa la cantidad total a descontar por idProducto, excluyendo líneas
--- reembasadas o de categorías que no controlan stock (consultado en vivo
--- contra `categorias`, no confiado a un set que mande el cliente). Reusado
--- por registrar_venta (costeo + stock) y por guardar_venta_en_espera_manual
--- (reserva de stock, sin costeo).
--- ----------------------------------------------------------------------------
 create or replace function calcular_cantidades_descuento(p_items jsonb) returns jsonb
 language plpgsql as $$
 declare
@@ -1047,21 +738,6 @@ begin
 end;
 $$;
 
--- ----------------------------------------------------------------------------
--- registrar_venta: equivalente a VentaRepository.registrarVenta (la
--- transacción completa de Firestore). Ver comentario de cada bloque.
--- payload (jsonb, claves camelCase como en ItemVentaModel/VentaModel):
---   tipoDocumento, condicion, metodoPago, documentoCliente, nombreCliente,
---   idCliente, nombreClienteNormalizado (precalculado en Dart con
---   normalizarNombreCliente), fechaRegistro, fechaVencimiento,
---   telefonoCredito, oc, regExonerado, regSag, observaciones,
---   descuentoGlobal, montoPago, montoCambio, pagosMixtos, subtotal,
---   impuesto, totalAPagar, usuario, esEnvio, envioNombre, envioDireccion,
---   envioTelefono, items: [ItemVentaModel.toMap() + 'orden' implícito].
--- Devuelve {id, numeroDocumento, creadoEn, detalleCostos:[...]} — Dart hace
--- items[i].copyWith(precioCompraUsado: detalleCostos[i]) para reconstruir el
--- VentaModel final.
--- ----------------------------------------------------------------------------
 create or replace function registrar_venta(payload jsonb) returns jsonb
 language plpgsql as $$
 declare
@@ -1108,7 +784,6 @@ begin
     else lpad(v_numero::text, 8, '0')
   end;
 
-  -- Resolver/crear cliente (igual que VentaRepository._resolverIdCliente).
   v_id_cliente := nullif(payload->>'idCliente', '')::uuid;
   if v_tipo_documento <> 'Cotizacion' and v_id_cliente is null then
     if trim(v_nombre_cliente) <> '' and upper(trim(v_nombre_cliente)) <> 'CONSUMIDOR FINAL' then
@@ -1158,9 +833,6 @@ begin
     update clientes set fecha_ultima_compra = v_fecha_registro where id = v_id_cliente;
   end if;
 
-  -- Costeo FIFO + descuento de stock, agrupado por producto único (evita el
-  -- bug de "dos líneas del mismo producto" que documenta el código Dart
-  -- original: acá no puede pasar porque se agrupa ANTES de tocar nada).
   v_cantidades := calcular_cantidades_descuento(payload->'items');
   for v_id_producto_txt in select k from jsonb_object_keys(v_cantidades) k order by k loop
     v_cantidad := (v_cantidades->>v_id_producto_txt)::numeric;
@@ -1173,8 +845,6 @@ begin
     values (v_id_producto_txt::uuid, coalesce(v_stock_actual, 0), v_stock_nuevo, coalesce(payload->>'usuario', ''), 'Venta ' || v_numero_documento, now());
   end loop;
 
-  -- Detalle (venta_items), historial de ventas por producto, y pendientes de
-  -- reposición (venta anticipada) — en el mismo orden del carrito.
   v_idx := 0;
   v_aplica_isv := v_tipo_documento in ('Factura', 'Boleta');
   for item in select * from jsonb_array_elements(payload->'items') loop
@@ -1233,15 +903,6 @@ begin
 end;
 $$;
 
--- ----------------------------------------------------------------------------
--- anular_venta: repone stock (agrupado por producto único), devuelve la
--- cantidad al/los lote(s) ORIGINAL(es) de los que salió al vender (ver
--- venta_consumo_lotes/consumir_fifo_lotes) -pedido explícito del dueño: antes
--- creaba SIEMPRE un lote nuevo 'ajuste' al costo promedio ponderado, sin
--- relación con el lote real del que había salido-, cancela pendientes de
--- reposición abiertas de esta venta, y borra el crédito asociado si no tiene
--- abonos (si tiene, rechaza igual que la versión Dart).
--- ----------------------------------------------------------------------------
 create or replace function anular_venta(p_id uuid, p_usuario text, p_motivo text default '') returns void
 language plpgsql as $$
 declare
@@ -1256,7 +917,7 @@ declare
   v_es_combo boolean;
   v_controla boolean;
   v_cantidad numeric;
-  v_totales jsonb := '{}'::jsonb; -- idProducto -> {cantidad, costoTotal}
+  v_totales jsonb := '{}'::jsonb;
   v_id_producto_txt text;
   v_cantidad_total numeric;
   v_costo_total numeric;
@@ -1291,11 +952,6 @@ begin
   end if;
   update pendientes_reposicion set estado = 'Cancelado', fecha_completado = now() where id_venta = p_id and estado = 'Pendiente';
 
-  -- Expandir combos (igual que _expandirComponentes) y agrupar por producto.
-  -- OJO: en una línea combo, vi.id_producto es el producto DEL COMBO (nunca
-  -- null), así que acá NO se puede usar coalesce(vi.id_producto, ...) -hay
-  -- que decidir con CASE cuál id_producto/id_categoria/cantidad corresponde
-  -- según si esta línea es combo o no.
   for item in
     select
       case when jsonb_array_length(coalesce(vi.componentes, '[]'::jsonb)) = 0 then vi.id_producto else nullif(comp->>'idProducto', '')::uuid end as id_producto,
@@ -1326,12 +982,6 @@ begin
     insert into producto_historial_stock (id_producto, stock_anterior, stock_nuevo, usuario, motivo, fecha)
     values (v_id_producto_txt::uuid, coalesce(v_stock_actual, 0), v_stock_nuevo, p_usuario, 'Anulación de venta ' || v_numero_documento, now());
 
-    -- Devolver al/los lote(s) ORIGINAL(es) de los que salió (ver
-    -- venta_consumo_lotes), no crear uno nuevo. least(...) es solo un
-    -- resguardo (no debería pasar en el flujo normal) para no dejar un lote
-    -- con más cantidad_restante que su cantidad_original si algo más ya lo
-    -- había tocado. Se marca revertido=true, no se borra, para conservar el
-    -- historial de qué se consumió/devolvió.
     v_cantidad_restaurada := 0;
     for v_consumo in
       select id_lote, cantidad from venta_consumo_lotes
@@ -1346,12 +996,6 @@ begin
     update venta_consumo_lotes set revertido = true
       where id_venta = p_id and id_producto = v_id_producto_txt::uuid and not revertido;
 
-    -- Lo que no se pudo cubrir con ningún lote real registrado -ventas de
-    -- antes de este mecanismo (sin filas en venta_consumo_lotes), o la parte
-    -- que al vender ya había excedido todos los lotes existentes y se costeó
-    -- con el fallback (ver consumir_fifo_lotes)- cae, como antes, a un lote
-    -- 'ajuste' nuevo al costo promedio ponderado, pero solo por la cantidad
-    -- que de verdad falte, no por el total.
     v_cantidad_faltante := round(v_cantidad_total - v_cantidad_restaurada, 3);
     if v_cantidad_faltante > 0 then
       insert into producto_lotes_costo (id_producto, cantidad_original, cantidad_restante, costo_unitario, fecha, origen)
@@ -1363,12 +1007,6 @@ begin
 end;
 $$;
 
--- ----------------------------------------------------------------------------
--- aplicar_pendiente_reposicion: reparte cantidad disponible de una línea de
--- compra contra UNA venta pendiente de reposición puntual (bloqueando la
--- fila). Devuelve cuánto se aplicó y el numeroDocumento de la venta cubierta
--- (para el mensaje de historial), o (0, null) si no aplica.
--- ----------------------------------------------------------------------------
 create or replace function aplicar_pendiente_reposicion(
   p_id_pendiente uuid, p_disponible numeric, p_costo_unitario numeric,
   out p_aplicado numeric, out p_numero_documento_venta text
@@ -1412,14 +1050,6 @@ begin
 end;
 $$;
 
--- ----------------------------------------------------------------------------
--- registrar_compra: equivalente a CompraRepository.registrarCompra. payload:
---   noFactura, idProveedor, documentoProveedor, razonSocial, condicion,
---   metodoPago, fechaRegistro, fechaVencimiento, descuentoGlobalPorcentaje,
---   descuentoTotalMonto, isvPorcentaje, ajusteManual, subtotal, impuesto,
---   totalAPagar, usuario, items: [ItemCompraModel.toMap()].
--- Devuelve {id, numeroDocumento}.
--- ----------------------------------------------------------------------------
 create or replace function registrar_compra(payload jsonb) returns jsonb
 language plpgsql as $$
 declare
@@ -1531,7 +1161,7 @@ begin
       precio_compra = v_precio_final,
       precio_venta = coalesce(v_precio_venta_nuevo, precio_venta)
     where id = v_id_producto;
-    v_stock_actual := v_stock_nuevo; -- arrastre para la próxima línea del mismo producto en esta compra
+    v_stock_actual := v_stock_nuevo;
 
     v_motivo := case when v_cantidad_aplicada > 0
       then 'Compra ' || v_numero_documento || ' (' || formatear_cantidad(v_cantidad_aplicada) || ' ya vendida por adelantado en factura(s) ' || array_to_string(v_numeros_cubiertos, ', ') || ')'
@@ -1559,11 +1189,6 @@ begin
 end;
 $$;
 
--- ----------------------------------------------------------------------------
--- anular_compra: descuenta el stock que había sumado, recorta el lote que
--- generó (sin "des-vender" lo ya consumido de él), y borra el crédito
--- asociado si no tiene abonos.
--- ----------------------------------------------------------------------------
 create or replace function anular_compra(p_id uuid, p_usuario text, p_motivo text default '') returns void
 language plpgsql as $$
 declare
@@ -1619,10 +1244,6 @@ begin
 end;
 $$;
 
--- ----------------------------------------------------------------------------
--- guardar_venta_en_espera_manual / eliminar_venta_en_espera: reserva/libera
--- stock igual que VentaRepository -sin costear nada, solo aparta cantidad-.
--- ----------------------------------------------------------------------------
 create or replace function guardar_venta_en_espera_manual(payload jsonb) returns uuid
 language plpgsql as $$
 declare
@@ -1712,10 +1333,6 @@ begin
 end;
 $$;
 
--- ----------------------------------------------------------------------------
--- Ajustes de stock manuales de Inventario (ProductoRepository.registrarIngreso
--- /registrarSalida/descontarStock).
--- ----------------------------------------------------------------------------
 create or replace function registrar_ingreso_stock(payload jsonb) returns void
 language plpgsql as $$
 declare
@@ -1791,10 +1408,6 @@ begin
 end;
 $$;
 
--- ----------------------------------------------------------------------------
--- Abonos de crédito (venta y compra): cadena dependiente -editar/eliminar uno
--- del medio recalcula todos los que le siguen desde montoTotal-.
--- ----------------------------------------------------------------------------
 create or replace function recalcular_cadena_abonos_venta_credito(p_id_credito uuid, p_monto_total numeric) returns void
 language plpgsql as $$
 declare
@@ -1951,24 +1564,12 @@ begin
 end;
 $$;
 
--- ----------------------------------------------------------------------------
--- Cierre de caja: inserta el cierre y arranca el turno siguiente con el
--- totalReal de este, en una sola operación (CierreCajaRepository.registrarCierre).
--- ----------------------------------------------------------------------------
 create or replace function registrar_cierre_caja(payload jsonb) returns void
 language plpgsql as $$
 declare
   v_fecha_fin timestamptz := (payload->>'fechaFin')::timestamptz;
   v_total_real numeric := (payload->>'totalReal')::numeric;
   v_usuario text := coalesce(payload->>'usuarioResponsable', '');
-  -- El siguiente periodo arranca a las 00:00 del mismo día calendario en
-  -- que se registra el cierre (no en el minuto exacto) -mismo ajuste que
-  -- CierreCajaRepository.registrarCierre en Lopsi (Firestore)-. Se calcula
-  -- en Dart, en hora local del dispositivo, y se manda ya resuelto acá como
-  -- 'siguientePeriodo': calcularlo en el servidor con date_trunc trabajaría
-  -- en UTC y correría el día para negocios en otro huso horario. Si no viene
-  -- (payload viejo, RPC llamado desde otro lado), se cae a fechaFin tal
-  -- cual, el comportamiento previo.
   v_siguiente_periodo timestamptz := coalesce((payload->>'siguientePeriodo')::timestamptz, v_fecha_fin);
 begin
   insert into cierres_caja (
@@ -1989,14 +1590,6 @@ begin
 end;
 $$;
 
--- ----------------------------------------------------------------------------
--- escaneo_remoto: NO se migró a tabla en el diseño original del esquema (ver
--- comentario en schema.sql: "encajan mejor como canal de Realtime"), pero la
--- app sí necesita esta funcionalidad viva (celular como lector de código de
--- barras) — se agrega como 2 tablas chicas, efímeras (sesiones de segundos de
--- vida), en vez de rediseñar sobre Realtime broadcast/presence puro para no
--- arriesgar una reimplementación sin poder probarla en este entorno.
--- ----------------------------------------------------------------------------
 create table if not exists escaneos_remotos (
   codigo text primary key,
   conectado boolean not null default false,
@@ -2038,10 +1631,5 @@ begin
   end if;
 end $$;
 
--- Permisos ad-hoc por usuario del rol Encargado (roles.dart, usuario_model.dart,
--- acceso_especial.dart): qué pantallas (SubModulo.moduleKey) y qué acciones
--- (PermisosEspeciales.*) tiene habilitadas ESE usuario en particular. Solo se
--- guardan (no vacíos) cuando rol == 'Encargado'; para cualquier otro rol quedan
--- en '{}'. Estructura libre, no se consulta por SQL -jsonb-.
 alter table usuarios add column if not exists pantallas_permitidas jsonb not null default '{}'::jsonb;
 alter table usuarios add column if not exists acciones_permitidas jsonb not null default '{}'::jsonb;

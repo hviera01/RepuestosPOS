@@ -3,14 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Teclado de texto en pantalla, chico y con letras y números juntos (a
-/// diferencia del teclado nativo del sistema, que en tablet ocupa media
-/// pantalla) -ver CampoTecladoCompacto, que es quien lo abre. Mismo espíritu
-/// que TecladoNumericoDialog: funciona a toques o con teclado físico
-/// (Backspace y Enter para confirmar), y también se puede arrastrar a
-/// donde sea más cómodo (ver el título, con el ícono de arrastre). Como
-/// toda la app fuerza mayúsculas (ver MayusculasInputFormatter), acá no
-/// hace falta tecla de mayús/minús: todo entra siempre en mayúsculas.
 class TecladoTextoDialog extends StatefulWidget {
   final String titulo;
   final String valorInicial;
@@ -24,10 +16,6 @@ class TecladoTextoDialog extends StatefulWidget {
 class _TecladoTextoDialogState extends State<TecladoTextoDialog> {
   late String _texto;
   final _focusNode = FocusNode();
-  // Posición libre en pantalla (se arrastra desde el título): útil en
-  // tablet para dejarlo donde no tape ni la mano ni lo que se está viendo
-  // detrás. null hasta el primer build, que la centra según el tamaño de
-  // pantalla disponible ahí.
   Offset? _posicion;
   static const _ancho = 460.0;
   static const _altoEstimado = 420.0;
@@ -111,9 +99,6 @@ class _TecladoTextoDialogState extends State<TecladoTextoDialog> {
   @override
   Widget build(BuildContext context) {
     final tamano = MediaQuery.sizeOf(context);
-    // Se centra recién en el primer build (ahí ya se conoce el tamaño real
-    // de la pantalla); de ahí en adelante, arrastrar desde el título es lo
-    // único que la mueve.
     _posicion ??= Offset(
       ((tamano.width - _ancho) / 2).clamp(0, tamano.width - _ancho),
       ((tamano.height - _altoEstimado) / 2).clamp(0, tamano.height - _altoEstimado),

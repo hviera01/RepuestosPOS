@@ -15,13 +15,6 @@ import 'venta_repository.dart';
 import 'venta_ticket_escpos_service.dart';
 import '../../../core/utils/impresion_calentamiento.dart';
 
-/// Imprime una venta pendiente directo desde su lista
-/// (VentasPendientesImpresionDialog), sin tener que abrir el detalle.
-/// Respeta negocio.modoImpresion igual que al confirmar una venta nueva
-/// (preguntar abre la vista previa; directo imprime sin diálogo) y, apenas
-/// la imprime (o abre la vista previa para que el cajero decida desde ahí),
-/// la marca como impresa: apretar el botón ya es la confirmación, no hace
-/// falta ir al detalle para eso.
 class ImpresionPendienteService {
   final _servicioExport = VentaExportService();
   final _servicioTicketEscPos = VentaTicketEscPosService();
@@ -76,17 +69,11 @@ class ImpresionPendienteService {
       return;
     }
 
-    // defaultTargetPlatform (a diferencia de Platform.isAndroid, que en web
-    // no sirve de nada) detecta el sistema operativo real aunque se esté
-    // usando desde el navegador.
     final esMovil =
         defaultTargetPlatform == TargetPlatform.android ||
         defaultTargetPlatform == TargetPlatform.iOS;
 
     if (kIsWeb && esMovil) {
-      // No hay forma de imprimir directo desde el navegador del celular:
-      // antes de resignarse, se intenta pedirle a la PC principal que
-      // imprima ella sola (ver PresenciaImpresionRepository).
       await _pedirImpresionEnVivoOMensaje(
         venta,
         ventaRepo,
@@ -116,14 +103,10 @@ class ImpresionPendienteService {
       return;
     }
 
-    // Desktop (Windows/macOS/Linux).
     if (negocio.impresoraTermicaUrl.isEmpty) {
       mostrarMensaje('No hay impresora configurada');
       return;
     }
-    // Ver el mismo comentario en registrar_venta_screen.dart: en Windows se
-    // manda el ticket como ESC/POS crudo por USB en vez de como PDF, para no
-    // depender del tope de tamaño de página fijo que tienen algunos drivers.
     if (!kIsWeb && Platform.isWindows && !negocio.impresoraUsbUsarDriverWindows) {
       try {
         final bytes = await _servicioTicketEscPos.generarTicket(venta, negocio);
@@ -142,10 +125,6 @@ class ImpresionPendienteService {
       return;
     }
     try {
-      // Ver calentarImpresionWindows: "si lo va a tirar mal mejor que no
-      // tire nada" -mismo refuerzo que ImpresionEnVivoService-. Si la
-      // impresora no responde bien a esta consulta liviana, no se intenta
-      // el trabajo real.
       if (!await calentarImpresionWindows(nombreImpresora: negocio.impresoraTermicaNombre)) {
         mostrarMensaje('No se pudo confirmar la impresora, quedó pendiente de impresión');
         return;
@@ -168,9 +147,6 @@ class ImpresionPendienteService {
     }
   }
 
-  // Intenta ESC/POS de red (Android/iOS). Si no hay impresora de red
-  // configurada, o falla el intento -lo más común en un celular-, antes de
-  // resignarse se prueba pedirle a la PC principal que imprima ella sola.
   Future<void> _imprimirEscPosRed(
     VentaModel venta,
     NegocioModel negocio,
@@ -192,9 +168,6 @@ class ImpresionPendienteService {
     await _pedirImpresionEnVivoOMensaje(venta, ventaRepo, mostrarMensaje);
   }
 
-  // La venta que llega acá ya está marcada pendienteImpresion (por algo
-  // apareció en la lista), así que no hace falta volver a marcarla: solo se
-  // agrega el pedido de impresión en vivo si hay PC conectada.
   Future<void> _pedirImpresionEnVivoOMensaje(
     VentaModel venta,
     VentaRepository ventaRepo,

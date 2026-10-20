@@ -54,9 +54,6 @@ class EgresoModel {
   String get textoBusqueda => '$descripcion $usuario $metodoPago $categoria';
 }
 
-/// Un renglón del libro financiero: puede venir de una venta de contado, un
-/// abono a crédito, una compra de contado, un abono a compra de crédito o un
-/// egreso manual. `ingreso` y `egreso` son mutuamente excluyentes.
 class MovimientoFinanciero {
   final DateTime fecha;
   final String tipoMovimiento;

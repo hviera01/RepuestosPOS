@@ -36,9 +36,6 @@ class AuthRepository with ConRedMixin {
       if (sal != null && sal.isNotEmpty) {
         coincide = data['clave'] == ClaveHash.hash(clave, sal);
       } else {
-        // Usuario creado antes de agregar la sal: valida contra el esquema
-        // viejo y, si coincide, migra la clave a uno con sal en este mismo
-        // login (transparente para el usuario, no tiene que hacer nada).
         coincide = data['clave'] == ClaveHash.hashSinSal(clave);
         if (coincide) {
           final nuevaSal = ClaveHash.generarSal();

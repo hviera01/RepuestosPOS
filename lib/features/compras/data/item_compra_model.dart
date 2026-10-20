@@ -8,17 +8,7 @@ class ItemCompraModel {
   final double cantidad;
   final double subtotal;
   final double descuentoPorcentaje;
-  // Nuevo precio de venta (con ISV) a aplicar al producto al registrar la
-  // compra. Null significa "no cambiar el precio de venta actual".
   final double? precioVentaNuevo;
-  // Vínculo manual a una venta anticipada (ver PendienteReposicionModel):
-  // para cuando lo que se compra acá es un producto de catálogo DISTINTO al
-  // que se facturó -por ejemplo, se vendió "Pintura Preparada" sin saber
-  // todavía qué marca real se iba a comprar, y acá se compra "Corona Quinto"
-  // para reponerla-. El emparejamiento automático por idProducto (ver
-  // CompraRepository.registrarCompra) no puede detectar esto solo porque son
-  // productos distintos, así que el cajero lo elige a mano. Si no se vincula
-  // nada, sigue aplicando el emparejamiento automático como antes.
   final String? idPendienteReposicionVinculado;
   final String? numeroDocumentoVentaVinculada;
   final String? nombreProductoVentaVinculada;
@@ -37,11 +27,6 @@ class ItemCompraModel {
     this.nombreProductoVentaVinculada,
   });
 
-  /// Lee de un jsonb embebido guardado con [toMap] tal cual (mismas claves
-  /// camelCase) — el caso de `compras_en_espera.items` y del payload que se
-  /// manda a la función `registrar_compra` de Postgres. Para leer una fila
-  /// REAL de la tabla `compra_items` (columnas snake_case) usar
-  /// [ItemCompraModel.fromRow].
   factory ItemCompraModel.fromMap(Map<String, dynamic> data) {
     return ItemCompraModel(
       idProducto: data['idProducto'] ?? '',
@@ -58,7 +43,6 @@ class ItemCompraModel {
     );
   }
 
-  /// Lee una fila real de la tabla `compra_items` (columnas snake_case).
   factory ItemCompraModel.fromRow(Map<String, dynamic> data) {
     return ItemCompraModel(
       idProducto: data['id_producto'] ?? '',

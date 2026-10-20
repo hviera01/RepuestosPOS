@@ -6,23 +6,6 @@ import 'tutorial_motor.dart';
 
 final _azulMarca = Marca.primario;
 
-/// Ícono chico y discreto de "Tutorial" -pedido explícito del dueño: la
-/// persona que va a usar el sistema no es muy ágil con computadoras, necesita
-/// una guía paso a paso explicada bien simple en cada pantalla-. Al tocarlo
-/// abre un menú con los temas disponibles PARA ESA PANTALLA ([temas]); al
-/// elegir uno arranca un recorrido guiado que resalta cada campo/botón REAL
-/// de la pantalla (con el resto oscurecido, sin bloquear el toque real, ver
-/// tutorial_motor.dart) y lo va explicando de a un paso por vez, con
-/// "Atrás"/"Siguiente" y "Salir del tutorial" siempre visible.
-///
-/// CÓMO USARLO en una pantalla nueva:
-/// 1. Envolvé cada widget que quieras poder resaltar con una `GlobalKey`
-///    propia (`key: _miClaveDelBoton` en el widget de verdad de esa pantalla,
-///    no uno de mentira).
-/// 2. Armá una o más `TutorialTema` (una por cada "cómo hacer X" distinto),
-///    cada una con su `pasos: () => [TutorialPaso(key: _miClave, ...), ...]`.
-/// 3. Metelo en un `Stack` de esa pantalla:
-///    `Positioned(right: 16, bottom: 16, child: TutorialBoton(temas: [...]))`.
 class TutorialBoton extends StatelessWidget {
   final List<TutorialTema> temas;
   const TutorialBoton({super.key, required this.temas});
@@ -58,11 +41,6 @@ class TutorialBoton extends StatelessWidget {
     );
   }
 
-  // Antes era un showModalBottomSheet con una Column sin scroll -pedido
-  // explícito del dueño tras ver que en pantallas con muchos temas (o poca
-  // altura, típico en un celular apaisado) las últimas opciones quedaban
-  // recortadas, invisibles e imposibles de alcanzar-. Ahora es un diálogo
-  // centrado con una lista que si no cabe entera, se puede desplazar.
   void _mostrarMenu(BuildContext context) {
     showDialog(
       context: context,
@@ -150,10 +128,6 @@ class TutorialBoton extends StatelessWidget {
       borderRadius: BorderRadius.circular(14),
       onTap: () {
         Navigator.pop(contextMenu);
-        // Un frame de margen para que el bottom sheet termine de cerrarse
-        // antes de medir dónde están los widgets reales a resaltar -si se
-        // arranca en el mismo instante, la primera posición puede salir mal
-        // calculada mientras el sheet todavía se está animando hacia abajo-.
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (contextPantalla.mounted) {
             _iniciarTutorial(contextPantalla, tema);
@@ -207,11 +181,6 @@ class TutorialBoton extends StatelessWidget {
     void arrancarRecorrido() {
       tema.alEmpezar?.call();
       final pasos = tema.pasos();
-      // Ver tutorial_motor.dart: el recorrido en sí (resaltar cada paso sin
-      // bloquear el toque real, seguir al campo si la pantalla scrollea,
-      // avanzar solo cuando el usuario toca de verdad lo resaltado) vive
-      // ahí, no acá -este botón solo decide CUÁNDO arrancarlo (el menú de
-      // temas, la bienvenida opcional).
       iniciarRecorridoTutorial(
         context,
         pasos,

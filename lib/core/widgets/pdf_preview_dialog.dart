@@ -12,39 +12,12 @@ import '../utils/impresion_calentamiento.dart';
 class PdfPreviewDialog extends StatefulWidget {
   final String titulo;
   final Future<Uint8List> Function() generarPdf;
-  // Opcional: para imprimir directo en Windows, algunos PDF (el ticket
-  // térmico) necesitan saber el formato real que reporta la impresora
-  // seleccionada para no salir desalineados (ver venta_export_service.dart).
-  // Si no se manda, se usa generarPdf() igual que siempre.
   final Future<Uint8List> Function(PdfPageFormat formato)? generarPdfConFormato;
   final String nombreArchivo;
   final Printer? impresora;
-  // Opcionales: cuando se manda esto (y [nombreImpresoraWindows]), imprimir
-  // en Windows NO pasa por el PDF -algunos drivers de impresora térmica
-  // tienen un tamaño de página máximo fijo (ver venta_export_service.dart) y
-  // recortan o reescalan cualquier ticket más largo que eso, sin importar
-  // qué le pidamos al PDF-. En vez de eso se mandan directo los bytes
-  // ESC/POS crudos por USB (ImpresoraUsbWindowsService), el mismo mecanismo
-  // que ya usa la impresión por red/celular y que no tiene ese límite. Si no
-  // se manda (el resto de los documentos: reportes, facturas formales,
-  // etc.) sigue exactamente igual que antes.
   final Future<List<int>> Function()? generarTicketEscPos;
   final String? nombreImpresoraWindows;
-  // Widget opcional que reproduce en pantalla, con widgets normales (no un
-  // PDF), el mismo contenido que imprime [generarTicketEscPos] -ver
-  // TicketEscPosPreview-. En Windows, cuando se va a usar esa vía, la vista
-  // previa en PDF ya no representa lo que realmente se manda a imprimir, así
-  // que se muestra esto en su lugar.
   final Widget Function()? vistaPreviaTicket;
-  // Se llama cuando falla el intento de imprimir directo (impresora
-  // desconectada, no encontrada por nombre en este equipo, etc.) -pedido
-  // explícito del dueño: en vez de solo avisar el error, poder pedirle a
-  // la PC principal que imprima ella sola, para el caso de otra PC de
-  // escritorio sin la impresora física a mano (ver
-  // RegistrarVentaScreen._intentarImpresionRemota/DetalleVentaScreen.
-  // _pedirImpresionEnVivo). Si no se manda, sigue el aviso genérico de
-  // siempre -documentos que no son una venta (reportes, etc.) no tienen
-  // a quién pedirle una reimpresión remota-.
   final Future<void> Function()? alFallarImprimir;
 
   const PdfPreviewDialog({
@@ -73,13 +46,6 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
       widget.generarTicketEscPos != null &&
       (widget.nombreImpresoraWindows?.isNotEmpty ?? false);
 
-  // Además del caso ESC/POS por USB de arriba (donde la vista previa en PDF
-  // ya no representa lo que se manda a imprimir), se prefiere la
-  // reproducción del ticket -pedido explícito del dueño- cuando esta PC
-  // todavía NO tiene ninguna impresora térmica configurada (widget.impresora
-  // null, ver negocio.impresoraTermicaUrl): antes en ese caso caía al PDF de
-  // generarPdfFactura, que se ve como una factura formal (bordes de tabla,
-  // logo) en vez de un ticket angosto, aunque la venta no sea facturable.
   bool get _mostrarVistaPreviaTicket =>
       widget.vistaPreviaTicket != null &&
       (_usaEscPosEnWindows || widget.impresora == null);
@@ -98,11 +64,6 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
         if (!ok) throw Exception('No se pudo escribir en la impresora');
         return;
       }
-      // Ver calentarImpresionWindows: "si lo va a tirar mal mejor que no
-      // tire nada" -mismo refuerzo que la impresión en vivo remota-. Si la
-      // impresora no responde bien a esta consulta liviana, no se intenta
-      // el trabajo real: cae al mismo manejo de error de más abajo
-      // (alFallarImprimir/aviso genérico).
       if (!await calentarImpresionWindows(nombreImpresora: impresora.name)) {
         throw Exception('La impresora no respondió a tiempo');
       }
@@ -202,12 +163,6 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
                 ),
               ),
             ],
-            // Cuando la vista previa de acá abajo es la reproducción del
-            // ticket (no el PDF real, ver _vistaPreviaNativa/
-            // _mostrarVistaPreviaTicket) se pierde el ícono de compartir que
-            // traía el visor de PDF nativo -acá ni se muestra-, así que se
-            // ofrece un botón aparte por si igual se quiere mandar la
-            // factura en PDF (por ejemplo, por WhatsApp).
             if (_mostrarVistaPreviaTicket) ...[
               const SizedBox(height: 8),
               SizedBox(
@@ -240,12 +195,6 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
               ),
             ],
             const SizedBox(height: 10),
-            // En la web, la vista previa dentro del diálogo necesita cargar
-            // pdf.js desde un CDN externo (unpkg.com) la primera vez, sin
-            // límite de tiempo: si esa carga falla o tarda (red restringida,
-            // CDN caído), el diálogo queda "cargando" para siempre. Para no
-            // depender de eso, en web se ofrece descargar/imprimir directo
-            // (no necesita pdf.js) en vez de mostrar la vista previa en pantalla.
             if (kIsWeb) _accionesWeb() else _vistaPreviaNativa(),
           ],
         ),
@@ -256,14 +205,6 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
   Widget _vistaPreviaNativa() {
     final vistaTicket = widget.vistaPreviaTicket;
     if (_mostrarVistaPreviaTicket && vistaTicket != null) {
-      // Dos casos (ver _mostrarVistaPreviaTicket): la vía real de impresión
-      // acá es ESC/POS crudo, no el PDF (_usaEscPosEnWindows) -mostrar el
-      // PDF en la vista previa daría una idea equivocada de qué va a
-      // salir-, o esta PC todavía no tiene ninguna impresora térmica
-      // configurada, y el PDF de generarPdfFactura se ve como una factura
-      // formal en vez de un ticket. En ambos se muestra en su lugar una
-      // reproducción con widgets normales del mismo contenido/orden que
-      // imprime de verdad VentaTicketEscPosService.
       return Expanded(
         child: Container(
           decoration: BoxDecoration(
@@ -285,12 +226,6 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
           pdfFileName: widget.nombreArchivo,
           canChangeOrientation: false,
           canChangePageFormat: false,
-          // Cuando hay una vía ESC/POS por USB disponible (ver
-          // _imprimirDirecto), el ícono de imprimir de esta vista previa se
-          // oculta: es un camino ajeno (del paquete `printing`, no nuestro)
-          // que sigue pasando por el PDF y el driver de Windows, así que
-          // conviene que solo quede el botón de arriba, que sí usa la vía
-          // confiable.
           allowPrinting: widget.generarTicketEscPos == null,
           allowSharing: true,
           useActions: true,

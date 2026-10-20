@@ -6,11 +6,6 @@ class PermisosEspeciales {
   static const ventasEditarDescripcion = 'ventas_editar_descripcion';
   static const ventasVenderSinStock = 'ventas_vender_sin_stock';
 
-  // Claves nuevas para el rol Encargado: a diferencia de las de arriba,
-  // estas no gatillan el diálogo de clave especial compartida, sino que se
-  // usan como `accionKey` de `puedeRealizarAccion` (ver
-  // core/utils/permisos_usuario.dart) para ocultar botones de crear/editar/
-  // eliminar según lo que el Administrador marcó para ese usuario puntual.
   static const comprasCrear = 'compras_crear';
   static const comprasEditar = 'compras_editar';
   static const comprasEliminar = 'compras_eliminar';
@@ -67,8 +62,6 @@ class PermisosEspeciales {
   };
 }
 
-/// Cómo se maneja la impresión de la factura al confirmar una venta
-/// facturable (ver ModoImpresion.preguntar/directo).
 class ModoImpresion {
   static const preguntar = 'preguntar';
   static const directo = 'directo';
@@ -94,74 +87,17 @@ class NegocioModel {
   final String impresoraTermicaNombre;
   final String impresoraEtiquetasUrl;
   final String impresoraEtiquetasNombre;
-  // Si es false, el ticket de venta solo imprime la hoja "ORIGINAL" (se
-  // salta la "COPIA"), para no gastar papel de más cuando no hace falta.
   final bool facturaImprimirCopia;
-  // Si es true, el precio unitario y el importe de cada línea del ticket se
-  // muestran con ISV incluido (igual que el recuadro "Con ISV" del carrito
-  // en Registrar Venta). Si es false (default, comportamiento de siempre)
-  // se muestran sin ISV, con el ISV desglosado aparte en el total.
   final bool facturaPreciosConIsv;
-  // ModoImpresion.preguntar (default, comportamiento de siempre) muestra el
-  // diálogo de vista previa/descargar/imprimir; ModoImpresion.directo salta
-  // ese diálogo e imprime directo en la impresora configurada.
   final String modoImpresion;
-  // Impresora térmica de red (ESC/POS por socket TCP): la vía que sí
-  // funciona desde el celular, donde no hay forma de listar impresoras del
-  // sistema operativo.
   final String impresoraRedIp;
   final int impresoraRedPuerto;
-  // Impresora térmica Bluetooth (ESC/POS), Android únicamente: mac (id) y
-  // nombre del dispositivo ya emparejado que se eligió en Negocio (ver
-  // SelectorImpresoraBluetooth). Vacío = sin impresora Bluetooth elegida
-  // -RegistrarVentaScreen sigue con la impresora de red, y si tampoco hay,
-  // con el respaldo remoto de siempre (ver _imprimirEscPosRed)-.
   final String impresoraBluetoothId;
   final String impresoraBluetoothNombre;
-  // Ancho del rollo térmico -pedido explícito del dueño: "que existan las
-  // DOS medidas disponibles, por si acaso"-. 58 = ticket angosto (32
-  // columnas ESC/POS, tipo POS de tarjeta), 80 = el de siempre (48 columnas).
-  // Afecta tanto la impresión ESC/POS real (ver VentaTicketEscPosService)
-  // como su vista previa en pantalla (ver TicketEscPosPreview).
   final int anchoTicketMm;
-  // Si es true, en tablet (ancho de pantalla de tablet + dispositivo táctil,
-  // ver esTabletTactil en core/utils/tablet_utils.dart) los campos de texto
-  // de toda la app abren un teclado propio, chico, en vez del teclado nativo
-  // del sistema (que en tablet ocupa media pantalla) -ver CampoTecladoCompacto-.
-  // No aplica en celular (el teclado nativo angosto ya funciona bien ahí) ni
-  // en escritorio/PC.
   final bool tecladoCompactoTablet;
-  // Hostname (ver core/utils/device_id.dart, mismo id que muestra la
-  // pantalla de Dispositivos) de la PC que de verdad tiene la impresora
-  // térmica conectada. Vacío (default) = comportamiento de siempre:
-  // CUALQUIER escritorio (Windows/macOS/Linux) actúa como "PC principal"
-  // (manda latido de presencia y procesa impresiones remotas pedidas desde
-  // el celular). Si el dueño marca un hostname acá (ver Dispositivos >
-  // "Marcar como PC principal" -pedido explícito: tenía otra PC propia,
-  // sin impresora, y esa también se comportaba como si lo fuera-), SOLO esa
-  // PC manda latido/procesa solicitudes; cualquier otro escritorio deja de
-  // considerarse principal y, si no logra imprimir localmente, puede
-  // preguntarle de verdad a Firestore si la de verdad está encendida antes
-  // de pedirle que imprima ella (ver RegistrarVentaScreen._manejarImpresion).
   final String pcPrincipalHostname;
-  // Interruptor MAESTRO de impresión: si es false, al confirmar una venta
-  // facturable no se intenta imprimir nada (ni diálogo de vista previa ni
-  // impresión directa) sin importar modoImpresion/facturaImprimirCopia. Para
-  // negocios que todavía no tienen impresora física conectada. Default true
-  // (comportamiento de siempre: sí se imprime).
   final bool imprimirFacturas;
-  // Si es true, en Windows el ticket/factura NO se manda como bytes ESC/POS
-  // crudos por USB (ver ImpresoraUsbWindowsService) sino como PDF a través
-  // del driver de Windows normal de la impresora térmica elegida arriba
-  // -pedido explícito del dueño tras una impresión real que salió mal con
-  // la Star POP10: esa impresora usa su propio protocolo (StarPRNT), no
-  // ESC/POS genérico, así que al mandarle los bytes crudos directo nunca
-  // reconoció el comando de "cortar papel" y siguió alimentando papel en
-  // blanco sin parar, además de imprimir texto interpretado a medias-. El
-  // driver oficial de Star sí sabe traducir a su propio protocolo, así que
-  // este interruptor evita mandarle bytes que no entiende. Default false
-  // (comportamiento de siempre: ESC/POS crudo, correcto para impresoras
-  // genéricas que sí lo hablan).
   final bool impresoraUsbUsarDriverWindows;
   final Map<String, dynamic> tema;
   final String tipoDocumentoDefecto;

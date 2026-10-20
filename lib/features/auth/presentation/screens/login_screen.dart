@@ -11,18 +11,6 @@ import '../../../../core/widgets/face_id_icon.dart';
 import '../../providers/auth_provider.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 
-// Solo el navegador de un celular/tablet (no la PC, no la app de
-// escritorio): ahí conviene el teclado numérico porque el código de acceso
-// y la contraseña de esta app son siempre dígitos, y es donde vive Face
-// ID/Touch ID (WebAuthn, ver webauthn.dart). Un iPad con Safari es un caso
-// especial: iPadOS se identifica a sí mismo como macOS de escritorio (no
-// iOS), así que `defaultTargetPlatform` solo no alcanza para reconocerlo
-// -bug real reportado por el dueño: en su iPad no aparecía la opción de
-// Touch ID, aunque en el celular (iPhone) sí-. Mismo criterio ya
-// establecido para esto en tablet_utils.dart (usado por
-// CampoTecladoCompacto): si el navegador dice "macOS" pero el dispositivo
-// SÍ tiene pantalla táctil (navigator.maxTouchPoints > 0, algo que un Mac
-// de escritorio real nunca tiene), es un iPad de verdad.
 bool get _esWebMovil =>
     kIsWeb &&
     (defaultTargetPlatform == TargetPlatform.android ||
@@ -41,9 +29,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _claveController = TextEditingController();
   bool _ocultarClave = true;
 
-  // Id (base64url) del credencial de Face ID/Touch ID ya activado en este
-  // navegador, o null si todavía no se activó acá. Se carga async en
-  // initState porque SharedPreferences no es síncrono la primera vez.
   String? _credencialFaceId;
   bool _verificandoFaceId = false;
 
@@ -72,17 +57,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     await ref.read(authProvider.notifier).login(codigo, clave);
     if (!mounted) return;
     final usuario = ref.read(authProvider).usuario;
-    // El login falló: el mensaje de error ya se muestra solo (ver
-    // authState.error más abajo), acá no hay nada más que hacer.
     if (usuario == null) return;
-    // La activación de Face ID en sí ya NO se ofrece acá (ver Negocio >
-    // "Face ID en este celular"): justo después de un login exitoso,
-    // AuthGate reemplaza esta pantalla por AppShell casi de inmediato, y
-    // cualquier await de por medio (SharedPreferences, WebAuthn) le daba
-    // tiempo de sobra a esa transición para desmontar LoginScreen antes de
-    // llegar a mostrar nada -por eso a veces "no pasaba nada" al loguearse-.
-    // Negocio es una pantalla estable que no se cierra sola, así que ahí sí
-    // se puede activar con confianza.
   }
 
   Future<void> _entrarConFaceId() async {
@@ -101,10 +76,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  // Por si el celular no es el del usuario que activó Face ID acá antes (un
-  // celular compartido, por ejemplo), o simplemente ya no lo quiere más:
-  // borra lo guardado en este navegador y vuelve a mostrar el formulario
-  // normal de código+clave.
   Future<void> _olvidarFaceId() async {
     await olvidarCredencialesFaceId();
     if (mounted) setState(() => _credencialFaceId = null);

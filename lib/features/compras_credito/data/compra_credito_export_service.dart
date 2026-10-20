@@ -10,10 +10,6 @@ import '../../../core/utils/formato_moneda.dart';
 import '../../../core/utils/logo_pdf.dart';
 import '../../negocio/data/negocio_model.dart';
 
-/// Una fila ya calculada del Estado de Cuenta (ver
-/// EstadoCuentaProveedorDialog) — el PDF no recalcula nada, solo dibuja lo
-/// que la pantalla ya armó, para no duplicar la lógica de cargos/abonos por
-/// día/saldo corriendo en dos lugares.
 class FilaEstadoCuenta {
   final DateTime fecha;
   final bool esCargo;

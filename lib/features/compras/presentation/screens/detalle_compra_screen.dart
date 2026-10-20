@@ -16,18 +16,10 @@ import '../../../../core/utils/pantalla_builder.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
 
-/// Pantalla de consulta de una compra ya registrada: buscá por número de
-/// documento o de factura (o abrila directo tocándola desde un reporte, o
-/// desde Compras a Crédito, pasando [compraIdInicial]) para ver el detalle
-/// completo o anularla.
 class DetalleCompraScreen extends ConsumerStatefulWidget {
   final String? compraIdInicial;
   final String? numeroDocumentoInicial;
 
-  /// true cuando se abre como modal (push encima de otra pantalla, ej. desde
-  /// un botón en Compras a Crédito): muestra su propio Scaffold y flecha de
-  /// volver. false cuando se abre como pestaña del menú principal (ej.
-  /// Compras > Ver Detalle): se embebe como las demás pantallas.
   final bool esDialogo;
 
   const DetalleCompraScreen({
@@ -128,9 +120,6 @@ class _DetalleCompraScreenState extends ConsumerState<DetalleCompraScreen> {
     });
   }
 
-  /// Abre una pestaña nueva de "Registrar Compra" con los mismos productos
-  /// de esta compra ya cargados en el carrito, lista para ajustar y
-  /// confirmar como una compra nueva (no toca ni modifica la original).
   void _duplicarCompra(CompraModel compra) {
     ref.read(compraParaCargarProvider.notifier).establecer(compra);
     final id = 'compras_registrar_${DateTime.now().millisecondsSinceEpoch}';

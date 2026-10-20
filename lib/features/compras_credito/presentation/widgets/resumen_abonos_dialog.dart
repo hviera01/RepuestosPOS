@@ -14,10 +14,6 @@ class _FilaResumen {
   final String proveedor;
   final double totalAbonado;
   final int numeroAbonos;
-  // Cuánto abonó cada usuario dentro de este grupo (día+proveedor, o
-  // proveedor solo) -pedido explícito del dueño: "quiero ver quien registró
-  // ese abono, ya sea global [un solo usuario] o si es más de uno ver
-  // quiénes y cuánto cada uno".
   final Map<String, double> montoPorUsuario;
 
   _FilaResumen({
@@ -672,10 +668,6 @@ class _ResumenAbonosDialogState extends ConsumerState<ResumenAbonosDialog> {
     );
   }
 
-  /// Un solo usuario en el grupo: se muestra el nombre directo. Más de
-  /// uno: chip "N usuarios" con un Tooltip -mismo texto que un desglose,
-  /// pero sin necesitar abrir otro diálogo- que lista a cada uno con lo
-  /// que abonó, ordenado de mayor a menor aporte.
   Widget _celdaUsuarios(Map<String, double> montoPorUsuario) {
     if (montoPorUsuario.length <= 1) {
       return Text(

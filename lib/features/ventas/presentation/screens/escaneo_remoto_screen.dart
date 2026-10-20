@@ -5,12 +5,6 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../data/escaneo_remoto_repository.dart';
 import '../../../../core/utils/beep.dart';
 
-/// Pantalla que abre el celular al escanear el QR que muestra la PC (ver
-/// EscanearRemotoDialog): no pide iniciar sesión (se llega acá directo desde
-/// main.dart cuando la URL trae `?escanear=`, antes de mostrar el login), y
-/// manda cada código de barras leído a la sesión de Firestore que la PC está
-/// escuchando en vivo. Se queda escaneando: no hay que volver a abrir la
-/// cámara para cada producto.
 class EscaneoRemotoScreen extends StatefulWidget {
   final String codigo;
 
@@ -32,30 +26,17 @@ class _EscaneoRemotoScreenState extends State<EscaneoRemotoScreen> {
 
   bool _yaAvisoConectado = false;
 
-  // Mientras está en true se ignora cualquier detección nueva: es la
-  // pausa que sigue a cada envío (con beep + aviso grande en pantalla) para
-  // que el usuario tenga tiempo de notar que ya se mandó ese código antes
-  // de que la cámara pueda volver a leer el mismo (o el siguiente) sin que
-  // se dé cuenta.
   bool _mostrandoConfirmacion = false;
 
   @override
   void initState() {
     super.initState();
-    // Suscripción en vivo (no una comprobación única al abrir): la sesión
-    // solo deja de existir cuando en la PC se toca "Finalizar escaneo" o se
-    // cierra la pestaña de venta — no por cerrar la ventanita del QR — y
-    // esto se entera al instante en cualquiera de esos casos, aunque la
-    // cámara del celular siga abierta.
     _suscripcionSesion = _repo.existeSesionEnVivo(widget.codigo).listen((existe) {
       if (!mounted) return;
       setState(() {
         _sesionValida = existe;
         _verificando = false;
       });
-      // Le avisa a la PC que el celular ya llegó a la cámara para que
-      // pueda cerrar sola la ventanita del QR, sin que el usuario tenga
-      // que hacerlo a mano.
       if (existe && !_yaAvisoConectado) {
         _yaAvisoConectado = true;
         _repo.marcarConectado(widget.codigo);
@@ -84,10 +65,6 @@ class _EscaneoRemotoScreenState extends State<EscaneoRemotoScreen> {
       _ultimoEnviado = valor;
       _mostrandoConfirmacion = true;
     });
-    // A diferencia de antes (que se cerraba sola después de una pausa), acá
-    // se queda esperando a que el usuario toque "OK" a propósito: así no
-    // hay forma de que la cámara vuelva a leer el mismo código (o el
-    // siguiente) sin que el usuario se dé cuenta y confirme cada uno.
   }
 
   void _confirmarEnviado() {
@@ -175,12 +152,6 @@ class _EscaneoRemotoScreenState extends State<EscaneoRemotoScreen> {
               ),
             ),
           ),
-          // Aviso grande en el centro de la pantalla mientras dura la pausa
-          // de confirmación (ver _alDetectar): junto con el beep, es lo que
-          // evita que el usuario pase el mismo código dos veces sin notarlo.
-          // A diferencia de un simple mensaje que se cierra solo, acá hace
-          // falta tocar "OK" para seguir escaneando -así el usuario tiene
-          // que darse cuenta sí o sí de cada código que se manda.
           IgnorePointer(
             ignoring: !_mostrandoConfirmacion,
             child: AnimatedOpacity(

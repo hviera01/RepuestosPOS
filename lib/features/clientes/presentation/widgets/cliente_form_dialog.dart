@@ -9,11 +9,6 @@ import '../../../../core/widgets/campo_teclado_compacto.dart';
 
 class ClienteFormDialog extends ConsumerStatefulWidget {
   final ClienteModel? cliente;
-  // Precarga el nombre al crear uno nuevo (no aplica si [cliente] ya viene
-  // con uno propio): usado desde BuscarClienteDialog cuando el cajero busca
-  // un nombre que no existe todavía y toca "Crear cliente nuevo" -pedido
-  // explícito del dueño, para no tener que retipear lo que ya había
-  // escrito en el buscador-.
   final String? nombreInicial;
 
   const ClienteFormDialog({super.key, this.cliente, this.nombreInicial});
@@ -76,13 +71,6 @@ class _ClienteFormDialogState extends ConsumerState<ClienteFormDialog> {
           telefono: _telefonoController.text.trim(),
           estado: _activo,
         );
-        // Al crear (a diferencia de editar) se devuelve el cliente nuevo:
-        // BuscarClienteDialog lo necesita para vincularlo a la venta en
-        // curso apenas se guarda, con el mismo contrato que elegir uno ya
-        // existente (Navigator.pop(context, cliente)) -ver "Crear cliente
-        // nuevo", item 5 del pedido del dueño. Quien abrió este formulario
-        // sin que le importe el resultado (editar desde Clientes, o
-        // "Completar datos" desde la venta) simplemente ignora el valor.
         if (mounted) Navigator.pop(context, creado);
       } else {
         await repo.actualizar(

@@ -39,9 +39,6 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
   String? _filaSeleccionada;
   List<CompraCreditoModel> _listaActual = [];
 
-  // Claves del tutorial guiado (ver core/tutorial) -solo se resaltan los
-  // widgets reales de esta pantalla, no hay ninguno "de mentira" creado
-  // aparte para esto-.
   final _keyStatTotal = GlobalKey();
   final _keyBuscador = GlobalKey();
   final _keySelectorVista = GlobalKey();

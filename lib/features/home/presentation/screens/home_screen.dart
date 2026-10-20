@@ -14,10 +14,6 @@ import '../../../../core/utils/permisos_modulo.dart';
 import '../../providers/resumen_ventas_provider.dart';
 import '../widgets/dashboard_admin.dart';
 
-// Solo el navegador de un celular (no la PC, no la app de escritorio): ahí
-// es donde tiene sentido un atajo directo a "Nueva Venta" / "Nueva Compra" /
-// "Buscar Producto" en el inicio, para no tener que pasar por el menú de
-// módulos con la pantalla chica.
 bool get _esWebMovil =>
     kIsWeb &&
     (defaultTargetPlatform == TargetPlatform.android ||
@@ -157,10 +153,6 @@ class HomeScreen extends ConsumerWidget {
                       );
                     },
                   ),
-                  // Dashboard "de un vistazo" -pedido explícito del dueño,
-                  // movido abajo del menú y achicado porque estorbaba arriba-:
-                  // solo el Administrador lo ve, el resto de roles sigue
-                  // viendo Inicio igual que siempre.
                   if (esAdmin) ...[
                     const SizedBox(height: 24),
                     const DashboardAdmin(),
@@ -174,9 +166,6 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  // Atajos de "Nueva Venta" / "Nueva Compra" / "Buscar Producto" para el
-  // inicio en web móvil (ver _esWebMovil): cada uno abre directo la pestaña
-  // correspondiente, sin pasar por el menú de módulos.
   Widget _accesosDirectos(BuildContext context, WidgetRef ref) {
     final atajos = [
       (

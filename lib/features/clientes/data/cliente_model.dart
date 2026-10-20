@@ -5,10 +5,6 @@ class ClienteModel {
   final String direccion;
   final String telefono;
   final bool estado;
-  // Denormalizado: se actualiza solo (merge) cada vez que este cliente
-  // registra una venta real (ver VentaRepository.registrarVenta), para poder
-  // detectar clientes inactivos sin tener que recorrer todas sus ventas cada
-  // vez (Fase 3 del CRM).
   final DateTime? fechaUltimaCompra;
 
   ClienteModel({
@@ -33,11 +29,6 @@ class ClienteModel {
     );
   }
 
-  /// Serialización completa del modelo. OJO: `ClienteRepository.actualizar`
-  /// (el editar desde el formulario de Clientes) NO usa esto tal cual para
-  /// no pisar `fechaUltimaCompra` con null cada vez que alguien solo corrige
-  /// el teléfono -ese campo lo escribe otro flujo (registrar venta)-. Sí se
-  /// usa completo en `crear`, donde no hay nada previo que perder.
   Map<String, dynamic> toMap() {
     return {
       'dni': dni,

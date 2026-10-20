@@ -41,8 +41,6 @@ class ReporteCompraModel {
     this.estado = 'Activa',
   });
 
-  /// Lee una fila de la tabla `compras` (columnas snake_case) tal como la
-  /// devuelve Supabase -mismo criterio que CompraModel.fromMap/ItemVentaModel.fromRow-.
   factory ReporteCompraModel.fromMap(String id, Map<String, dynamic> data) {
     DateTime? fecha(String? iso) => iso == null ? null : DateTime.parse(iso);
     return ReporteCompraModel(

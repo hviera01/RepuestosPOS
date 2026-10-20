@@ -1,7 +1,3 @@
-/// Un producto dentro de un ranking (más vendido, más comprado o más
-/// rentable). El campo `monto` cambia de significado según el ranking en el
-/// que aparezca (ingreso, costo o ganancia) — lo interpreta quien arma la
-/// lista, no el modelo.
 class RankingProducto {
   final String idProducto;
   final String nombreProducto;
@@ -28,8 +24,6 @@ class VentasPorUsuario {
   VentasPorUsuario({required this.usuario, required this.totalVentas, required this.cantidadTransacciones});
 }
 
-/// Ganancia de una venta individual: para responder "qué tan rentable fue
-/// esta venta puntual", no solo el agregado del periodo.
 class GananciaPorVenta {
   final String idVenta;
   final String numeroDocumento;
@@ -51,8 +45,6 @@ class AbonoPorProveedor {
   AbonoPorProveedor({required this.proveedor, required this.total});
 }
 
-/// Un mes de la serie de comparación (últimos 6 meses, terminando en el
-/// actual).
 class PuntoMensual {
   final DateTime mes;
   final double totalVentas;
@@ -81,8 +73,6 @@ class FlujoEfectivo {
   double get neto => totalIngresos - totalEgresos;
 }
 
-/// Sugerencias de cuánto destinar a pagos a proveedores sin comprometer el
-/// flujo del negocio. Son referencias, no reglas — ver notas en la pantalla.
 class RecomendacionPago {
   final double efectivoEstimado;
   final double reservaGastosFijos;
@@ -99,9 +89,6 @@ class RecomendacionPago {
   });
 }
 
-/// Balance general simplificado: no reemplaza un balance contable formal (no
-/// hay partida doble, activos fijos ni capital aportado en el sistema). El
-/// patrimonio es el residuo Activos − Pasivos, no una cuenta llevada aparte.
 class BalanceGeneral {
   final double inventarioACosto;
   final double cuentasPorCobrar;
@@ -120,11 +107,6 @@ class BalanceGeneral {
   double get patrimonio => totalActivos - totalPasivos;
 }
 
-/// Pronóstico simple de ventas para el próximo mes calendario, a partir de
-/// la serie de los últimos 6 meses (`ReporteFinancieroData.serieMensual`).
-/// Con 3 o más meses de datos usa una regresión lineal simple (mínimos
-/// cuadrados); con menos, cae a un promedio móvil. No es Machine Learning
-/// ni pretende serlo — es una proyección de referencia.
 class PronosticoVentas {
   final double montoEstimado;
   final double promedioUltimosMeses;
@@ -141,11 +123,6 @@ class PronosticoVentas {
   bool get tendenciaAlAlza => tendenciaMensual > 0;
 }
 
-/// Sugerencia de reposición: un producto activo cuyo stock, a la velocidad
-/// de venta reciente que tuvo en el rango del reporte, se agotaría pronto.
-/// Se pondera con el estado de cuenta del proveedor más reciente conocido
-/// para ese producto: si ese proveedor tiene cuentas vencidas, se avisa en
-/// vez de sugerir comprarle más sin más contexto.
 class SugerenciaCompra {
   final String idProducto;
   final String nombreProducto;
@@ -168,7 +145,6 @@ class SugerenciaCompra {
   });
 }
 
-/// Un cliente dentro del ranking de mayores compradores del periodo.
 class ClienteTop {
   final String cliente;
   final double totalComprado;
@@ -179,11 +155,6 @@ class ClienteTop {
   double get ticketPromedio => cantidadCompras <= 0 ? 0 : totalComprado / cantidadCompras;
 }
 
-/// Ventas cuyo nombre de cliente se tipeó a mano pero no quedó vinculado a un
-/// registro real (sin idCliente) — agrupadas por nombre normalizado, para
-/// detectar compradores frecuentes que todavía no están registrados. Debería
-/// ir bajando con el tiempo, ya que el auto-registro (CRM Fase 1, punto 2)
-/// vincula las ventas nuevas solas.
 class VentaSinCliente {
   final String nombre;
   final int cantidadVentas;
@@ -192,10 +163,6 @@ class VentaSinCliente {
   VentaSinCliente({required this.nombre, required this.cantidadVentas, required this.totalComprado});
 }
 
-/// Un cliente activo que lleva más de 90 días sin comprar (o que nunca ha
-/// comprado). [ultimaCompra]/[diasSinComprar] vienen null juntos cuando el
-/// cliente nunca registró una compra -no hay "hace cuántos días" que calcular
-/// en ese caso, pero igual cuenta como inactivo para efectos de seguimiento-.
 class ClienteInactivo {
   final String nombreCompleto;
   final DateTime? ultimaCompra;
@@ -204,11 +171,6 @@ class ClienteInactivo {
   ClienteInactivo({required this.nombreCompleto, required this.ultimaCompra, required this.diasSinComprar});
 }
 
-/// Sección "Inteligencia de Negocios": analítica pensada para decisiones
-/// (qué comprar, a quién priorizar, qué tan rentable es cada producto,
-/// hacia dónde van las ventas). Se arma enteramente con datos que el resto
-/// del Reporte Financiero ya pidió a Firestore — no dispara ninguna
-/// consulta adicional.
 class InteligenciaNegocioData {
   final PronosticoVentas pronosticoVentas;
   final List<SugerenciaCompra> sugerenciasCompra;
@@ -216,9 +178,7 @@ class InteligenciaNegocioData {
   final List<ClienteTop> clientesTop;
   final double ticketPromedio;
   final double valorStockMuerto;
-  // Ventas a nombres no registrados (Fase 3 del CRM de clientes).
   final List<VentaSinCliente> ventasNoRegistradas;
-  // Clientes activos con más de 90 días sin comprar (o que nunca compraron).
   final List<ClienteInactivo> clientesInactivos;
 
   InteligenciaNegocioData({
@@ -233,9 +193,6 @@ class InteligenciaNegocioData {
   });
 }
 
-/// Resultado agregado completo del Reporte Financiero para un rango de
-/// fechas. Se calcula una sola vez y lo consumen tanto la pantalla como el
-/// PDF, para no recalcular ni arriesgar que muestren números distintos.
 class ReporteFinancieroData {
   final DateTime inicio;
   final DateTime fin;

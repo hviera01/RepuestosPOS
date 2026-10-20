@@ -15,33 +15,12 @@ import '../../../../core/tutorial/tutorial_motor.dart';
 
 enum _ModoAjuste { ingreso, salida }
 
-/// Ajuste manual de existencia, pensado para un negocio que mete stock
-/// directo a Inventario en vez de pasar por una Compra formal: cada
-/// "Ingreso" queda como su propio lote de costo (igual que si viniera de
-/// una compra, ver LoteCostoRepository), y cada "Salida" descuenta de un
-/// lote elegido a mano -no FIFO automático, porque es un movimiento manual
-/// sin una venta real detrás que determine el orden-.
 class AjusteStockDialog extends ConsumerStatefulWidget {
   final ProductoModel producto;
-  // Los siguientes tres solo los usa Auditoría de Inventario (ver
-  // AuditoriaInventarioScreen): al detectar un descuadre entre el conteo
-  // físico y el stock del sistema, abre este mismo diálogo ya precargado
-  // (modo, cantidad y motivo) en vez de duplicar todo el flujo de
-  // ingreso/salida con lotes de costo.
   final bool? esIngresoInicial;
   final double? cantidadInicial;
   final String? motivoInicial;
-  // Bloque informativo opcional que se muestra debajo de "Existencia
-  // actual" (ver AuditoriaInventarioScreen: ahí va "Conteo físico: X ·
-  // Diferencia: ±Y").
   final Widget? notaSuperior;
-  // Si viene en true, apenas se abre este diálogo arranca solo su propio
-  // tutorial (_temaAjustarExistencias, más abajo) -pedido explícito del
-  // dueño: que el tutorial de "Ajustar Existencias" de Inventario, al
-  // llegar acá guiando al usuario, siga de largo explicando Ingreso/Salida,
-  // Cantidad, Costo, Lote y Motivo, en vez de cortarse justo cuando se abre
-  // este diálogo y dejar que el usuario tenga que buscar el ícono de ayuda
-  // de acá adentro por su cuenta-. Ver InventarioScreen._abrirAjusteStock.
   final bool iniciarTutorialAlAbrir;
 
   const AjusteStockDialog({
@@ -68,12 +47,6 @@ class _AjusteStockDialogState extends ConsumerState<AjusteStockDialog> {
   bool _guardando = false;
   String? _error;
 
-  // --- GlobalKeys para el tutorial guiado (ver lib/core/tutorial/) ---
-  // Este diálogo solo se abre UNA vez a la vez (no vive dentro de una
-  // lista), así que no hay riesgo de que dos widgets compartan la misma key
-  // al mismo tiempo. _keyLote envuelve todo _selectorLote() con un
-  // KeyedSubtree porque esa función devuelve distintos widgets según el
-  // estado (cargando/error/datos), y solo existe cuando el modo es Salida.
   final _keySelectorModo = GlobalKey();
   final _keyCantidad = GlobalKey();
   final _keyCosto = GlobalKey();
@@ -89,10 +62,6 @@ class _AjusteStockDialogState extends ConsumerState<AjusteStockDialog> {
       _cantidadController.text = _formatoCantidad(widget.cantidadInicial!);
     }
     if (widget.motivoInicial != null) _motivoController.text = widget.motivoInicial!;
-    // Precarga el costo con el precioCompra vigente del producto: para un
-    // reajuste de auditoría casi siempre es ese el costo real, y así el
-    // usuario no tiene que volver a escribirlo -puede editarlo si de verdad
-    // fue distinto (por ejemplo, encontró más de un lote viejo a otro costo).
     if (_modo == _ModoAjuste.ingreso && widget.producto.precioCompra > 0) {
       _costoController.text = _formatoCantidad(widget.producto.precioCompra);
     }
@@ -120,9 +89,6 @@ class _AjusteStockDialogState extends ConsumerState<AjusteStockDialog> {
     });
   }
 
-  // Se llama apenas llegan los lotes (ver build): preselecciona el más
-  // antiguo con existencia -el que saldría primero por FIFO normal-, sin
-  // pisar una elección que el usuario ya haya hecho a mano.
   void _preseleccionarLote(List<LoteCostoModel> lotesConExistencia) {
     if (_idLoteSeleccionado != null || _salidaSinLote) return;
     if (lotesConExistencia.isEmpty) {

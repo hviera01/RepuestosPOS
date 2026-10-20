@@ -4,19 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-/// URL fija del sitio publicado en GitHub Pages: el QR siempre tiene que
-/// apuntar ahí (la página que sabe leer el parámetro `?escanear=` y mostrar
-/// el escáner sin pedir inicio de sesión), sin importar si quien abre este
-/// diálogo está usando la versión web o el .exe de escritorio.
 const _urlSitioWeb = 'https://hviera01.github.io/RepuestosPOS/';
 
-/// Muestra el QR para emparejar el celular. La sesión y la escucha de
-/// códigos escaneados viven en la pantalla de venta (no acá): este diálogo
-/// solo sirve para mostrar el QR, y se cierra solo apenas el celular llega a
-/// la cámara (no hace falta que el usuario lo cierre a mano). Cerrarlo antes
-/// de eso (con la "x") tampoco corta la conexión — el celular sigue
-/// pudiendo mandar códigos. Para terminar la sesión de verdad hay que usar
-/// el botón "Finalizar escaneo" (ver EscaneoActivoDialog).
 class EscanearRemotoDialog extends StatefulWidget {
   final String codigo;
   final Stream<List<Map<String, dynamic>>> eventos;
@@ -85,9 +74,6 @@ class _EscanearRemotoDialogState extends State<EscanearRemotoDialog> {
   }
 }
 
-/// Se muestra en vez del QR cuando ya hay una sesión de escaneo activa
-/// (un celular ya se conectó): deja elegir entre terminarla o cerrarla para
-/// empezar de cero con otro celular.
 class EscaneoActivoDialog extends StatelessWidget {
   final Stream<List<Map<String, dynamic>>> eventos;
   final VoidCallback alFinalizar;

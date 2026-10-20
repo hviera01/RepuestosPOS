@@ -12,15 +12,6 @@ import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
 import 'detalle_venta_screen.dart';
 
-/// "Ver Facturas" -pedido explícito del dueño: reemplaza al viejo botón
-/// "Ver Detalle" (que solo dejaba buscar UNA venta por número). Arranca
-/// mostrando la lista de HOY (ventas y cotizaciones, con su estado
-/// -incluidas las anuladas-), con los mismos filtros/búsqueda que el
-/// Reporte de Ventas (reusa ReporteRepository.obtenerReporteVentas, mismo
-/// dato) pero sin el total facturado ni los botones de exportar -esto es
-/// para ubicar rápido una factura puntual y abrirla, no para sacar un
-/// reporte-. Tocar una fila abre DetalleVentaScreen directo (imprimir,
-/// anular, duplicar, etc. desde ahí, sin tener que pasar por Reportes).
 class VerFacturasScreen extends ConsumerStatefulWidget {
   const VerFacturasScreen({super.key});
 
@@ -112,8 +103,6 @@ class _VerFacturasScreenState extends ConsumerState<VerFacturasScreen> {
     _buscar();
   }
 
-  // Atajos de rango rápido: tocar uno aplica el rango y dispara la búsqueda
-  // de una vez, sin tener que abrir el selector de fecha dos veces.
   void _aplicarRango(DateTime inicio, DateTime fin) {
     setState(() {
       _fechaInicio = inicio;

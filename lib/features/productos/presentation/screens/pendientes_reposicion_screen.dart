@@ -6,12 +6,6 @@ import '../../data/pendiente_reposicion_model.dart';
 import '../../providers/productos_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
 
-/// Lista las "ventas anticipadas" que siguen esperando la compra que las
-/// repone (ver ItemVentaModel.pendienteCompra, VentaRepository.registrarVenta
-/// y CompraRepository.registrarCompra). Es de solo consulta -el emparejamiento
-/// pasa solo, automático, al registrar la compra correspondiente-; la única
-/// acción disponible acá es cancelar a mano una que ya no va a esperar
-/// ninguna compra (se resolvió de otra forma, o se marcó por error).
 class PendientesReposicionScreen extends ConsumerWidget {
   const PendientesReposicionScreen({super.key});
 
@@ -200,7 +194,6 @@ class PendientesReposicionScreen extends ConsumerWidget {
     );
   }
 
-  // ---------- Tabla de escritorio ----------
 
   Widget _tabla(
     BuildContext context,
@@ -359,7 +352,6 @@ class PendientesReposicionScreen extends ConsumerWidget {
     );
   }
 
-  // ---------- Tarjetas móvil ----------
 
   Widget _tarjetas(
     BuildContext context,

@@ -16,16 +16,6 @@ class UsuarioRepository with ConRedMixin {
         .map((filas) => filas.map((d) => UsuarioModel.fromMap(d['id'] as String, d)).toList()));
   }
 
-  /// Lectura única (no depende de que un listener en vivo llegue a emitir
-  /// su primer valor) para gates de seguridad como `verificarAccesoEspecial`
-  /// que necesitan la lista de usuarios YA, con un timeout corto y algunos
-  /// reintentos (ver [conReintentos]). A diferencia de esperar el primer
-  /// valor de [obtenerUsuarios] -que en un arranque de app en frío, con la
-  /// conexión todavía estableciéndose, puede tardar mucho o no resolver
-  /// nunca sin avisar nada-, esto reintenta ante una demora pasajera y solo
-  /// si de verdad se agotan los reintentos lanza la excepción, para que el
-  /// llamador pueda mostrar un error real en vez de quedarse esperando en
-  /// silencio o bloquear por una demora que se hubiera resuelto sola.
   Future<List<UsuarioModel>> obtenerUsuariosParaSeguridad() async {
     return conReintentos(() async {
       final filas = await _db.from('usuarios').select().order('nombre_completo').timeout(const Duration(seconds: 8));
@@ -49,10 +39,6 @@ class UsuarioRepository with ConRedMixin {
         throw Exception('El número de documento ya existe');
       }
       final sal = ClaveHash.generarSal();
-      // Los mapas de permisos ad-hoc solo tienen sentido (y solo se guardan)
-      // para los roles Encargado y Empleado: para cualquier otro rol se
-      // persisten vacíos, así los registros no se ensucian con datos que no
-      // aplican.
       final aplicaPermisos = rol == Roles.encargado || rol == Roles.empleado;
       await _db.from('usuarios').insert({
         'documento': documento,
@@ -97,8 +83,6 @@ class UsuarioRepository with ConRedMixin {
         'acciones_permitidas': aplicaPermisos ? accionesPermitidas : {},
       };
       if (clave != null && clave.trim().isNotEmpty) {
-        // Cambiar la clave desbloquea al usuario y reinicia los intentos
-        // fallidos: es una acción administrativa deliberada.
         final sal = ClaveHash.generarSal();
         data['clave'] = ClaveHash.hash(clave, sal);
         data['sal'] = sal;

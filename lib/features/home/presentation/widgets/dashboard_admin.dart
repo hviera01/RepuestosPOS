@@ -8,11 +8,6 @@ import '../../providers/dashboard_admin_provider.dart';
 
 final _azulMarca = Marca.primario;
 
-/// Dashboard de un vistazo que SOLO ve el Administrador en Inicio -pedido
-/// explícito del dueño-: ventas de la semana + un par de métricas más para
-/// no tener que entrar a Reportes solo para ver cómo va el negocio hoy.
-/// Los demás roles no ven nada de esto (ver HomeScreen, que decide con
-/// `usuario.rol == Roles.administrador` si monta este widget).
 class DashboardAdmin extends ConsumerWidget {
   const DashboardAdmin({super.key});
 
@@ -135,8 +130,6 @@ class DashboardAdmin extends ConsumerWidget {
     required String valor,
     required String subtitulo,
   }) {
-    // 3 tarjetas por fila cuando hay espacio (escritorio), 1 por fila en
-    // celular/tablet angosto (apilado, ver _contenido).
     final anchoTarjeta = apilado ? ancho : (ancho - 16) / 3;
     return Container(
       width: anchoTarjeta.clamp(120, 400),

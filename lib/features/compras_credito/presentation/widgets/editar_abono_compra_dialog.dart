@@ -9,11 +9,6 @@ import '../../providers/compras_credito_provider.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
 
-/// Corrige un abono ya registrado (monto, interés, fecha, método, recibo) —
-/// pensado para arreglar errores de captura (fecha equivocada, monto mal
-/// tecleado) sin tener que borrar y volver a registrar. Como cada abono
-/// depende del saldo que dejó el anterior, el repositorio recalcula toda la
-/// cadena de abonos de esta factura después de guardar.
 class EditarAbonoCompraDialog extends ConsumerStatefulWidget {
   final CompraCreditoModel compra;
   final AbonoCompraModel abono;

@@ -1,7 +1,3 @@
-/// Receta congelada de un componente de combo al momento de vender: guarda
-/// una copia de los datos del producto individual usados para descontar
-/// stock, para que anular la venta después siga sabiendo qué reponer aunque
-/// el combo se haya editado (o borrado) mientras tanto.
 class ComponenteComboSnapshot {
   final String idProducto;
   final String idCategoria;
@@ -47,16 +43,7 @@ class ItemVentaModel {
   final bool reembasado;
   final double descuentoPorcentaje;
   final List<ComponenteComboSnapshot> componentes;
-  // "Venta anticipada": el cajero vendió esto sin saber todavía qué producto
-  // exacto va a reponer (por ejemplo, pintura preparada antes de comprar el
-  // insumo real). El costo que queda acá es solo un provisional (el vigente
-  // del producto al momento de vender); cuando entre la compra real que lo
-  // repone, VentaRepository/CompraRepository lo emparejan por FIFO (la venta
-  // pendiente más vieja primero, ver PendienteReposicionRepository) y
-  // corrigen este campo al costo real de esa compra.
   final bool pendienteCompra;
-  // Código(s) de color usado(s) en esta línea (una línea puede llevar más
-  // de uno). Lista vacía por defecto.
   final List<String> codigosColor;
 
   ItemVentaModel({
@@ -76,11 +63,6 @@ class ItemVentaModel {
 
   bool get esCombo => componentes.isNotEmpty;
 
-  /// Lee de un jsonb embebido que fue guardado con [toMap] tal cual (mismas
-  /// claves camelCase) — el caso de `ventas_en_espera.items` y del payload
-  /// que se manda a la función `registrar_venta` de Postgres. Para leer una
-  /// fila REAL de la tabla `venta_items` (columnas snake_case) usar
-  /// [ItemVentaModel.fromRow].
   factory ItemVentaModel.fromMap(Map<String, dynamic> data) {
     return ItemVentaModel(
       idProducto: data['idProducto'] ?? '',
@@ -100,7 +82,6 @@ class ItemVentaModel {
     );
   }
 
-  /// Lee una fila real de la tabla `venta_items` (columnas snake_case).
   factory ItemVentaModel.fromRow(Map<String, dynamic> data) {
     return ItemVentaModel(
       idProducto: data['id_producto'] ?? '',

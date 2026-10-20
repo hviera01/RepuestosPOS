@@ -6,24 +6,6 @@ import 'tutorial_modelos.dart';
 
 final _azulMarca = Marca.primario;
 
-/// Arranca un recorrido guiado INTERACTIVO de verdad -reemplaza al viejo
-/// mecanismo basado en el paquete tutorial_coach_mark-: resalta el widget
-/// real de cada [pasos] (con el resto de la pantalla oscurecido) pero SIN
-/// bloquear el toque -a diferencia de antes, tocar el campo/botón real
-/// resaltado ejecuta la acción de verdad (abre el diálogo, guarda, escribe
-/// en el campo, etc.) y ADEMÁS avanza solo al siguiente paso, sin que haga
-/// falta apretar "Siguiente"- pedido explícito del dueño: "quiero que el
-/// cliente vaya tocando haciendo mientras lo van guiando".
-///
-/// También arregla el bug real de antes: la pantalla real sigue scrolleando
-/// libremente en todo momento (el resaltado no tapa ni bloquea nada), así
-/// que un paso que apunta a un campo más abajo del scroll actual ya no
-/// puede "quedar pegado" -de todas formas, por comodidad, cada paso se
-/// desplaza solo a la vista al empezar-.
-///
-/// [pasos] ya viene armado (ver TutorialTema.pasos()) y puede tener pasos
-/// cuyo widget real no exista ahora mismo (se saltan solos). Llama a
-/// [onFinish] cuando se completan todos los pasos disponibles.
 void iniciarRecorridoTutorial(
   BuildContext context,
   List<TutorialPaso> pasos, {
@@ -64,15 +46,6 @@ class _TutorialOverlayState extends State<_TutorialOverlay> {
   Timer? _sondeo;
   bool _avanzandoPorToque = false;
   bool _terminado = false;
-  // El campo real del paso actual está tapado por una pantalla/diálogo
-  // nuevo que se abrió ENCIMA (ej. tocar "Agregar Producto" empuja una
-  // pantalla completa de búsqueda) -bug real reportado por el dueño: el
-  // tutorial avanzaba igual 450ms después de cualquier toque, sin esperar a
-  // que el usuario terminara esa pantalla nueva y volviera, así que
-  // terminaba resaltando campos de ESTA pantalla mientras seguía tapada por
-  // la de encima, en cualquier posición rara-. Mientras está tapada no se
-  // dibuja nada (la pantalla nueva queda 100% limpia y usable) y no se
-  // avanza hasta volver.
   bool _rutaTapada = false;
   bool _esperandoQueVuelva = false;
 
@@ -81,9 +54,6 @@ class _TutorialOverlayState extends State<_TutorialOverlay> {
   @override
   void initState() {
     super.initState();
-    // Recalcula la posición real del campo resaltado varias veces por
-    // segundo -así el resaltado sigue al campo si la pantalla scrollea
-    // (ahora sí se puede, a mano) o si el layout cambia (rotar, teclado)-.
     _sondeo = Timer.periodic(const Duration(milliseconds: 100), (_) => _actualizarRect());
     WidgetsBinding.instance.addPostFrameCallback((_) => _irA(0, direccion: 1, primeraVez: true));
   }
@@ -98,15 +68,10 @@ class _TutorialOverlayState extends State<_TutorialOverlay> {
     if (_terminado || _indice >= widget.pasos.length) return;
     final ctx = _paso.key.currentContext;
     if (ctx == null) return;
-    // El widget real sigue existiendo (montado) pero puede estar tapado por
-    // una pantalla/diálogo nuevo que se abrió encima -ModalRoute.isCurrent
-    // es false mientras algo más arriba en el Navigator sea lo activo-.
     final ruta = ModalRoute.of(ctx);
     final tapadaAhora = ruta != null && !ruta.isCurrent;
     if (tapadaAhora != _rutaTapada) {
       if (_rutaTapada && !tapadaAhora && _esperandoQueVuelva) {
-        // Estaba esperando -el usuario terminó con la pantalla de encima y
-        // volvió- así que ahora sí se avanza al siguiente paso.
         _esperandoQueVuelva = false;
         setState(() => _rutaTapada = false);
         _siguiente();
@@ -117,12 +82,6 @@ class _TutorialOverlayState extends State<_TutorialOverlay> {
     if (tapadaAhora) return;
     final caja = ctx.findRenderObject();
     if (caja is! RenderBox || !caja.attached) return;
-    // Coordenadas relativas al propio RenderBox de este overlay -no a la
-    // pantalla completa-: cada pestaña tiene su Navigator/Overlay propio
-    // (ver el resto del sistema, useRootNavigator: false) que puede estar
-    // desplazado dentro de la ventana (menú lateral, barra superior), así
-    // que la posición global del campo no coincide con la posición local
-    // dentro de ESTE Stack a menos que se convierta con el mismo ancestro.
     final ancestro = context.findRenderObject();
     if (ancestro is! RenderBox) return;
     final nuevo = caja.localToGlobal(Offset.zero, ancestor: ancestro) & caja.size;
@@ -145,10 +104,6 @@ class _TutorialOverlayState extends State<_TutorialOverlay> {
     );
   }
 
-  // Busca desde [desde], moviéndose de a [direccion] (1 adelante, -1 atrás),
-  // el próximo paso cuyo widget real siga existiendo -puede haber pasos que
-  // ya no aplican (un campo que solo aparece con cierta opción elegida)-.
-  // Si no encuentra ninguno yendo hacia adelante, termina el tutorial.
   Future<void> _irA(int desde, {required int direccion, bool primeraVez = false}) async {
     var i = desde;
     while (i >= 0 && i < widget.pasos.length) {
@@ -168,16 +123,10 @@ class _TutorialOverlayState extends State<_TutorialOverlay> {
       i += direccion;
     }
     if (primeraVez) {
-      // Ningún paso de este tema tiene su widget real visible ahora mismo:
-      // no hay nada que mostrar. Se cierra sin el aviso de "¡Listo!" -no se
-      // llegó a mostrar ni un solo paso, no tendría sentido felicitar por
-      // terminar algo que nunca arrancó-.
       _salir();
       return;
     }
     if (direccion > 0) _terminar();
-    // Yendo hacia atrás y no queda ninguno: no debería pasar (el botón
-    // "Atrás" no se muestra en el primer paso), no hace nada.
   }
 
   void _siguiente() => _irA(_indice + 1, direccion: 1);
@@ -197,23 +146,10 @@ class _TutorialOverlayState extends State<_TutorialOverlay> {
 
   Offset? _bajadaEn;
 
-  // Se guarda dónde bajó el dedo/mouse -ver onPointerUp más abajo-: hace
-  // falta distinguir un toque real de un intento de scroll que empieza
-  // justo sobre el campo resaltado (mismo Listener detecta ambos "pointer
-  // down"). No usa el sistema de gestos de Flutter (GestureDetector/
-  // InkWell) a propósito: eso competiría en la "arena" de gestos contra el
-  // botón/campo real de abajo y podría robarle el toque -acá solo se
-  // observa el evento, nunca se reclama, así el widget real siempre recibe
-  // su toque normal-.
   void _alBajarDedo(Offset posicion) {
     _bajadaEn = posicion;
   }
 
-  // El usuario tocó de verdad el campo/botón real resaltado -el toque ya
-  // siguió su curso normal, no se interceptó-. Solo cuenta como toque (no
-  // como el arranque de un scroll) si el dedo se levantó cerca de donde
-  // bajó. Un pequeño respiro antes de avanzar, para que si esa acción abrió
-  // un diálogo o cambió algo en pantalla, se note primero.
   void _alSoltarDedo(Offset posicion) {
     final bajada = _bajadaEn;
     _bajadaEn = null;
@@ -226,10 +162,6 @@ class _TutorialOverlayState extends State<_TutorialOverlay> {
       final ctx = _paso.key.currentContext;
       final ruta = ctx == null ? null : ModalRoute.of(ctx);
       if (ruta != null && !ruta.isCurrent) {
-        // Ese toque real abrió una pantalla/diálogo nuevo encima (ej.
-        // "Agregar Producto" empuja la pantalla de búsqueda completa): no
-        // se avanza todavía -_actualizarRect sigue sondeando y avanza solo
-        // apenas el usuario vuelva a esta pantalla-.
         _esperandoQueVuelva = true;
         setState(() => _rutaTapada = true);
         return;
@@ -240,30 +172,16 @@ class _TutorialOverlayState extends State<_TutorialOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    // Mientras la pantalla/diálogo nuevo de encima está abierto, no se
-    // dibuja nada -ni oscurecido ni tarjeta-: esa pantalla queda 100%
-    // limpia y usable, sin ningún resabio del paso anterior encima.
     if (_rutaTapada) return const SizedBox.shrink();
     final rect = _rect;
-    // Tamaño del propio overlay (no MediaQuery.of, que da el de TODA la
-    // ventana): cada pestaña tiene su Navigator/Overlay propio que puede
-    // ocupar menos que la ventana completa -mismo motivo que en
-    // _actualizarRect-, y [rect] ya está en esas coordenadas locales.
     final tamano = _tamano ?? MediaQuery.of(context).size;
     return Stack(
       children: [
-        // Oscurece toda la pantalla salvo un hueco alrededor del campo
-        // resaltado -IgnorePointer a propósito: esta capa NUNCA intercepta
-        // toques ni gestos de scroll, la pantalla real sigue 100% usable-.
         IgnorePointer(
           child: SizedBox.expand(
             child: CustomPaint(painter: _PintorFoco(rect: rect)),
           ),
         ),
-        // Zona invisible del tamaño exacto del campo resaltado que SÍ ve el
-        // toque (para avanzar el tutorial solo) pero sin consumirlo -modo
-        // translúcido: el mismo toque sigue de largo hacia el widget real
-        // de abajo, que reacciona normal (abre su diálogo, guarda, etc.)-.
         if (rect != null && _paso.avance == TutorialAvance.tocar)
           Positioned.fromRect(
             rect: rect.inflate(8),
@@ -284,9 +202,6 @@ class _TutorialOverlayState extends State<_TutorialOverlay> {
     const separacion = 12.0;
     final espacioAbajo = tamano.height - rect.bottom;
     final espacioArriba = rect.top;
-    // Se respeta la alineación pedida (arriba/abajo del campo) salvo que no
-    // haya espacio real para la tarjeta de ese lado -ahí se voltea sola
-    // hacia el lado con más espacio, para nunca quedar recortada-.
     var abajo = _paso.alineacion != ContentAlign.top;
     if (abajo && espacioAbajo < 140 && espacioArriba > espacioAbajo) abajo = false;
     if (!abajo && espacioArriba < 140 && espacioAbajo > espacioArriba) abajo = true;

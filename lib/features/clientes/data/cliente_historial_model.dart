@@ -1,9 +1,5 @@
 import '../../ventas_credito/data/venta_credito_model.dart';
 
-/// Una venta resumida para la lista de "compras recientes" de Detalle de
-/// Cliente: no trae el detalle (líneas) completo, solo lo que se muestra en
-/// esa lista -no hace falta más, y traer el detalle completo de las últimas
-/// N ventas sería una consulta extra que no aporta nada acá-.
 class VentaResumenCliente {
   final String id;
   final String numeroDocumento;
@@ -11,9 +7,6 @@ class VentaResumenCliente {
   final double monto;
   final String metodoPago;
   final String condicion;
-  // true cuando esta venta se emparejó a este cliente solo por coincidencia
-  // de nombre (ventas de antes del vínculo real por idCliente) — ver nota en
-  // ClienteHistorialData.hayVentasEmparejadasPorNombre.
   final bool emparejadaPorNombre;
 
   VentaResumenCliente({
@@ -27,8 +20,6 @@ class VentaResumenCliente {
   });
 }
 
-/// Una línea con código de color, para el historial de colores usados por
-/// este cliente (más reciente primero).
 class ColorHistorialItem {
   final DateTime? fecha;
   final String nombreProducto;
@@ -43,7 +34,6 @@ class ColorHistorialItem {
   });
 }
 
-/// Producto que más le ha comprado este cliente (por cantidad acumulada).
 class ProductoTopCliente {
   final String nombreProducto;
   final double cantidad;
@@ -51,28 +41,11 @@ class ProductoTopCliente {
   ProductoTopCliente({required this.nombreProducto, required this.cantidad});
 }
 
-/// Todo el historial agregado de un cliente para la pantalla Detalle de
-/// Cliente: un solo objeto inmutable armado con consultas disparadas en
-/// paralelo (ver ClienteHistorialRepository.obtener), mismo patrón que
-/// ReporteFinancieroData/reporte_financiero_repository.dart.
 class ClienteHistorialData {
-  // ---- Seguimiento de crédito ----
-  // TODOS los créditos del cliente, pagados o no -antes se filtraba acá
-  // mismo a solo los abiertos (creditosAbiertos) y el historial de créditos
-  // ya liquidados desaparecía por completo de Detalle de Cliente, lo cual
-  // el dueño reportó como un bug al probar con un cliente real (Ronald
-  // Camas) que tiene crédito ya pagado y no aparecía. Los flags derivados
-  // (hayCreditoVencido, saldoPendienteTotal) se calculan de esta lista
-  // completa, no de un subconjunto pre-filtrado.
   final List<VentaCreditoModel> creditos;
-  // Puntualidad histórica de pago (créditos liquidados o no, con al menos un
-  // abono registrado): cuántos abonos cayeron antes/en la fecha de
-  // vencimiento de su crédito vs. cuántos cayeron después. null cuando este
-  // cliente no tiene ningún abono registrado todavía (no hay nada que medir).
   final int? abonosATiempo;
   final int? abonosAtrasados;
 
-  // ---- Resumen de compras ----
   final double totalComprado;
   final int cantidadCompras;
   final double ticketPromedio;
@@ -81,15 +54,10 @@ class ClienteHistorialData {
   final List<VentaResumenCliente> ventasRecientes;
   final String? metodoPagoPreferido;
 
-  // ---- Qué compra más ----
   final List<ProductoTopCliente> productosTop;
 
-  // ---- Historial de códigos de color ----
   final List<ColorHistorialItem> historialColores;
 
-  // true si alguna de las ventas de este historial se emparejó solo por
-  // nombre (no por idCliente real) — ventas de antes de que existiera el
-  // vínculo real. Dispara la nota de "puede no ser 100% exacto" en pantalla.
   final bool hayVentasEmparejadasPorNombre;
 
   ClienteHistorialData({

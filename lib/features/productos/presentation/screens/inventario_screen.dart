@@ -46,22 +46,11 @@ class InventarioScreen extends ConsumerStatefulWidget {
 class _InventarioScreenState extends ConsumerState<InventarioScreen> {
   final _busquedaController = TextEditingController();
   final _focusNode = FocusNode();
-  // Sigue la selección con las flechas del teclado -pedido explícito del
-  // dueño-: solo se usa en la tabla de escritorio (_tabla), donde cada fila
-  // mide siempre lo mismo (ver _alturaFila), así que se puede calcular el
-  // scroll exacto sin tener que medir nada. En la vista de tarjetas
-  // (móvil, alto variable) no se usa.
   final _scrollControllerTabla = ScrollController();
   static const _alturaFila = 84.0;
   static const _alturaDivisorFila = 1.0;
   static const _alturaItemLista = _alturaFila + _alturaDivisorFila;
   final _servicioExport = ProductoExportService();
-  // --- GlobalKeys para el tutorial guiado (ver lib/core/tutorial/) ---
-  // Solo apuntan a widgets que existen UNA sola vez en esta pantalla (el
-  // buscador, un botón, un encabezado de columna) -nunca a algo que se
-  // repite por fila de la lista, porque una GlobalKey no puede estar en más
-  // de un widget montado a la vez (Flutter tira un error si dos filas
-  // visibles a la vez la usaran).
   final _keyBuscador = GlobalKey();
   final _keyEscanear = GlobalKey();
   final _keyFiltroEstado = GlobalKey();
@@ -76,28 +65,12 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
   final _keyBotonNuevoProducto = GlobalKey();
   final _keyColumnaExistencia = GlobalKey();
   final _keyColumnaAcciones = GlobalKey();
-  // "⋮" de la PRIMERA tarjeta en la vista de tarjetas (celular, o tablet
-  // angosto con "Tarjetas" elegido) -bug real reportado por el dueño: los
-  // tutoriales de "Editar Producto"/"Ajustar Existencias" apuntaban SIEMPRE
-  // a _keyColumnaAcciones, que es el encabezado de la TABLA y en celular
-  // jamás se dibuja (esMovil fuerza tarjetas siempre, ver "usarTarjetas" en
-  // build()), así que tocar "Empezar" no mostraba nada. Ver _keyAccionesTema.
   final _keyPrimeraTarjetaAcciones = GlobalKey();
   String? _filaSeleccionada;
   String? _columnaOrden;
   bool _ordenAscendente = false;
-  // Vista elegida en el rango "tablet" -pedido explícito del dueño-: 'tabla'
-  // por defecto, 'tarjetas' si el usuario la cambia con
-  // _selectorVistaTabletChico. No aplica en celular (siempre tarjetas) ni en
-  // escritorio ancho (siempre tabla) -ver esTablet en build()-.
   String _vistaTablet = 'tabla';
 
-  // Misma cuenta que "usarTarjetas" en build() (ver el comentario grande de
-  // _keyPrimeraTarjetaAcciones): a qué vista apuntar en los tutoriales que
-  // señalan el "⋮" de acciones, según el tamaño real de pantalla ahora
-  // mismo. MediaQuery en vez de LayoutBuilder porque estos temas de
-  // tutorial son getters de la pantalla, no tienen las constraints del
-  // LayoutBuilder a mano.
   bool get _seVenTarjetas {
     final ancho = MediaQuery.of(context).size.width;
     final esMovil = ancho < 720;
@@ -105,45 +78,19 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     return esMovil || (esTablet && _vistaTablet == 'tarjetas');
   }
 
-  // Se pone en true justo cuando arranca el tutorial de "Ajustar
-  // Existencias" (ver _temaAjustarExistencias.alEmpezar); _abrirAjusteStock
-  // lo lee y apaga para decirle a AjusteStockDialog si tiene que seguir de
-  // largo con SU PROPIO tutorial apenas se abra.
   bool _tutorialAjustarStockPendiente = false;
 
   GlobalKey get _keyAccionesSegunVista =>
       _seVenTarjetas ? _keyPrimeraTarjetaAcciones : _keyColumnaAcciones;
-  // Cuando la búsqueda viene de escanear un código de barras se filtra por
-  // coincidencia exacta de código, no con el buscador difuso (que con
-  // códigos largos puede "acercarse" a varios productos distintos).
   bool _busquedaPorCodigoBarras = false;
   List<ProductoModel> _listaActual = [];
-  // Solo Activos/Inactivos (sin "Todos" -pedido explícito), Activos por
-  // defecto. Mismo estilo de selector-pill que _selectorPrecioIsv.
   String _filtroEstado = 'activos';
-  // Campo contra el que se compara el texto del buscador -'todo' (default)
-  // usa ProductoModel.textoBusqueda (código+códigoBarras+nombre+descripción
-  // combinados, como ya funcionaba), cualquier otro valor compara SOLO ese
-  // campo. Pedido explícito: "inicialmente siempre buscar en todo pero
-  // poder ponerlo" si hace falta acotar la búsqueda a un campo puntual.
   String _campoFiltro = 'todo';
   final _vehiculoCtrl = TextEditingController();
   final _anioCtrl = TextEditingController();
   FiltroVehiculo _vehiculo = const FiltroVehiculo();
   FiltroVehiculo? _cacheVehiculoUsado;
 
-  // --- Cache de la lista filtrada/ordenada y de los totales del título ---
-  // Sin esto, cada `setState` -incluido tocar una fila solo para
-  // seleccionarla- reconstruye TODO build(), y eso repetía el filtrado +
-  // orden (este último con lookups de stock de combos, O(n log n)) y los
-  // `fold` de valor de inventario sobre TODA la lista, aunque nada de lo
-  // que de verdad afecta esos cálculos hubiera cambiado -pedido explícito
-  // del dueño: esta pantalla se sentía más lenta que Ventas Crédito al
-  // tocar una fila, con inventarios grandes-. Riverpod reusa la misma
-  // referencia de `productos`/`categoriasLista` entre rebuilds mientras el
-  // stream no emita datos nuevos, así que comparar por identidad (`==` de
-  // List/Map, que en Dart es identidad de objeto salvo que se sobrecargue)
-  // alcanza para saber si hace falta recalcular.
   List<dynamic>? _cacheCategoriasListaOrigen;
   Map<String, String> _cacheMapaCategorias = const {};
   List<ProductoModel>? _cacheProductosOrigen;
@@ -189,14 +136,8 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     return tokensDeConsulta(busqueda).every(normalizado.contains);
   }
 
-  // Este negocio no cobra ISV: el precio guardado en el producto es el
-  // precio real, sin ningún ajuste (ver carrito_provider.agregarProductoDirecto).
   double _precioMostrado(ProductoModel p) => p.precioVenta;
 
-  /// Filtra (vista/estado/búsqueda) y ordena la lista de productos, con
-  /// cache -ver comentario junto a los campos `_cache*` arriba-. Devuelve
-  /// también `mapaProductos` porque se calcula como parte del mismo trabajo
-  /// y lo necesitan tanto el filtro "bajo stock" (combos) como `_ordenarLista`.
   ({List<ProductoModel> lista, Map<String, ProductoModel> mapaProductos})
   _filtrarYOrdenar({
     required List<ProductoModel> productos,
@@ -278,12 +219,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     super.dispose();
   }
 
-  // --- Temas del tutorial guiado de esta pantalla ---
-  // El botón "Nuevo Producto" abre producto_form_dialog.dart, que trae su
-  // propio botón de ayuda (mismo ícono de birrete, en la esquina del
-  // diálogo) con el tema "Cómo agregar un producto nuevo" -no se repite acá
-  // porque las GlobalKey de esos campos solo existen mientras el diálogo
-  // está abierto-.
   TutorialTema get _temaBuscarProducto => TutorialTema(
     titulo: 'Cómo buscar un producto',
     descripcion: 'Encontrar un producto rápido en la lista',
@@ -327,14 +262,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     ],
   );
 
-  // Temas "Crear Producto nuevo" / "Editar un Producto existente" -pedido
-  // explícito del dueño, como entradas SEPARADAS y claras en este menú, ya
-  // que acá (Inventario) es donde se decide cuál de las dos acciones hacer-.
-  // Solo apuntan al botón/columna que ABRE el diálogo correspondiente: el
-  // detalle campo por campo vive en el propio ProductoFormDialog (su
-  // GlobalKey de cada campo solo existe mientras ESE diálogo está montado,
-  // no mientras se navega este menú desde Inventario), que trae su propio
-  // botón de ayuda (mismo ícono de birrete) apenas se abre.
   TutorialTema get _temaCrearProducto => TutorialTema(
     titulo: 'Crear Producto nuevo',
     descripcion: 'Agregar un producto que todavía no existe en el sistema',
@@ -383,21 +310,11 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     icono: Icons.tune,
     bienvenida:
         'Te voy a mostrar cómo corregir la cantidad de un producto cuando hacés un conteo físico, encontrás algo dañado, o simplemente el número no cuadra. Primero buscás el producto, después le ajustás la existencia -y ahí te voy a explicar cada campo, si tenés que sumar o restar y por qué-.',
-    // Se pone el aviso ANTES de armar los pasos: si Inventario recién se
-    // abrió, la lista arranca vacía a propósito (filtro "Productos
-    // filtrados", ver _selectorVista) y ningún producto tiene todavía sus
-    // "⋮" en pantalla -bug real reportado por el dueño: tocaba "Empezar" y
-    // no pasaba nada, porque el paso de los tres puntitos no encontraba
-    // ningún producto al cual apuntar-. Por eso el primer paso, abajo,
-    // manda a buscar/mostrar productos ANTES del paso de los tres puntitos.
     alEmpezar: () => _tutorialAjustarStockPendiente = true,
     pasos: () => [
       TutorialPaso(
         key: _keySelectorVista,
         titulo: 'Primero, buscá el producto',
-        // avance manual (no automático al tocar): elegir una opción de este
-        // desplegable son dos toques seguidos (abrirlo, después elegir la
-        // opción), así que no hay un solo toque que marque "ya terminé" acá.
         avance: TutorialAvance.manual,
         explicacion:
             'Si Inventario te aparece vacío al entrar, es porque por defecto solo muestra "Productos filtrados" (los que buscaste). Tocá acá y elegí "Mostrar todos" para ver la lista completa -o si preferís, escribí el nombre del producto en el buscador de arriba-. Cuando ya veas el producto que querés ajustar, tocá "Siguiente".',
@@ -491,10 +408,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     if (codigo == null || codigo.isEmpty || !mounted) return;
     var texto = codigo.trim();
     final productos = ref.read(productosStreamProvider).value ?? [];
-    // Si el código escaneado no matchea a nada, se prueban otras variantes
-    // válidas del mismo código (ver variantesCodigoBarras): corrige tanto
-    // el código leído al revés (algunos celulares) como el "0" que iPhone
-    // agrega al principio de los códigos UPC-A (Android no lo agrega).
     if (!productos.any((p) => _coincideExacto(p, texto))) {
       for (final variante in variantesCodigoBarras(texto)) {
         if (productos.any((p) => _coincideExacto(p, variante))) {
@@ -517,9 +430,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     });
   }
 
-  // Doble tap/doble clic en un producto (tabla o tarjeta): una card de solo
-  // lectura con toda su info, para consultar rápido -por ejemplo, un precio
-  // o el código de barras- sin tener que abrir el formulario de edición.
   void _verDetalle(
     ProductoModel producto,
     Map<String, String> mapaCategorias,
@@ -560,10 +470,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
       PermisosEspeciales.inventarioAjustarStock,
     )).autorizado;
     if (!autorizado || !mounted) return;
-    // Se consume (lee y apaga) acá, no antes: solo importa la PRÓXIMA vez
-    // que se abre este diálogo justo después de que arrancó el tutorial de
-    // "Ajustar Existencias" (ver _temaAjustarExistencias.alEmpezar) -así una
-    // apertura normal y manual más adelante no dispara el tutorial solo.
     final continuarTutorial = _tutorialAjustarStockPendiente;
     _tutorialAjustarStockPendiente = false;
     showDialog(
@@ -601,9 +507,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     );
   }
 
-  // Antes de exportar (Excel o PDF), deja elegir qué productos de la lista
-  // actual van al archivo y qué columnas incluir -pedido explícito del
-  // dueño-. Null si se cancela.
   Future<ExportarInventarioOpciones?> _elegirOpcionesExport(
     Map<String, String> mapaCategorias,
     String titulo,
@@ -721,10 +624,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     );
   }
 
-  // Etiquetas de código de barras en tira (2 por fila) para imprimir en la
-  // térmica de 80mm que ya está configurada, mientras no haya una
-  // "tiquetera" dedicada — usa impresoraEtiquetas si ya la configuraron más
-  // adelante, si no cae en impresoraTermica.
   Future<void> _imprimirEtiquetasGrid() async {
     if (_listaActual.isEmpty) return;
     final soloSinCodigo = await showDialog<bool>(
@@ -912,27 +811,11 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     return copia;
   }
 
-  /// Selecciona una fila por id -pedido explícito del dueño: tocar el
-  /// ícono de foto o el de acciones (⋮) de una fila mueve la iluminación a
-  /// ESA fila de inmediato, en vez de dejarla en la que estaba seleccionada
-  /// antes-. No hace nada si ya era la seleccionada (evita un `setState`
-  /// de más).
   void _seleccionarFila(String id) {
     if (_filaSeleccionada == id) return;
     setState(() => _filaSeleccionada = id);
   }
 
-  // --- Detección manual de doble toque en una fila ---
-  // Bug real reportado por el dueño: con `onTap` Y `onDoubleTap` juntos en
-  // el mismo InkWell (como estaba antes), Flutter tiene que esperar la
-  // ventana de doble-tap (~300ms) antes de disparar el toque simple, para
-  // poder distinguir "un toque" de "el primero de dos" -por ESO tocar una
-  // fila se sentía con retraso, mientras que tocar el ícono de acciones (⋮,
-  // sin doble-tap) era instantáneo, dando la falsa impresión de que el
-  // problema era de rendimiento en vez de este gesto-. Acá se detecta el
-  // doble toque a mano (dos toques a la MISMA fila dentro de
-  // `_ventanaDobleTap`) usando solo `onTap`, así la selección siempre
-  // responde al toque, sin esperar a ver si viene un segundo.
   static const _ventanaDobleTap = Duration(milliseconds: 300);
   DateTime? _ultimoTapFilaEn;
   String? _ultimoTapFilaId;
@@ -952,17 +835,10 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
 
     _tomarFoco();
     if (esDobleTap) {
-      // El primer toque de este par ya seleccionó la fila (alternando, ver
-      // abajo); el segundo NO debe volver a alternar -si no, el doble toque
-      // terminaría dejándola deseleccionada justo al abrir su detalle-.
-      _ultimoTapFilaEn = null; // no encadenar un tercer toque como otro "doble"
+      _ultimoTapFilaEn = null;
       setState(() => _filaSeleccionada = producto.id);
       _verDetalle(producto, mapaCategorias, mapaProductos);
     } else {
-      // A diferencia de _seleccionarFila (que solo selecciona, usada desde
-      // el ícono de foto/acciones), tocar la fila misma alterna: tocar la
-      // que ya está seleccionada la deselecciona -comportamiento que ya
-      // tenía esta pantalla antes de este arreglo, se mantiene igual-.
       setState(
         () => _filaSeleccionada = _filaSeleccionada == producto.id
             ? null
@@ -984,12 +860,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     _asegurarFilaVisible(nuevoIndice);
   }
 
-  /// Desplaza `_scrollControllerTabla` lo mínimo necesario para que la fila
-  /// [indice] quede visible -pedido explícito del dueño: que el scroll siga
-  /// a la selección al moverse con las flechas del teclado-. Cada fila mide
-  /// siempre lo mismo (`_alturaItemLista`), así que no hace falta medir
-  /// nada, solo calcular. No hace nada si la tabla no está montada en este
-  /// momento (ej. vista de tarjetas en móvil, sin este controller).
   void _asegurarFilaVisible(int indice) {
     if (!_scrollControllerTabla.hasClients) return;
     final posicion = _scrollControllerTabla.position;
@@ -1002,16 +872,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     }
   }
 
-  // --- Repetición al mantener presionada una flecha ---
-  // Pedido explícito del dueño: si se mantiene apretada ↑/↓, la selección
-  // tiene que seguir bajando/subiendo rápido, como el tecleo normal (ej. en
-  // un campo de texto). Flutter no manda repeticiones automáticas a
-  // `onKeyEvent` de un `Focus` -solo UN `KeyDownEvent` por toque físico de
-  // tecla, sin importar cuánto se mantenga apretada-, así que hay que
-  // simular la repetición a mano con un `Timer`: un primer movimiento
-  // inmediato al bajar la tecla, y si sigue apretada más de
-  // `_esperaAntesDeRepetir`, un movimiento repetido cada `_intervaloRepeticion`
-  // hasta soltar la tecla (`KeyUpEvent`).
   static const _esperaAntesDeRepetir = Duration(milliseconds: 350);
   static const _intervaloRepeticion = Duration(milliseconds: 45);
   Timer? _timerRepeticionTeclado;
@@ -1047,8 +907,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
       _detenerRepeticionFlecha();
       return KeyEventResult.handled;
     }
-    // KeyRepeatEvent (si la plataforma llega a mandarlo): ya lo cubre
-    // nuestro propio Timer, se ignora para no repetir el doble de rápido.
     return KeyEventResult.handled;
   }
 
@@ -1063,14 +921,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     final busqueda = ref.watch(inventarioBusquedaProvider);
     final vista = ref.watch(inventarioVistaProvider);
     final categoriasLista = categoriasAsync.value ?? <dynamic>[];
-    // Cache: OJO, esto era el bug real de por qué el cache de
-    // `_filtrarYOrdenar` de abajo nunca se activaba -comparaba por identidad
-    // contra este Map, pero acá se creaba uno NUEVO en cada build() aunque
-    // `categoriasLista` (la fuente real) no hubiera cambiado, así que la
-    // comparación de "¿cambió algo?" daba que sí siempre-. Ahora se reusa el
-    // mismo Map mientras `categoriasLista` sea la misma referencia (Riverpod
-    // reusa esa lista entre rebuilds mientras el stream no emita datos
-    // nuevos).
     if (!identical(_cacheCategoriasListaOrigen, categoriasLista)) {
       _cacheMapaCategorias = {
         for (final c in categoriasLista)
@@ -1105,9 +955,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     );
   }
 
-  /// El contenido "real" de la pantalla -separado de build() solo para
-  /// poder envolverlo en el Stack de arriba junto al TutorialBoton flotante
-  /// (ver comentario junto a las GlobalKey del tutorial).
   Widget _contenido({
     required AsyncValue<List<ProductoModel>> productosAsync,
     required Map<String, String> mapaCategorias,
@@ -1119,10 +966,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final esMovil = constraints.maxWidth < 720;
-          // Rango "tablet" -pedido explícito del dueño-: ni tan angosto como
-          // para forzar tarjetas, ni tan ancho como para forzar la tabla; acá
-          // se deja elegir (ver _selectorVistaTabletChico), con "Tabla" por
-          // defecto.
           final esTablet = !esMovil && constraints.maxWidth < 1100;
           return Padding(
             padding: EdgeInsets.all(esMovil ? 14 : 26),
@@ -1134,9 +977,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                     children: [
                       Expanded(child: _tituloYBadges(esMovil, productosAsync)),
                       const SizedBox(width: 10),
-                      // Selectores chicos, arriba en la esquina -pedido
-                      // explícito: antes ocupaban una fila entera abajo en
-                      // la barra de herramientas.
                       Wrap(
                         spacing: 6,
                         runSpacing: 6,
@@ -1510,20 +1350,12 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                   final seleccionada = _filaSeleccionada == producto.id;
 
                   return InkWell(
-                    // Un solo onTap -sin onDoubleTap acá- a propósito: ver
-                    // el comentario grande junto a _tocarFila.
                     onTap: () =>
                         _tocarFila(producto, mapaCategorias, mapaProductos),
                     child: Container(
                       color: seleccionada
                           ? const Color(0xFFFBEAEA)
                           : Colors.white,
-                      // Alto fijo en vez de IntrinsicHeight: con alto fijo, Flutter
-                      // no necesita un segundo pase de layout por fila para saber
-                      // cuánto "estirar" cada celda (lo que exigía IntrinsicHeight),
-                      // así que desplazarse por listas largas queda mucho más fluido.
-                      // 84px alcanza para 3 líneas de nombre (ver maxLines abajo)
-                      // sin que se corte con puntos suspensivos.
                       height: 84,
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1737,9 +1569,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     );
   }
 
-  // Fila etiqueta/valor de la tarjeta de producto en móvil (ver
-  // _tarjetaProductoMovil) -pedido explícito del dueño, con captura de
-  // referencia-: etiqueta chica gris a la izquierda, valor a la derecha.
   Widget _filaDatoTarjeta(String etiqueta, Widget valor) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -1761,10 +1590,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     );
   }
 
-  // Tarjeta de producto en móvil -pedido explícito del dueño, con captura de
-  // referencia-: franja roja a la izquierda, miniatura + nombre arriba, filas
-  // de dato divididas (código/categoría/stock/estado), y una franja inferior
-  // con costo y precio de venta.
   Widget _tarjetaProductoMovil(
     ProductoModel p,
     Map<String, String> mapaCategorias,
@@ -1784,8 +1609,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
 
     return InkWell(
       borderRadius: BorderRadius.circular(16),
-      // Un solo onTap -sin onDoubleTap acá- a propósito: ver el comentario
-      // grande junto a _tocarFila.
       onTap: () => _tocarFila(p, mapaCategorias, mapaProductos),
       child: Container(
         clipBehavior: Clip.antiAlias,
@@ -1806,12 +1629,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
             ),
           ],
         ),
-        // Stack (no IntrinsicHeight) para la franja roja a la izquierda: con
-        // muchas tarjetas en pantalla durante un scroll rápido,
-        // IntrinsicHeight le agrega una pasada de layout extra a CADA
-        // tarjeta (mide el alto intrínseco antes de poder acomodar todo) —
-        // un Stack no la necesita, la franja simplemente se estira al alto
-        // que termine ocupando el contenido de al lado, sin ese paso de más.
         child: Stack(
           children: [
             Positioned(
@@ -2174,8 +1991,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     );
   }
 
-  /// Pedido explícito del dueño: ver la foto sin tener que abrir "Editar" —
-  /// mismo diálogo (ImagenZoomDialog) que ya usa Buscar Producto.
   void _verFoto(ProductoModel producto) {
     showDialog(
       useRootNavigator: false,
@@ -2218,12 +2033,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
       width: 116,
       height: double.infinity,
       alignment: Alignment.center,
-      // Listener (no GestureDetector/InkWell) a propósito: solo OBSERVA que
-      // se tocó acá, sin competir por el gesto con el PopupMenuButton ni
-      // con el InkWell del ícono de foto -pedido explícito del dueño: tocar
-      // la foto o el "⋮" de una fila distinta a la seleccionada tiene que
-      // mover la iluminación a esa fila de inmediato, no dejarla en la de
-      // antes-.
       child: Listener(
         onPointerDown: (_) => _seleccionarFila(producto.id),
         child: Row(
@@ -2335,9 +2144,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
         icono: Icons.edit_outlined,
         texto: 'Editar producto',
       ),
-      // Un combo no tiene existencia propia real (siempre 0): un ajuste
-      // manual accidental rompería la premisa de que no aporta a la
-      // valorización de inventario, así que ni se ofrece la opción.
       if (!esCombo)
         _opcionMenu(
           valor: 'ajustar',
@@ -2451,10 +2257,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
         ),
         productosAsync.when(
           data: (productos) {
-            // Cache: estos dos `fold` recorren TODA la lista (no la
-            // filtrada) — sin esto se repetían en cada build(), incluida
-            // una selección de fila que no cambia nada de esto (ver
-            // comentario junto a los campos `_cache*`).
             if (!identical(_cacheValoresProductosOrigen, productos)) {
               _cacheValorCompra = productos.fold<double>(
                 0,
@@ -2494,9 +2296,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     );
   }
 
-  // Versión chica del selector-pill -pedido explícito del dueño: el
-  // original (46 de alto, 14/11 de padding, 13 de letra) ocupaba demasiado
-  // espacio para vivir arriba en una esquina junto al título.
   Widget _pildoraChica<T>(
     T valor,
     T valorActual,

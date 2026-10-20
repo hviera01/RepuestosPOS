@@ -79,7 +79,6 @@ Widget _leyenda(String texto, Color color) {
   );
 }
 
-// ---------- Utilidad Bruta y Neta ----------
 
 Widget seccionUtilidad(ReporteFinancieroData data, bool esMovil) {
   final filaBruta = Wrap(
@@ -181,7 +180,6 @@ Widget _tabaGananciaPorVenta(List<GananciaPorVenta> lista, bool esMovil) {
 
 TextStyle _estiloHeaderTabla() => GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.3);
 
-// ---------- Flujo de Efectivo ----------
 
 Widget seccionFlujoEfectivo(ReporteFinancieroData data, bool esMovil) {
   final flujo = data.flujoEfectivo;
@@ -224,7 +222,6 @@ Widget seccionFlujoEfectivo(ReporteFinancieroData data, bool esMovil) {
   );
 }
 
-// ---------- Comparación mensual ----------
 
 Widget seccionComparacionMensual(ReporteFinancieroData data, bool esMovil) {
   final serie = data.serieMensual;
@@ -296,7 +293,6 @@ Widget seccionComparacionMensual(ReporteFinancieroData data, bool esMovil) {
   );
 }
 
-// ---------- Ranking de productos ----------
 
 Widget seccionRankingProductos(ReporteFinancieroData data, bool esMovil) {
   final columnas = [
@@ -352,7 +348,6 @@ Widget _filaRanking(RankingProducto item, double maximo, {required bool esCantid
   );
 }
 
-// ---------- Productos sin venta ----------
 
 Widget seccionProductosSinVenta(ReporteFinancieroData data, bool esMovil) {
   final lista = data.productosSinVenta;
@@ -388,7 +383,6 @@ Widget seccionProductosSinVenta(ReporteFinancieroData data, bool esMovil) {
   );
 }
 
-// ---------- Ventas por usuario ----------
 
 Widget seccionVentasPorUsuario(ReporteFinancieroData data, bool esMovil) {
   final lista = data.ventasPorUsuario;
@@ -453,7 +447,6 @@ Widget seccionVentasPorUsuario(ReporteFinancieroData data, bool esMovil) {
   );
 }
 
-// ---------- Abonos a compras crédito ----------
 
 Widget seccionAbonosComprasCredito(ReporteFinancieroData data, bool esMovil) {
   return Column(
@@ -495,7 +488,6 @@ Widget seccionAbonosComprasCredito(ReporteFinancieroData data, bool esMovil) {
   );
 }
 
-// ---------- Recomendación de pago ----------
 
 Widget seccionRecomendacionPago(ReporteFinancieroData data, bool esMovil) {
   final r = data.recomendacionPago;
@@ -537,7 +529,6 @@ Widget _tarjetaRecomendacion(String titulo, double monto, String explicacion) {
   );
 }
 
-// ---------- Balance general ----------
 
 Widget seccionBalanceGeneral(ReporteFinancieroData data, bool esMovil) {
   final b = data.balanceGeneral;
@@ -579,7 +570,6 @@ Widget seccionBalanceGeneral(ReporteFinancieroData data, bool esMovil) {
   );
 }
 
-// ---------- Inteligencia de Negocios ----------
 
 Widget seccionInteligenciaNegocio(ReporteFinancieroData data, bool esMovil) {
   final ia = data.inteligenciaNegocio;
@@ -638,10 +628,6 @@ const _diasUmbralReposicionTexto = '14';
 Widget _tarjetaPronostico(PronosticoVentas p, ReporteFinancieroData data) {
   final colorTendencia = p.tendenciaMensual == 0 ? Colors.grey.shade500 : (p.tendenciaAlAlza ? const Color(0xFF16A34A) : Marca.primario);
   final iconoTendencia = p.tendenciaMensual == 0 ? Icons.trending_flat : (p.tendenciaAlAlza ? Icons.trending_up : Icons.trending_down);
-  // Utilidad neta proyectada: aplica el margen neto real de este periodo
-  // (utilidadNeta / ventasPeriodo) al monto de ventas pronosticado. Es una
-  // extrapolación simple -asume que gastos y costos guardan la misma
-  // proporción el próximo mes-, no una proyección contable formal.
   final margenNetoActual = data.ventasPeriodo <= 0 ? 0.0 : data.utilidadNeta / data.ventasPeriodo;
   final utilidadProyectada = p.montoEstimado * margenNetoActual;
   return _tarjeta(
@@ -686,10 +672,6 @@ Widget _tarjetaPronostico(PronosticoVentas p, ReporteFinancieroData data) {
   );
 }
 
-/// Compara el último mes cerrado de [serie] contra el anterior (ventas y
-/// compras), con variación porcentual — distinto de la sección
-/// "Comparación mensual" del reporte, que muestra el histórico completo
-/// sin resaltar el cambio mes a mes.
 Widget _tarjetaComparacionMesAnterior(List<PuntoMensual> serie) {
   if (serie.length < 2) {
     return _tarjeta(child: Text('Se necesitan al menos 2 meses de historial para comparar.', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600)));
@@ -741,10 +723,6 @@ Widget _comparacionVariacion(String etiqueta, double actual, double anterior, Co
   );
 }
 
-/// Dona con la composición de cada Lempira vendido en el periodo: costo de
-/// ventas, gastos operativos y lo que queda de utilidad neta. Usa los
-/// mismos totales que ya se muestran arriba del reporte (Ventas, Costo de
-/// Ventas, Gastos, Utilidad Neta), solo que en formato visual.
 Widget _graficoComposicionVenta(ReporteFinancieroData data, bool esMovil) {
   final ventas = data.ventasPeriodo;
   if (ventas <= 0) {
@@ -817,9 +795,6 @@ Widget _leyendaComposicion(List<(String, double, Color)> segmentos, double total
   );
 }
 
-/// Línea de margen bruto aproximado mes a mes, para ver si el negocio viene
-/// mejorando o empeorando su rentabilidad relativa (no solo el monto de
-/// ventas, que es lo que ya muestra "Comparación mensual").
 Widget _graficoTendenciaMargen(List<PuntoMensual> serie) {
   if (serie.length < 2) {
     return _tarjeta(child: Text('Se necesitan al menos 2 meses de historial para ver una tendencia.', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600)));
@@ -1003,7 +978,6 @@ Widget _tablaClientesTop(List<ClienteTop> lista) {
   );
 }
 
-// ---------- Clientes (mejores clientes, no registrados, inactivos) ----------
 
 const _diasInactivoTexto = '90';
 

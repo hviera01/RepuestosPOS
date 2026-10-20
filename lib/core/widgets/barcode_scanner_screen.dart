@@ -3,17 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../utils/beep.dart';
 
-/// Abre la pantalla de escaneo y devuelve el código leído (o null si se
-/// canceló). Uso: `final codigo = await escanearCodigoBarras(context);`
 Future<String?> escanearCodigoBarras(BuildContext context) {
   return Navigator.of(context).push<String>(
     MaterialPageRoute(fullscreenDialog: true, builder: (context) => const BarcodeScannerScreen()),
   );
 }
 
-/// Pantalla de escaneo de código de barras usando la cámara del dispositivo
-/// (funciona tanto en la app móvil como en el navegador, vía getUserMedia).
-/// Al detectar un código válido hace pop devolviendo su texto.
 class BarcodeScannerScreen extends StatefulWidget {
   const BarcodeScannerScreen({super.key});
 

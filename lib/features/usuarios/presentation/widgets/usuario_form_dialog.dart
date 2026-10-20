@@ -28,15 +28,8 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
   bool _activo = true;
   bool _guardando = false;
   String? _error;
-  // Solo se muestran/editan cuando _rol == Roles.encargado o Roles.empleado
-  // (ver build()).
   late Map<String, bool> _pantallasPermitidas;
   late Map<String, bool> _accionesPermitidas;
-  // true en cuanto el Administrador toca un check a mano (ver _filaCheck) o
-  // ya venía con algo guardado de antes. Mientras siga en false, cambiar el
-  // Rol entre Empleado y cualquier otro puede reemplazar los mapas por el
-  // valor por defecto (Empleado) o por vacío (cualquier otro), sin pisar una
-  // personalización real hecha a propósito.
   bool _tocoPermisos = false;
 
   @override
@@ -52,15 +45,8 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
           ? widget.usuario!.rol
           : Roles.empleado;
       _activo = widget.usuario!.estado;
-      // Si ya tenía algo guardado (aunque sea todo en false) es una
-      // configuración explícita de una edición anterior: no la pisamos.
       _tocoPermisos = _pantallasPermitidas.isNotEmpty || _accionesPermitidas.isNotEmpty;
     }
-    // Empleado nuevo (o uno viejo que quedó con el mapa vacío por haberse
-    // creado antes de este cambio): arranca con el mismo acceso por defecto
-    // que tiene este rol en variedades_lopsi, no todo marcado ni todo vacío
-    // -pedido explícito del dueño-. Se guarda recién cuando se presiona
-    // Guardar, así que con solo abrir y cancelar no se persiste nada.
     if (!_tocoPermisos && _rol == Roles.empleado) {
       _pantallasPermitidas = {
         for (final clave in pantallasPermitidasEmpleadoPorDefecto) clave: true,
@@ -295,10 +281,6 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                     .toList(),
                 onChanged: (v) => setState(() {
                   _rol = v ?? Roles.empleado;
-                  // Solo si el Administrador todavía no tocó nada a mano:
-                  // recién ahí conviene aplicar/quitar el valor por defecto
-                  // de Empleado al cambiar de rol en el dropdown, sin pisar
-                  // una personalización real.
                   if (!_tocoPermisos) {
                     _pantallasPermitidas = _rol == Roles.empleado
                         ? {
@@ -441,11 +423,6 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
     );
   }
 
-  // ---------- Permisos de los roles Encargado y Empleado ----------
-  // Solo se renderizan (y solo se guardan) cuando _rol == Roles.encargado o
-  // Roles.empleado. Reusa visualmente el patrón "fila con switch" de
-  // negocio_screen.dart, aquí con Checkbox por ser una lista más larga de
-  // tildes.
 
   Widget _seccionPermisos({required String titulo, required String subtitulo, required Widget contenido}) {
     return Container(

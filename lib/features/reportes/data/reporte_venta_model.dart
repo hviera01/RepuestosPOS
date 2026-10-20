@@ -11,24 +11,13 @@ class ReporteVentaModel {
   final String usuarioRegistro;
   final String documentoCliente;
   final String nombreCliente;
-  // Vínculo real al registro de 'clientes' (ver CRM de clientes, Fase 1).
-  // null en ventas de antes de ese vínculo, o hechas sin cliente elegido -ver
-  // ReporteFinancieroRepository._agruparClientesTop, que lo usa para agrupar
-  // con más precisión que solo el texto de nombreCliente-.
   final String? idCliente;
   final double impuesto;
   final String condicion;
   final DateTime? fechaVencimiento;
   final String estado;
   final bool pendienteImpresion;
-  // Momento real en que se creó el registro (puesto por el servidor),
-  // distinto de fechaRegistro (la fecha de negocio, que el cajero puede
-  // elegir a mano). null en ventas viejas de antes de que este campo
-  // existiera. Ver ReporteRepository.obtenerReporteVentas.
   final DateTime? creadoEn;
-  // Desglose cuando metodoPago == 'Mixto': ver VentaModel.pagosMixtos. Se usa
-  // para repartir el ingreso entre efectivo/tarjeta/transferencia en el
-  // libro financiero (EgresoRepository.obtenerLibroFinanciero).
   final List<PagoDetalle> pagosMixtos;
 
   ReporteVentaModel({
@@ -55,11 +44,6 @@ class ReporteVentaModel {
   bool get esActiva => estado == 'Activa';
   bool get esCotizacion => tipoDocumento == 'Cotizacion';
 
-  /// Lee una fila de la tabla `ventas` (columnas snake_case) tal como la
-  /// devuelve Supabase -mismo criterio que VentaModel.fromMap-. No trae
-  /// `creado_en` -no existe como columna propia en Postgres (`created_at`
-  /// implícito no se expone acá)-, así que se cae directo a fechaRegistro
-  /// como clave de orden real (ver ReporteRepository.obtenerReporteVentas).
   factory ReporteVentaModel.fromMap(String id, Map<String, dynamic> data) {
     DateTime? fecha(String? iso) => iso == null ? null : DateTime.parse(iso);
     return ReporteVentaModel(

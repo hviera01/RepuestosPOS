@@ -9,13 +9,6 @@ import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/widgets/imagen_producto_network.dart';
 import 'buscar_producto_dialog.dart' show ProductoConPrecio;
 
-/// Buscador de producto embebido (Vista "dividida" de Registrar Venta,
-/// pedido explícito del dueño) — a diferencia de BuscarProductoDialog (una
-/// ruta modal a pantalla completa), este vive incrustado a un costado de la
-/// pantalla, con los resultados como tarjetas con foto en vez de una tabla
-/// de texto. Reusa la misma búsqueda difusa (`coincideFuzzy`/
-/// `textoBusqueda`) que el buscador modal, para no tener dos criterios de
-/// "qué es una coincidencia" en la app.
 class PanelBuscadorGrid extends ConsumerStatefulWidget {
   final void Function(ProductoConPrecio) onProductoElegido;
 
@@ -30,10 +23,6 @@ class _PanelBuscadorGridState extends ConsumerState<PanelBuscadorGrid> {
   String _busqueda = '';
   String? _seleccionadoId;
 
-  // Mismo arreglo que Inventario/BuscarProductoDialog (ver
-  // InventarioScreen._tocarFila): un solo `onTap` con doble-toque detectado
-  // a mano, para que el primer toque (seleccionar) responda al instante en
-  // vez de esperar la ventana de doble-tap de Flutter.
   static const _ventanaDobleTap = Duration(milliseconds: 300);
   DateTime? _ultimoTapEn;
   String? _ultimoTapId;
@@ -87,8 +76,6 @@ class _PanelBuscadorGridState extends ConsumerState<PanelBuscadorGrid> {
           child: TextField(
             controller: _busquedaController,
             autofocus: true,
-            // Busca al presionar Enter -pedido explícito del dueño-, no en
-            // vivo con cada tecla: `onSubmitted` en vez de `onChanged`.
             textInputAction: TextInputAction.search,
             style: GoogleFonts.poppins(fontSize: 13.5),
             decoration: InputDecoration(
@@ -143,11 +130,6 @@ class _PanelBuscadorGridState extends ConsumerState<PanelBuscadorGrid> {
                   ),
                 )
               : GridView.builder(
-                  // MaxCrossAxisExtent (no un conteo fijo de columnas): la
-                  // cantidad de columnas se ajusta sola al ancho
-                  // disponible, así no hay overflow ni tarjetas
-                  // apretadas sin importar si el panel mide 300px
-                  // (celular) o 900px (mitad de pantalla ancha).
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 165,
                     mainAxisSpacing: 10,

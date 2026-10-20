@@ -209,9 +209,6 @@ class _DispositivosScreenState extends ConsumerState<DispositivosScreen> {
     );
   }
 
-  // Vista de escritorio (tabla de columnas fijas): sin cambios de fondo,
-  // solo separada de build() para poder elegir entre esta y _tarjetas según
-  // el ancho disponible (ver LayoutBuilder en build()).
   Widget _tabla(
     List<DispositivoModel> dispositivos,
     String pcPrincipalHostname,
@@ -238,13 +235,6 @@ class _DispositivosScreenState extends ConsumerState<DispositivosScreen> {
                 _celdaHeader('VERSIÓN', 2),
                 _celdaHeader('ÚLTIMO USUARIO', 2),
                 _celdaHeader('ÚLTIMA CONEXIÓN', 3),
-                // Ancho fijo, sin Expanded -a diferencia de _celdaHeader,
-                // que solo sirve como hijo directo de un Row/Column-: antes
-                // esto envolvía un _celdaHeader (que YA es un Expanded)
-                // dentro de un SizedBox, un árbol de widgets inválido que
-                // tiraba la pantalla entera con un error de layout (bug
-                // real reportado por el dueño, se veía sobre todo en
-                // celular).
                 SizedBox(
                   width: 48,
                   child: Text(
@@ -293,9 +283,6 @@ class _DispositivosScreenState extends ConsumerState<DispositivosScreen> {
     );
   }
 
-  // Vista de celular/tablet angosta: una tarjeta por equipo con todo
-  // apilado, sin truncar ningún dato -pedido explícito del dueño: "hacer
-  // responsivo eso, tiene overflow"-.
   Widget _tarjetas(
     List<DispositivoModel> dispositivos,
     String pcPrincipalHostname,

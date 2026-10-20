@@ -9,8 +9,6 @@ import '../../providers/ventas_credito_provider.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
 
-/// Corrige un abono ya registrado (monto, interés, fecha, método, recibo) —
-/// ver comentario en EditarAbonoCompraDialog (mismo patrón, lado ventas).
 class EditarAbonoDialog extends ConsumerStatefulWidget {
   final VentaCreditoModel credito;
   final AbonoModel abono;

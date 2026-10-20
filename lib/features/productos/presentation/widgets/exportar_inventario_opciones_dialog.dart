@@ -3,18 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/producto_model.dart';
 
-/// Lo que devuelve [ExportarInventarioOpcionesDialog] al confirmar: la
-/// lista final de productos a incluir (subconjunto de los que se le pasó,
-/// según lo que el usuario desmarcó) y el set de columnas elegidas.
 class ExportarInventarioOpciones {
   final List<ProductoModel> productos;
   final Set<String> columnas;
   const ExportarInventarioOpciones({required this.productos, required this.columnas});
 }
 
-/// Columnas disponibles para Excel/PDF de Inventario -mismas claves que
-/// espera ProductoExportService.generarExcel/generarPdfInventario. El orden
-/// acá define el orden de columnas en el archivo final.
 const columnasInventarioDisponibles = [
   ('codigo', 'Código'),
   ('codigoBarras', 'Código de barras'),
@@ -27,16 +21,8 @@ const columnasInventarioDisponibles = [
   ('estado', 'Estado'),
 ];
 
-/// Mismas columnas que ya traía el export antes de que existiera esta
-/// opción -para que, si el usuario no toca nada, el archivo salga igual
-/// que siempre.
 const columnasInventarioPorDefecto = {'codigo', 'nombre', 'descripcion', 'categoria', 'existencia', 'precioVenta', 'precioCompra', 'estado'};
 
-/// Antes de exportar a Excel/PDF, deja elegir CUÁLES de los productos ya
-/// filtrados en pantalla van al archivo (checklist, todos marcados por
-/// defecto -pedido explícito del dueño: "que pueda seleccionar qué
-/// productos quiero que vayan") y qué columnas incluir. Devuelve null si
-/// se cancela.
 class ExportarInventarioOpcionesDialog extends StatefulWidget {
   final List<ProductoModel> productos;
   final Map<String, String> mapaCategorias;

@@ -15,9 +15,6 @@ import '../../../ventas/providers/ventas_provider.dart';
 import '../../../negocio/providers/negocio_provider.dart';
 import '../../../auth/providers/auth_provider.dart';
 
-/// Item consolidado para el detalle único de una factura fusionada: junta
-/// las líneas de producto de todas las facturas que se unieron, marcando de
-/// cuál venía cada una para no perder trazabilidad.
 class _ItemConsolidado {
   final String numeroFacturaOrigen;
   final ItemVentaModel item;
@@ -49,18 +46,7 @@ class _FacturasOrigenDialogState extends ConsumerState<FacturasOrigenDialog> {
     _cargarDetalle();
   }
 
-  // NOTA: este diálogo ("Unir Facturas") reserva el número de la venta
-  // consolidada de la MISMA secuencia oficial que una Factura/Boleta (ver
-  // VentaRepository.reservarProximoNumeroFactura, que siempre formatea como
-  // Factura) y siempre arma el documento sintético como 'Factura' -no se
-  // adaptó a VentaSinFacturar en esta pasada porque cambiar eso también
-  // implicaría resolver qué numeración/formato le corresponde a una "Venta"
-  // consolidada, y esta pantalla no estaba en el alcance pedido-. Si este
-  // negocio empieza a unir créditos que no sean Factura/Boleta, revisar esto.
 
-  // Misma conversión que usa DetalleVentaScreen: precioVenta/subtotal se
-  // guardan sin ISV, así que hay que aplicar el 15% para mostrarlos como en
-  // la factura real.
   double _precioConIsv(ItemVentaModel item) =>
       redondearMoneda(item.precioVenta * 1.15);
 
@@ -68,12 +54,6 @@ class _FacturasOrigenDialogState extends ConsumerState<FacturasOrigenDialog> {
     _precioConIsv(item) * item.cantidad * (1 - item.descuentoPorcentaje / 100),
   );
 
-  // Una factura "origen" puede a su vez ser el resultado de otra unión
-  // anterior (unir una factura ya fusionada con una nueva) — en ese caso no
-  // tiene una venta real propia, pero sí su propia lista de facturasOrigen.
-  // Se baja recursivamente hasta encontrar las ventas reales del fondo, para
-  // que el detalle consolidado siempre muestre todos los productos sin
-  // importar cuántos niveles de fusión haya.
   Future<void> _resolverFactura(
     FacturaOrigenModel factura,
     List<VentaModel> ventas,
@@ -169,9 +149,6 @@ class _FacturasOrigenDialogState extends ConsumerState<FacturasOrigenDialog> {
     );
   }
 
-  // Junta las líneas que son exactamente el mismo producto (mismo precio y
-  // descuento) sumando cantidad e importe en una sola fila, en vez de
-  // repetir el producto una vez por cada factura de la que vino.
   List<ItemVentaModel> _consolidarItems() {
     final porClave = <String, ItemVentaModel>{};
     for (final c in _items) {
@@ -189,31 +166,16 @@ class _FacturasOrigenDialogState extends ConsumerState<FacturasOrigenDialog> {
     return porClave.values.toList();
   }
 
-  // Se arma (y se reserva su número real) una sola vez por apertura de este
-  // diálogo, sin importar cuántas veces se pida imprimir o descargar el PDF
-  // desde acá: así "Imprimir todo en un solo papel" y "Descargar PDF" hablan
-  // siempre del mismo documento con el mismo número, en vez de gastar un
-  // número de la secuencia oficial por cada clic.
   VentaModel? _ventaSinteticaCache;
 
   Future<VentaModel> _obtenerVentaSintetica() async {
     final cache = _ventaSinteticaCache;
     if (cache != null) return cache;
-    // Número real de la secuencia oficial (el que le tocaría a la próxima
-    // factura), aunque no se registre una venta nueva: es solo para que
-    // este documento tenga un número válido y no se repita con el de una
-    // venta futura.
     final numeroDocumento = await ref
         .read(ventaRepositoryProvider)
         .reservarProximoNumeroFactura();
     final usuario = ref.read(authProvider).usuario?.nombreCompleto ?? '';
     final itemsConsolidados = _consolidarItems();
-    // El total sale directo del crédito (ya es el monto exacto y correcto,
-    // suma de los saldos reales de las facturas unidas) en vez de volver a
-    // sumar los ítems y sacarle el 15% aparte: hacerlo por separado puede
-    // arrastrar una diferencia de un centavo (.01/.99) por el redondeo doble
-    // (cada línea redondeada + el total redondeado). Acá el ISV sale de
-    // restarle el subtotal al total ya conocido, así siempre cuadra exacto.
     final totalAPagar = widget.credito.montoTotal;
     final subtotal = redondearMoneda(totalAPagar / 1.15);
     final impuesto = redondearMoneda(totalAPagar - subtotal);
@@ -280,9 +242,6 @@ class _FacturasOrigenDialogState extends ConsumerState<FacturasOrigenDialog> {
     );
   }
 
-  // Mismo documento formal en tamaño carta que ofrece "Ver detalle de
-  // venta" (VentaExportService.generarPdfDetalleVenta), para poder
-  // descargar/compartir el PDF sin pasar por la vista de ticket térmico.
   Future<void> _descargarPdf() async {
     if (_ventasOrigen.isEmpty) return;
     final negocio = await ref

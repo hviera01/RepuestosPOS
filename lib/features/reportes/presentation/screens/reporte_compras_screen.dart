@@ -30,8 +30,6 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
   final _busquedaController = TextEditingController();
   final _servicioExport = ReporteExportService();
 
-  // Claves para el tutorial guiado: cada una apunta al widget real que se
-  // resalta al explicar ese paso.
   final _keyChipsRango = GlobalKey();
   final _keyFechaDesde = GlobalKey();
   final _keyFechaHasta = GlobalKey();
@@ -104,9 +102,6 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
     }
   }
 
-  // Re-dispara _buscar() (mismo rango de fecha ya elegido, sin resetear
-  // ningún filtro) cuando algo cambia en [tabla] -mismo mecanismo que
-  // ReporteVentasScreen, ver ese comentario para el detalle-.
   void _escucharCambios(String tabla) {
     ref.listen<AsyncValue<void>>(cambiosEnTablaProvider(tabla), (
       previous,
@@ -145,8 +140,6 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
     _buscar();
   }
 
-  // Atajos de rango rápido: tocar uno aplica el rango y dispara la búsqueda
-  // de una vez, sin tener que abrir el selector de fecha dos veces.
   void _aplicarRango(DateTime inicio, DateTime fin) {
     setState(() {
       _fechaInicio = inicio;
@@ -525,8 +518,6 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
             },
           ),
         ),
-        // Fuera del área que scrollea (NestedScrollView de arriba), para que
-        // el botón de tutorial quede siempre visible sin importar el scroll.
         Positioned(
           right: 16,
           bottom: 16,

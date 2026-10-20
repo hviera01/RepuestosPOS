@@ -1,10 +1,3 @@
-/// Rastrea una línea de venta marcada "pendiente de compra" (venta
-/// anticipada): se vendió un producto sin saber todavía cuál compra exacta
-/// lo va a reponer -por ejemplo, pintura preparada antes de comprar el
-/// insumo real-. Mientras [estado] sea 'Pendiente', la próxima compra que
-/// entre de [idProducto] se reparte automáticamente contra esto (la más
-/// vieja primero, ver CompraRepository.registrarCompra), corrigiendo el
-/// costo de la línea de venta original al costo real de esa compra.
 class PendienteReposicionModel {
   final String id;
   final String idVenta;

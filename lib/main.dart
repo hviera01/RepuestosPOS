@@ -19,9 +19,6 @@ import 'features/ventas/presentation/screens/escaneo_remoto_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Sin esto, un error al construir cualquier pantalla deja esa área
-  // completamente en blanco (en release Flutter oculta el detalle);
-  // con esto al menos se ve un mensaje en vez de un blanco silencioso.
   ErrorWidget.builder = (details) => Container(
         color: Colors.white,
         alignment: Alignment.center,
@@ -32,18 +29,11 @@ Future<void> main() async {
           textAlign: TextAlign.center,
         ),
       );
-  // Evita que google_fonts intente descargar variantes de Poppins por red en
-  // cada pantalla nueva (esta app corre en cajas/POS con internet lento o
-  // intermitente) — si la variante no está en caché local, cae al font del
-  // sistema en vez de bloquear la navegación esperando la descarga.
   GoogleFonts.config.allowRuntimeFetching = false;
   await Supabase.initialize(
     url: SupabaseConfig.url,
     anonKey: SupabaseConfig.anonKey,
   );
-  // Calienta la conexión a Cloudinary desde ya, para que la primera foto que
-  // el usuario abra no tenga que pagar el costo de la primera conexión
-  // (la más lenta: resolver el dominio + saludo de seguridad).
   await AlmacenLocal.iniciar();
   await Marca.cargarGuardado();
   await OperacionesService.instancia.iniciar();
@@ -66,11 +56,6 @@ class RepuestosApp extends ConsumerWidget {
         ref.read(temaVersionProvider.notifier).refrescar();
       }
     });
-    // El QR que muestra la PC para usar el celular como lector de código de
-    // barras (ver EscanearRemotoDialog) apunta a esta misma URL con
-    // "?escanear=CODIGO". Si viene ese parámetro, se salta el login por
-    // completo y se va directo a la cámara: cualquier celular tiene que
-    // poder ayudar a escanear sin necesitar una cuenta en el sistema.
     final codigoEscaneo = Uri.base.queryParameters['escanear'];
 
     return MaterialApp(

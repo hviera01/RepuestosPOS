@@ -30,8 +30,6 @@ class _ReporteVentasScreenState extends ConsumerState<ReporteVentasScreen> {
   final _busquedaController = TextEditingController();
   final _servicioExport = ReporteExportService();
 
-  // Claves para el tutorial guiado: cada una apunta al widget real que se
-  // resalta al explicar ese paso.
   final _keyChipsRango = GlobalKey();
   final _keyFechaDesde = GlobalKey();
   final _keyFechaHasta = GlobalKey();
@@ -110,13 +108,6 @@ class _ReporteVentasScreenState extends ConsumerState<ReporteVentasScreen> {
     }
   }
 
-  // Re-dispara _buscar() (mismo rango de fecha ya elegido, sin resetear
-  // ningún filtro) cuando algo cambia en [tabla] -pedido explícito del
-  // dueño: "entro a Reporte de Ventas, registro una venta en otra pestaña,
-  // vuelvo, y no aparece hasta que la busco de nuevo a mano". cambiosEnTabla
-  // Provider ya solo emite ante un INSERT/UPDATE/DELETE real (ver
-  // ReporteRepository.observarCambiosEnTabla), así que acá no hace falta
-  // descartar ningún "primer evento" de snapshot inicial.
   void _escucharCambios(String tabla) {
     ref.listen<AsyncValue<void>>(cambiosEnTablaProvider(tabla), (
       previous,
@@ -156,8 +147,6 @@ class _ReporteVentasScreenState extends ConsumerState<ReporteVentasScreen> {
     _buscar();
   }
 
-  // Atajos de rango rápido: tocar uno aplica el rango y dispara la búsqueda
-  // de una vez, sin tener que abrir el selector de fecha dos veces.
   void _aplicarRango(DateTime inicio, DateTime fin) {
     setState(() {
       _fechaInicio = inicio;
@@ -301,12 +290,6 @@ class _ReporteVentasScreenState extends ConsumerState<ReporteVentasScreen> {
               final esMovil = constraints.maxWidth < 760;
               return Padding(
                 padding: EdgeInsets.all(esMovil ? 14 : 26),
-                // NestedScrollView (en vez de CustomScrollView + SliverFillRemaining)
-            // coordina el scroll del encabezado/filtros con el de la lista de
-            // abajo: sin esto, la lista tiene su propio scroll independiente y,
-            // en móvil, al bajar del todo dentro de ella no había forma de
-            // volver a subir arrastrando (el encabezado quedaba "atrapado"
-            // fuera de la pantalla).
             child: NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) => [
                 SliverToBoxAdapter(
@@ -562,8 +545,6 @@ class _ReporteVentasScreenState extends ConsumerState<ReporteVentasScreen> {
             },
           ),
         ),
-        // Fuera del área que scrollea (NestedScrollView de arriba), para que
-        // el botón de tutorial quede siempre visible sin importar el scroll.
         Positioned(
           right: 16,
           bottom: 16,

@@ -154,8 +154,6 @@ class CompraCreditoRepository with ConRedMixin {
     });
   }
 
-  /// Crea en lote los créditos de compra de una importación desde Excel. Los
-  /// proveedores que no existan todavía por nombre se crean automáticamente.
   Future<ResumenImportacionComprasCredito> importarCreditos(List<FilaImportacionCompraCredito> filas) {
     return conRed(() async {
       final proveedoresExistentes = await _db.from('proveedores').select('id, razon_social, rtn');
@@ -209,8 +207,6 @@ class CompraCreditoRepository with ConRedMixin {
     });
   }
 
-  /// Calcula cómo se repartiría [monto] entre las facturas pendientes de un
-  /// proveedor, pagando primero las que vencen antes. No escribe nada todavía.
   List<DistribucionAbono> calcularDistribucion(List<CompraCreditoModel> comprasProveedor, double monto) {
     final pendientes = comprasProveedor.where((c) => !c.liquidada).toList()
       ..sort((a, b) {

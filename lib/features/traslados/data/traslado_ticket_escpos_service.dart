@@ -4,21 +4,7 @@ import 'traslado_model.dart';
 import '../../negocio/data/negocio_model.dart';
 import '../../../core/utils/texto_utils.dart';
 
-/// Genera el mismo contenido del comprobante de traslado de
-/// `TrasladoExportService.generarPdfTraslado` (mismos campos, mismo orden)
-/// pero como comandos ESC/POS crudos, para mandarlos directo a la impresora
-/// -por USB en Windows (ImpresoraUsbWindowsService) o por red/celular
-/// (ImpresoraRedService)- en vez de un PDF: el driver de esta impresora
-/// térmica tiene un tamaño de página máximo fijo que recorta o reescala
-/// cualquier traslado más largo que eso, sin importar qué altura declare el
-/// PDF (ver el comentario grande en traslado_export_service.dart). El
-/// ESC/POS no tiene ese concepto: imprime seguido hasta el corte.
 class TrasladoTicketEscPosService {
-  /// [forzarCopia] mismo significado que en
-  /// `TrasladoExportService.generarPdfTraslado`: null (recién registrado)
-  /// imprime ORIGINAL y COPIA, una detrás de otra (cada una con su propio
-  /// corte de papel); true/false fuerza una sola copia -para reimprimir
-  /// desde el Reporte de Traslados-.
   Future<List<int>> generarTicket(
     TrasladoModel traslado,
     NegocioModel negocio, {
@@ -37,9 +23,6 @@ class TrasladoTicketEscPosService {
     return bytes;
   }
 
-  // Muchas impresoras térmicas no tienen bien configurada la página de
-  // códigos para tildes/eñes y las imprimen mal (un carácter random, o
-  // cortan la línea ahí) — por eso todo el texto pasa por quitarTildes.
   List<int> _texto(Generator g, String texto, {PosStyles styles = const PosStyles()}) {
     return g.text(quitarTildes(texto), styles: styles);
   }
@@ -74,9 +57,6 @@ class TrasladoTicketEscPosService {
     bytes += _texto(generador, 'Usuario recibe: ${t.usuarioRecibe.isEmpty ? '-' : t.usuarioRecibe}');
     bytes += generador.hr();
 
-    // Columna 4 vacía entre CODIGO y DESCRIPCION a propósito: sin ese
-    // "colchón" quedaban pegados (el ancho que le sobra a un código corto
-    // no alcanza para que se note el espacio antes de la descripción).
     bytes += generador.row([
       _columna('CODIGO', width: 3, styles: const PosStyles(bold: true)),
       _columna('', width: 1),
@@ -93,8 +73,6 @@ class TrasladoTicketEscPosService {
         _columna(_formatoCantidad(item.cantidad), width: 3, styles: const PosStyles(bold: true, align: PosAlign.right)),
       ]);
       bytes += _texto(generador, 'Ubicacion: ${item.ubicacion.trim().isEmpty ? '-' : item.ubicacion}', styles: const PosStyles(bold: true));
-      // Más espacio antes del siguiente producto: antes quedaban todos los
-      // renglones pegados uno con otro ("una sola choricera").
       bytes += generador.emptyLines(2);
     }
     bytes += generador.hr();

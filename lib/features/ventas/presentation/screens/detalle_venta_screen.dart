@@ -35,20 +35,10 @@ import '../../../ventas_credito/presentation/widgets/registrar_abono_dialog.dart
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
 
-/// Pantalla de consulta de una venta ya registrada: buscá por número de
-/// documento (o abrila directo desde Reportes / Ventas a Crédito pasando
-/// [ventaIdInicial]) para ver el detalle completo, reimprimirla, descargar
-/// un PDF formal, o anularla.
 class DetalleVentaScreen extends ConsumerStatefulWidget {
   final String? ventaIdInicial;
   final String? numeroDocumentoInicial;
 
-  /// true cuando se abre como modal (push encima de otra pantalla, ej. desde
-  /// un botón en Reportes/Créditos): muestra su propio Scaffold y flecha de
-  /// volver. false cuando se abre como pestaña del menú principal (ej.
-  /// Ventas > Ver Detalle): se embebe como las demás pantallas, sin Scaffold
-  /// propio ni flecha (la pestaña se cierra con la "x" de la barra de
-  /// pestañas).
   final bool esDialogo;
 
   const DetalleVentaScreen({
@@ -75,11 +65,6 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
   bool _procesandoGuia = false;
   String? _error;
   bool _precioConIsv = true;
-  // Opcional: acota la búsqueda a un tipo de documento en particular. Hace
-  // falta porque Factura/Boleta y Cotización usan contadores separados pero
-  // el mismo relleno de 8 dígitos (ver VentaRepository.
-  // buscarVentasPorNumeroDocumento), así que un mismo número escrito sin
-  // ceros podría coincidir con más de una venta a la vez.
   String? _tipoDocumentoFiltro;
 
   @override
@@ -167,10 +152,6 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
     }
   }
 
-  /// Cuando el número escrito (sin ceros de relleno) coincide con más de
-  /// una venta -típicamente una Factura/Boleta y una Cotización con el
-  /// mismo número, ver VentaRepository.buscarVentasPorNumeroDocumento- se
-  /// le pide al usuario que elija cuál era.
   Future<VentaModel?> _elegirEntreVarias(List<VentaModel> ventas) {
     final formatoFecha = DateFormat('dd/MM/yyyy HH:mm');
     return showDialog<VentaModel>(
@@ -226,10 +207,6 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
     });
   }
 
-  /// Al reimprimir se le pregunta al usuario si esa hoja va a decir
-  /// "ORIGINAL" o "COPIA" (por ejemplo, si el original ya se le dio al
-  /// cliente y ahora hace falta una copia para el archivo del negocio, o al
-  /// revés). Devuelve true para copia, false para original, null si canceló.
   Future<bool?> _elegirOriginalOCopia() {
     return showDialog<bool>(
       useRootNavigator: false,
@@ -284,18 +261,11 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
           .obtenerNegocioActual();
       if (!mounted) return;
 
-      // En Android/iOS no hay impresoras del SO para elegir (esto es
-      // exclusivo de escritorio): se intenta por ESC/POS de red, y si no
-      // hay impresora de red configurada o falla, se le pide a la PC
-      // principal que la reimprima ella sola (ver PresenciaImpresionRepository).
       if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
         await _reimprimirEscPosORemoto(venta, negocio, esCopia);
         return;
       }
 
-      // defaultTargetPlatform (a diferencia de Platform.isAndroid, que en
-      // web no sirve de nada) detecta el sistema operativo real aunque se
-      // esté usando desde el navegador.
       final esMovil =
           defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS;
@@ -347,11 +317,6 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
             negocio: negocio,
             esCopia: esCopia,
           ),
-          // Esta PC de escritorio puede no ser la que tiene la impresora
-          // física conectada (ver Dispositivos > "Marcar como PC
-          // principal") -pedido explícito del dueño-: si el intento local
-          // falla, se le pide a la de verdad que reimprima ella sola en
-          // vez de solo avisar el error.
           alFallarImprimir: () => _pedirImpresionEnVivo(
             venta,
             esCopia,
@@ -371,10 +336,6 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
     NegocioModel negocio,
     bool esCopia,
   ) async {
-    // "Impresora especial" (impresoraUsbUsarDriverWindows): la Red manda los
-    // mismos bytes ESC/POS crudos que USB, así que si esta impresora no los
-    // entiende (Star POP10/mPOP), no se intenta -se salta directo al
-    // respaldo de pedirle a la PC principal, que sí sabe imprimir bien-.
     if (!negocio.impresoraUsbUsarDriverWindows && negocio.impresoraRedIp.isNotEmpty) {
       final bytes = await _servicioTicketEscPos.generarTicket(
         venta,
@@ -394,14 +355,6 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
     await _pedirImpresionEnVivo(venta, esCopia);
   }
 
-  /// Imprime la guía de envío de esta venta -pedido explícito del dueño:
-  /// "que pueda reimprimirse en detalle venta y también en una venta ya
-  /// hecha que pueda generarse siempre... e imprimirse desde ahí"-. Si la
-  /// venta YA tiene datos de envío guardados (esEnvio true), imprime
-  /// directo. Si no (una venta que se hizo sin marcarla como envío en su
-  /// momento), abre el mismo modal que Registrar Venta -prellenado del
-  /// cliente vinculado si lo hay- para completarlos, los guarda en la
-  /// venta, y recién ahí imprime.
   Future<void> _imprimirGuiaEnvio() async {
     final venta = _venta;
     if (venta == null) return;
@@ -415,10 +368,6 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
 
   Future<void> _imprimirGuiaEnvioInterno(VentaModel venta) async {
     var ventaConEnvio = venta;
-    // El formato (normal/grande) SIEMPRE se pregunta acá, tenga o no la
-    // venta datos de envío guardados ya -pedido explícito del dueño: dejar
-    // las dos opciones de impresión disponibles siempre, no solo la primera
-    // vez que se genera la guía-.
     String direccionInicial = venta.envioDireccion;
     String telefonoInicial = venta.envioTelefono;
     if (direccionInicial.isEmpty &&
@@ -472,16 +421,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
         .obtenerNegocioActual();
     if (!mounted) return;
 
-    // Misma filosofía que _reimprimir: en Android/iOS (donde normalmente no
-    // hay impresora térmica a mano) si no se puede imprimir directo por red,
-    // se le pide a la PC principal -pedido explícito del dueño: "que
-    // funcione en remoto, así como toda impresión"-. En escritorio, esta PC
-    // ya es la candidata a "PC principal", así que si falla se avisa
-    // directo, sin pedirle a nadie más (igual que el resto de la pantalla).
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-      // Ver el mismo comentario en _reimprimirEscPosORemoto: sin este
-      // chequeo, la guía por red reproduce el "papel sin cortar" de la Star
-      // POP10/mPOP aunque el ticket normal ya esté protegido.
       if (!negocio.impresoraUsbUsarDriverWindows &&
           negocio.impresoraRedIp.isNotEmpty) {
         try {
@@ -538,9 +478,6 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
           );
           return;
         }
-        // Ver el mismo comentario en registrar_venta_screen.dart: la guía de
-        // envío es ESC/POS puro sin versión PDF, así que si esta impresora no
-        // habla ESC/POS crudo no hay vía segura para mandarla.
         if (negocio.impresoraUsbUsarDriverWindows) {
           _mostrarMensaje(
             'Esta impresora no soporta la guía de envío (activaste "usar el driver de Windows"): usá el ticket normal',
@@ -704,11 +641,6 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
     );
   }
 
-  /// Abre una pestaña nueva de "Registrar Venta" con los mismos productos de
-  /// esta venta ya cargados en el carrito, lista para ajustar y confirmar
-  /// como una venta nueva (no toca ni modifica la original). [forzarFactura]
-  /// es lo que distingue "Duplicar venta" (una cotización sigue siendo
-  /// cotización) de "Convertir a venta" (pasa a Factura).
   void _duplicarVenta(VentaModel venta, {bool forzarFactura = false}) {
     ref
         .read(ventaParaCargarProvider.notifier)
@@ -729,14 +661,6 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
             ),
           ),
         );
-    // `popUntil((route) => route.isFirst)` en vez de un solo `pop` -pedido
-    // explícito del dueño: antes había que salir manual-: cuando se llega acá
-    // desde "Ver Facturas" (Navigator.push encima de la pestaña, y ESE
-    // Detalle de Venta es otro push encima de Ver Facturas), un solo `pop`
-    // solo cerraba Detalle de Venta y dejaba Ver Facturas tapando la pestaña
-    // nueva ya activa. Esto cierra TODO lo apilado (venga de Ver Facturas,
-    // de Pendientes de Impresión, o de un solo nivel) y deja ver de una vez
-    // la pestaña de Registrar Venta recién abierta con la venta duplicada.
     if (widget.esDialogo) {
       Navigator.of(context).popUntil((route) => route.isFirst);
     }
@@ -1113,11 +1037,6 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
               ),
             ),
             const Spacer(),
-            // Este negocio no cobra ISV en su venta normal (VentaSinFacturar):
-            // el selector solo tiene sentido cuando la venta de verdad lo
-            // cobra (Factura/Boleta formal, ver
-            // CarritoVentaState._aplicaIsv) -si no, el precio que se ve YA es
-            // el precio final, sin ajuste, así que no hay nada que alternar-.
             if (venta.tipoDocumento == 'Factura' ||
                 venta.tipoDocumento == 'Boleta')
               _selectorPrecioIsv(),
@@ -1493,10 +1412,6 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
     );
   }
 
-  // Este negocio no cobra ISV en su venta normal (VentaSinFacturar): el
-  // toggle Con/Sin ISV solo tiene efecto real si esta venta es Factura o
-  // Boleta formal (ver CarritoVentaState._aplicaIsv) -si no, el precio que
-  // se ve YA es el precio final, sin ajuste-.
   double _precioMostrado(dynamic item) {
     final esFacturable =
         _venta?.tipoDocumento == 'Factura' || _venta?.tipoDocumento == 'Boleta';

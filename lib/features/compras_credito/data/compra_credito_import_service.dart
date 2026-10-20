@@ -27,7 +27,6 @@ class FilaImportacionCompraCredito {
   bool get valido => error == null;
 }
 
-/// Lee el "Reporte de Compras a Crédito" que exporta el sistema anterior.
 class CompraCreditoImportService {
   static const _sinonimos = <String, List<String>>{
     'numeroDocumento': ['numerodedocumento', 'numerodocumento'],
@@ -49,9 +48,6 @@ class CompraCreditoImportService {
     return t.replaceAll(RegExp(r'\s+'), '');
   }
 
-  /// Las fechas vienen como d/M/yyyy o, cuando Excel guardó la celda como
-  /// fecha real en vez de texto, como el número de serie de Excel (días
-  /// desde 1899-12-30).
   DateTime? _parseFecha(String texto) {
     final limpio = texto.trim();
     if (limpio.isEmpty || limpio == '-') return null;
@@ -81,8 +77,6 @@ class CompraCreditoImportService {
     return double.tryParse(limpio);
   }
 
-  /// Lee un .xlsx y devuelve las filas encontradas (válidas o con error).
-  /// Lanza [FormatException] si el archivo no se pudo leer en absoluto.
   static List<FilaImportacionCompraCredito> leerBytes(List<int> bytes) => CompraCreditoImportService().leer(bytes);
 
   List<FilaImportacionCompraCredito> leer(List<int> bytes) {
@@ -156,12 +150,8 @@ class CompraCreditoImportService {
         noFactura: celda(fila, 'noFactura').trim(),
         nombreProveedor: proveedor,
         montoTotal: montoTotal ?? 0,
-        // Sin saldo en el archivo o inválido: se asume liquidado (no deuda), nunca se
-        // inventa un saldo pendiente igual al total porque podría ya estar pagado.
         saldoPendiente: saldoPendiente ?? 0,
         fechaRegistro: fechaRegistro,
-        // Igual que en el alta manual: sin fecha de vencimiento en el archivo se
-        // usa fecha de registro (o de importación) + 30 días.
         fechaVencimiento: fechaVencimiento ?? (fechaRegistro ?? DateTime.now()).add(const Duration(days: 30)),
         error: error,
       ));

@@ -20,18 +20,10 @@ import '../../../productos/providers/productos_provider.dart';
 import '../../../ventas/providers/ventas_provider.dart' show presenciaImpresionRepositoryProvider;
 import '../../../../core/widgets/pdf_preview_dialog.dart';
 
-/// Pantalla de consulta de un traslado ya registrado: buscá por número (o
-/// abrila directo desde el Reporte de Traslados pasando [trasladoIdInicial])
-/// para ver el detalle completo, reimprimir, o cambiarle el estado — mismo
-/// patrón que Detalle de Venta/Compra.
 class DetalleTrasladoScreen extends ConsumerStatefulWidget {
   final String? trasladoIdInicial;
   final String? numeroInicial;
 
-  /// true cuando se abre como modal (push encima de otra pantalla, ej. desde
-  /// una fila del Reporte de Traslados): muestra su propio Scaffold y flecha
-  /// de volver. false cuando se abre como pestaña del menú (Traslados > Ver
-  /// Detalle): se embebe como las demás pantallas.
   final bool esDialogo;
 
   const DetalleTrasladoScreen({super.key, this.trasladoIdInicial, this.numeroInicial, this.esDialogo = true});
@@ -193,12 +185,6 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensaje), showCloseIcon: true));
   }
 
-  // Reimprimir desde acá siempre sale como "COPIA" (una sola hoja), igual
-  // que ImprimirTrasladoCopia() en el sistema viejo. Desde el celular (APK)
-  // o el navegador de un celular no hay impresora a mano para elegir: en vez
-  // de abrir una vista previa que no sirve de mucho ahí, se manda directo la
-  // solicitud de impresión en vivo a la PC principal (si está conectada) —
-  // mismo criterio que Ventas (ver DetalleVentaScreen._reimprimir).
   Future<void> _reimprimir() async {
     final t = _traslado;
     if (t == null) return;
@@ -217,12 +203,6 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
       return;
     }
 
-    // Por si el stream de productos todavía no trajo el primer valor (poco
-    // común, pero pasa si se entra derecho a esta pantalla y se reimprime
-    // enseguida, antes de que carguen los ~3900 productos): esperar a que
-    // haya datos antes de armar el mapa de códigos, para no imprimir el
-    // ticket sin ningún código (ver mismo criterio en
-    // RegistrarVentaScreen._escanear).
     if (ref.read(productosStreamProvider).value == null) {
       try {
         await ref.read(productosStreamProvider.future);
@@ -266,13 +246,6 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
   Widget build(BuildContext context) {
     final tamano = MediaQuery.of(context).size;
     final esMovil = tamano.width < 760;
-    // Con watch (no read) esta pantalla se reconstruye sola apenas llega el
-    // primer snapshot de productos: si se entra derecho a "Detalle de
-    // Traslado" (sin haber abierto antes Inventario u otra pantalla que ya
-    // dejara el stream cargado), _codigosPorProducto() podía pedir el mapa
-    // de códigos ANTES de que el stream trajera nada, devolviendo vacío
-    // para siempre -eso hacía que ni la tabla en pantalla ni el ticket
-    // impreso mostraran ningún código-.
     ref.watch(productosStreamProvider);
 
     final contenido = Padding(
@@ -361,11 +334,6 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
     return Container(color: const Color(0xFFF2F3F7), child: contenido);
   }
 
-  // Memoizado igual que en RegistrarTrasladoScreen._codigosPorProducto: sin
-  // esto, cada build de esta pantalla (cualquier setState, no solo abrir un
-  // traslado nuevo) recorría los ~3900 productos del stream para rearmar el
-  // mapa código->producto desde cero. Se recalcula solo si el stream trajo
-  // un snapshot nuevo (cambia de referencia), no en cada build.
   List<ProductoModel>? _cacheProductosCodigos;
   Map<String, String> _cacheCodigos = const {};
 
@@ -434,9 +402,6 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
                 label: Text('Confirmar Recepción', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
                 style: FilledButton.styleFrom(backgroundColor: const Color(0xFF16A34A), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               ),
-            // Se puede anular en cualquier estado (incluido Entregado): el
-            // stock se resta desde el registro, así que anular siempre
-            // tiene sentido salvo que ya esté Anulado.
             if (t.estado != 'Anulado' && puedeRealizarAccion(ref, PermisosEspeciales.trasladosAnular))
               OutlinedButton.icon(
                 onPressed: _actuando ? null : _anular,
@@ -471,8 +436,6 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
         children: [
           Text(etiqueta.toUpperCase(), style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.4)),
           const SizedBox(height: 3),
-          // Sin límite de líneas: si el nombre de la sucursal o la
-          // observación es larga, se envuelve, nunca se recorta.
           Text(valor, style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A))),
         ],
       ),

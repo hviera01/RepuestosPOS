@@ -6,17 +6,9 @@ import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/widgets/imagen_zoom_dialog.dart';
 import '../../../../core/widgets/imagen_producto_network.dart';
 
-/// Card de solo lectura con toda la info de un producto, para consultar
-/// rápido sin editar nada. Se abre con doble toque/doble clic sobre un
-/// producto en Inventario (ver InventarioScreen) y se cierra con la X -para
-/// modificar algo sigue estando "Editar producto" en el menú de acciones de
-/// la fila-.
 class DetalleProductoDialog extends StatelessWidget {
   final ProductoModel producto;
   final String categoria;
-  // Solo hace falta cuando producto.esCombo: para resolver el nombre y el
-  // stock actual de cada componente de la receta (que solo guarda
-  // id+cantidad, ver ComponenteProductoModel).
   final Map<String, ProductoModel>? mapaProductos;
 
   const DetalleProductoDialog({

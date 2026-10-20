@@ -32,16 +32,6 @@ import '../../../../core/utils/tablet_utils_stub.dart'
     if (dart.library.html) '../../../../core/utils/tablet_utils_web.dart'
     as tactil;
 
-// Específicamente el navegador de un celular/tablet (no la PC, no la app de
-// escritorio): ver _tarjetaFaceId, donde vive el mismo Face ID/Touch ID que
-// ya usa LoginScreen para entrar más rápido. Mismo criterio EXACTO que
-// LoginScreen._esWebMovil -tiene que ser el mismo acá y ahí, si no
-// "Activar Face ID" (acá) y el botón para usarlo (LoginScreen) podrían
-// terminar en desacuerdo sobre si el dispositivo cuenta o no-: un iPad con
-// Safari se identifica a sí mismo como macOS de escritorio, así que hace
-// falta la señal aparte de tablet_utils_web.dart (navigator.maxTouchPoints)
-// para no perderlo -bug real reportado por el dueño: no aparecía la opción
-// de Touch ID en su iPad.
 bool get _esWebMovil =>
     kIsWeb &&
     (defaultTargetPlatform == TargetPlatform.android ||
@@ -112,14 +102,8 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
   bool _guardandoProximoFactura = false;
   String? _error;
 
-  // Face ID en este celular (ver _tarjetaFaceId): id (base64url) del
-  // credencial ya activado acá, o null si todavía no se activó. Se carga
-  // async porque SharedPreferences no es síncrono la primera vez.
   String? _credencialFaceId;
   bool _cargandoFaceId = true;
-  // El propio diálogo de _activarFaceId ya se bloquea solo mientras
-  // procesa (ver "procesando" ahí adentro); esto solo evita un segundo
-  // toque en el botón de la tarjeta mientras ese diálogo está abierto.
   final _procesandoFaceId = false;
 
   @override
@@ -157,16 +141,6 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
       });
   }
 
-  // A diferencia del intento original en LoginScreen (donde se ofrecía
-  // activar Face ID justo después de loguearse, y a veces "no pasaba nada"
-  // porque AuthGate ya había reemplazado esa pantalla por AppShell antes de
-  // llegar a mostrar el diálogo), esta pantalla no se cierra sola: se puede
-  // activar acá con confianza en cualquier momento. Como Negocio no tiene a
-  // mano la clave en texto plano del usuario (nunca se guarda en ningún
-  // provider, por seguridad), este diálogo la vuelve a pedir y la valida de
-  // verdad contra Firestore (mismo AuthRepository.login que usa el login
-  // normal, con sus mismos bloqueos por intentos fallidos) antes de
-  // activar Face ID con esas credenciales.
   Future<void> _activarFaceId() async {
     final disponible = await webAuthnDisponible();
     if (!mounted) return;
@@ -181,11 +155,6 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
 
     final ctrlCodigo = TextEditingController();
     final ctrlClave = TextEditingController();
-    // Declarado afuera del builder de StatefulBuilder a propósito: si
-    // viviera adentro, cada setDialogState() -que vuelve a correr todo el
-    // cuerpo del builder- lo reiniciaría a false, perdiendo el estado
-    // "procesando" justo cuando más importa (mientras se valida y se pide
-    // Face ID).
     var procesando = false;
     final credencialId = await showDialog<String>(
       useRootNavigator: false,
@@ -263,12 +232,6 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                           await ref
                               .read(authRepositoryProvider)
                               .login(codigo, clave);
-                          // El pedido de Face ID se dispara DIRECTO acá,
-                          // sin ningún await de más antes: Safari en
-                          // iPhone exige que WebAuthn se pida dentro del
-                          // mismo gesto del usuario (activación
-                          // transitoria), y ya se gastó parte de esa
-                          // ventana en la validación de arriba.
                           final id = await webAuthnRegistrar(
                             usuarioId: codigo,
                             usuarioNombre: codigo,
@@ -513,9 +476,6 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
     }
     setState(() => _probandoRed = true);
     try {
-      // ESC @ (inicializar impresora): no imprime nada visible, solo
-      // confirma que la impresora respondió en esa IP/puerto sin gastar
-      // papel en cada prueba de conexión.
       final ok = await _servicioImpresoraRed.imprimir(
         ip: ip,
         puerto: puerto,
@@ -1297,13 +1257,6 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
     );
   }
 
-  // Arma una venta de mentira (crearVentaPrueba, ver VentaRepository) y la
-  // manda por el MISMO camino de impresión que usa una venta real -pedido
-  // explícito del dueño: "para no estar creando ventas a lo bruto"-, para
-  // poder probar la impresora sin ensuciar Reportes/Ver Facturas con datos
-  // de prueba. La venta de prueba se borra siempre al final (con un margen
-  // de tiempo si se pidió impresión remota a la PC principal, ver más abajo),
-  // haya salido bien la impresión o no.
   Future<void> _imprimirTicketDePrueba() async {
     final negocio = widget.modelo;
     final usuario = ref.read(authProvider).usuario?.nombreCompleto ?? 'Prueba';
@@ -1353,10 +1306,6 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
       if (ventaPrueba != null) {
         final id = ventaPrueba.id;
         if (pidioRemota) {
-          // Le da tiempo a la PC principal (si está conectada) a recibir el
-          // aviso por Realtime y terminar de imprimir antes de borrar la
-          // fila que necesita leer -mismo margen que el latido de presencia
-          // (ver PresenciaImpresionRepository.umbralConectada)-.
           unawaited(
             Future.delayed(const Duration(seconds: 25))
                 .then((_) => ventaRepo.eliminarVentaPrueba(id))
@@ -1369,11 +1318,6 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
     }
   }
 
-  // Mismas 3 opciones que _manejarImpresionAndroid en Registrar Venta
-  // (Bluetooth/red, impresora del sistema, cancelar) para que la prueba sea
-  // representativa de lo que va a pasar con una venta real. Devuelve true si
-  // se llegó a pedir impresión remota a la PC principal (para saber cuánto
-  // esperar antes de borrar la venta de prueba).
   Future<bool> _imprimirPruebaAndroid(VentaModel venta, NegocioModel negocio) async {
     final opcion = await showDialog<String>(
       useRootNavigator: false,
@@ -1415,10 +1359,6 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
       }
       return false;
     }
-    // 'imprimir': mismo orden de respaldo que _imprimirEscPosRed en
-    // Registrar Venta -Bluetooth emparejado, impresora de red, y si ninguna
-    // funciona, pedirle a la PC principal-, cada intento en su propio
-    // try/catch para que nunca se corte antes de llegar al siguiente.
     if (negocio.impresoraBluetoothId.isNotEmpty) {
       try {
         final bytes = await VentaTicketEscPosService().generarTicket(venta, negocio);
@@ -1436,10 +1376,6 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
     return _pedirImpresionRemotaPrueba(venta);
   }
 
-  // Mismo mecanismo que _intentarImpresionRemota en Registrar Venta: marca
-  // la venta de prueba con solicitud_impresion_en_vivo para que la PC
-  // principal (ver AppShell) la imprima sola apenas la detecte, si está
-  // conectada en este momento. Devuelve true si se llegó a pedir.
   Future<bool> _pedirImpresionRemotaPrueba(VentaModel venta) async {
     final pcConectada = await ref.read(presenciaImpresionRepositoryProvider).estaConectada();
     if (!pcConectada) {

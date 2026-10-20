@@ -9,10 +9,6 @@ import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
 
-/// Selector de productos reusado por el formulario de promociones: con
-/// [maxSeleccion] = 1 se comporta como selector único (producto base /
-/// producto regalo); sin límite, como selector múltiple (porcentaje /
-/// precio fijo).
 class SeleccionarProductosDialog extends ConsumerStatefulWidget {
   final List<String> seleccionadosIniciales;
   final int? maxSeleccion;

@@ -11,10 +11,6 @@ import '../../../../core/utils/formato_moneda.dart';
 import '../../../negocio/providers/negocio_provider.dart';
 import '../screens/detalle_venta_screen.dart';
 
-/// Lista de ventas guardadas pero sin imprimir (típicamente hechas desde el
-/// celular sin la impresora térmica a mano). Tocar una abre su detalle,
-/// desde donde se puede reimprimir o marcar como impresa; el botón de
-/// impresora permite imprimirla ahí mismo, sin salir de la lista.
 class VentasPendientesImpresionDialog extends ConsumerStatefulWidget {
   const VentasPendientesImpresionDialog({super.key});
 

@@ -6,11 +6,6 @@ import '../../../auth/providers/auth_provider.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
 
-/// Pide documento + clave de OTRO usuario y, si son válidos, retorna su
-/// UsuarioModel. Llama directo a AuthRepository.login (no a
-/// AuthNotifier.login), así que valida contra Firestore igual que un login
-/// normal pero sin tocar la sesión principal: no reemplaza authProvider.usuario
-/// ni escribe nada en SharedPreferences.
 Future<UsuarioModel?> mostrarCambiarUsuarioVentaDialog(
   BuildContext context,
   WidgetRef ref,

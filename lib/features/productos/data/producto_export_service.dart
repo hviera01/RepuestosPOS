@@ -7,10 +7,6 @@ import 'package:barcode/barcode.dart' as bc;
 import 'producto_model.dart';
 import '../../../core/utils/formato_moneda.dart';
 
-/// Columna a columna, cómo sacar el valor de texto de un producto para
-/// cada clave de columna -mismas claves que usa ExportarInventarioOpcionesDialog
-/// (columnasInventarioDisponibles), compartidas entre Excel y PDF para no
-/// repetir el mapeo dos veces.
 Map<String, String> Function(ProductoModel) _valoresColumna(Map<String, String> mapaCategorias) {
   return (p) => {
     'codigo': p.codigo,
@@ -40,8 +36,6 @@ const _etiquetasColumna = {
 const _ordenColumnas = ['codigo', 'codigoBarras', 'nombre', 'descripcion', 'categoria', 'existencia', 'precioVenta', 'precioCompra', 'estado'];
 
 class ProductoExportService {
-  /// [columnas] null o vacío -> todas (compatibilidad con los llamadores
-  /// que no pasan nada, ej. generarPdfEtiquetasGrid no usa esto en absoluto).
   Uint8List generarExcel(List<ProductoModel> lista, Map<String, String> mapaCategorias, {Set<String>? columnas}) {
     final claves = _ordenColumnas.where((c) => columnas == null || columnas.contains(c)).toList();
     final valores = _valoresColumna(mapaCategorias);
@@ -66,9 +60,6 @@ class ProductoExportService {
   Future<Uint8List> _generarPdfInventario(List<ProductoModel> lista, Map<String, String> mapaCategorias, {Set<String>? columnas}) async {
     final claves = _ordenColumnas.where((c) => columnas == null || columnas.contains(c)).toList();
     final valores = _valoresColumna(mapaCategorias);
-    // Anchos relativos ya calibrados por columna (ver columnWidths más
-    // abajo) -se reusan solo los de las columnas elegidas, en el mismo
-    // orden, para que ninguna quede angosta por accidente.
     const anchoPorColumna = {
       'codigo': 1.2,
       'codigoBarras': 1.6,
@@ -165,22 +156,13 @@ class ProductoExportService {
     return doc.save();
   }
 
-  // Hoja de etiquetas de código de barras chicas (~2x1 pulgada, tamaño
-  // estándar de etiqueta) para imprimir en la impresora térmica de 80mm que
-  // ya se usa para tickets (mientras no haya una "tiquetera" de etiquetas
-  // dedicada): a ese ancho de etiqueta solo entra 1 por fila, pero salen
-  // varias apiladas en la misma tira de papel para cortarlas y pegarlas en
-  // el producto. Se usa tanto para la impresión masiva ("Etiquetas" en
-  // Inventario, una por producto distinto) como para la de un solo producto
-  // con varias copias (menú "Código de barras" de cada fila, repitiendo el
-  // mismo ProductoModel N veces en la lista).
   Future<Uint8List> generarPdfEtiquetasGrid(List<ProductoModel> productos) =>
       enSegundoPlano(() => _generarPdfEtiquetasGrid(productos));
 
   Future<Uint8List> _generarPdfEtiquetasGrid(List<ProductoModel> productos) async {
     const columnas = 1;
-    const anchoEtiquetaMm = 50.8; // 2 pulgadas
-    const altoEtiquetaMm = 25.4; // 1 pulgada
+    const anchoEtiquetaMm = 50.8;
+    const altoEtiquetaMm = 25.4;
     const margenMm = 3.0;
     final doc = pw.Document();
 
@@ -212,12 +194,6 @@ class ProductoExportService {
       );
     }
 
-    // pw.Page (no pw.MultiPage) con una altura calculada de antemano: con
-    // MultiPage + altura infinita esta hoja salía completamente en blanco en
-    // la vista previa (MultiPage necesita saber dónde cortar la página, y
-    // con alto infinito nunca "cierra" el layout). El ticket normal
-    // (generarPdfFactura) tiene el mismo problema documentado y por eso ya
-    // usa alto calculado en vez de infinito.
     final altoPaginaMm = margenMm * 2 + filas.length * altoEtiquetaMm;
     doc.addPage(
       pw.Page(

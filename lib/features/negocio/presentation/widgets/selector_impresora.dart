@@ -4,9 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:printing/printing.dart';
 
-/// El plugin `printing` solo implementa listado de impresoras del sistema
-/// operativo en Windows/macOS/Linux; en Android/iOS/web no hay method
-/// channel para esto, así que ni se intenta.
 bool get _listadoImpresorasDisponible =>
     !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
 

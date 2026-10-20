@@ -42,10 +42,6 @@ class ProductoRepository with ConRedMixin {
     return 'PROD-${ahora.substring(ahora.length - 8)}';
   }
 
-  // EAN-13 interno: el prefijo '20' está reservado por el estándar GS1 para
-  // uso interno de cada negocio (nunca choca con un código real de fábrica),
-  // seguido de 10 dígitos del timestamp + un dígito verificador real, para
-  // que quede en el mismo formato que cualquier código de barras escaneable.
   String _generarCodigoBarras() {
     final ahora = DateTime.now().microsecondsSinceEpoch.toString();
     final cuerpo = '20${ahora.substring(ahora.length - 10)}';
@@ -112,10 +108,6 @@ class ProductoRepository with ConRedMixin {
       final id = fila['id'] as String;
       _tabla.aplicarLocal(fila);
 
-      // Si el producto se crea con existencia inicial, esa cantidad también
-      // necesita su propio lote de costo — si no, al venderla no hay lote
-      // que consumir por FIFO y termina costeándose con el precioCompra
-      // vigente en el momento de la venta en vez del costo real inicial.
       if (stock > 0) {
         await _db.from('producto_lotes_costo').insert({
           'id_producto': id,
@@ -162,8 +154,6 @@ class ProductoRepository with ConRedMixin {
     required double precioVenta3,
     required bool estado,
     String imagenUrl = '',
-    // Solo se envían al editar un combo ya existente: el tipo de producto no
-    // se puede cambiar después de creado, pero la receta de componentes sí.
     bool? esCombo,
     List<ComponenteProductoModel>? componentes,
     String? nombreBase,
@@ -211,7 +201,6 @@ class ProductoRepository with ConRedMixin {
     });
   }
 
-  /// Crea o actualiza en lote los productos de una importación desde Excel.
   Future<ResumenImportacionProductos> importarProductos(List<FilaImportacionProducto> filas) {
     return conRed(() async {
       final productosExistentes = await _db.from('productos').select('id, codigo, es_combo');
@@ -267,8 +256,6 @@ class ProductoRepository with ConRedMixin {
         }
       }
 
-      // Crea primero las categorías nuevas (si hubo), y resuelve sus ids
-      // reales antes de tocar productos.
       final idRealPorClave = <String, String>{};
       if (categoriasNuevas.isNotEmpty) {
         final insertadas = await _db.from('categorias').insert(categoriasNuevas).select('id, descripcion');
@@ -296,9 +283,6 @@ class ProductoRepository with ConRedMixin {
     });
   }
 
-  /// Ajusta el stock a mano (Inventario) — ver registrar_ingreso_stock en
-  /// supabase/schema.sql: hace atómicamente lo que en Firestore era una
-  /// Transaction (stock + historial + lote de costo).
   Future<void> registrarIngreso({
     required String id,
     required double cantidad,
@@ -325,8 +309,6 @@ class ProductoRepository with ConRedMixin {
         }));
   }
 
-  /// Descuenta stock de forma atómica, registrando el movimiento en el
-  /// historial. Usado para reembasados.
   Future<bool> descontarStock({
     required String id,
     required double cantidad,

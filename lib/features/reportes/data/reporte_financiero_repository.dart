@@ -18,20 +18,12 @@ import '../../caja/data/cierre_caja_repository.dart';
 import '../../compras_credito/data/compra_credito_model.dart';
 import '../../clientes/data/cliente_model.dart';
 
-/// Cuánto del efectivo estimado se sugiere reservar como colchón de
-/// seguridad antes de recomendar pagos a proveedores.
 const _colchonSeguridadPorcentaje = 0.20;
 
-/// Porcentaje del efectivo cobrado en el periodo que, como referencia
-/// alternativa, se sugiere destinar a pagos a proveedores.
 const _porcentajeVentasParaProveedores = 0.35;
 
 const _topN = 10;
 
-/// Días sin comprar a partir de los cuales un cliente activo se considera
-/// inactivo (CRM Fase 3). El script de Node que manda el reporte por
-/// WhatsApp (tool/reporte_whatsapp/reporte.js) mirra este mismo número a
-/// mano -mantenerlos sincronizados si este valor cambia-.
 const _diasUmbralClienteInactivo = 90;
 
 class ReporteFinancieroRepository with ConRedMixin {
@@ -42,11 +34,6 @@ class ReporteFinancieroRepository with ConRedMixin {
   final _ventaCreditoRepository = VentaCreditoRepository();
   final _cierreCajaRepository = CierreCajaRepository();
 
-  // La serie mensual y el efectivo estimado no dependen del rango que el
-  // usuario elija en el reporte (son "últimos 6 meses" y "desde el último
-  // cierre de caja" respectivamente), así que antes se recalculaban desde
-  // cero en cada búsqueda aunque el usuario solo hubiera cambiado el rango
-  // principal. Se cachean un rato corto para no repetir esas consultas.
   static const _vigenciaCache = Duration(minutes: 5);
   List<PuntoMensual>? _serieMensualCache;
   DateTime? _serieMensualCacheEn;
@@ -121,9 +108,6 @@ class ReporteFinancieroRepository with ConRedMixin {
     return resultado;
   }
 
-  /// Reconstruye el flujo de efectivo con datos que ya se pidieron para el
-  /// resto del reporte, en vez de recalcular todo el libro financiero de
-  /// nuevo (mismo criterio que `CierreCajaRepository.calcularTotales`).
   FlujoEfectivo _calcularFlujo({
     required List<ReporteVentaModel> ventasContado,
     required List<ReporteCompraModel> comprasContado,
@@ -195,8 +179,6 @@ class ReporteFinancieroRepository with ConRedMixin {
     DateTime finInclusive,
   ) {
     return conRed(() async {
-      // Todo lo que no depende de nada más se dispara en paralelo de una vez;
-      // recién se espera por cada resultado donde hace falta.
       final ventasHeadersFuture = _reporteRepository.obtenerReporteVentas(
         inicio,
         finInclusive,
@@ -220,10 +202,6 @@ class ReporteFinancieroRepository with ConRedMixin {
       final detalleVentaFuture = _detalleVentasPorRango(inicio, finInclusive);
       final detalleCompraFuture = _detalleComprasPorRango(inicio, finInclusive);
       final productosFuture = traerTodo(() => _db.from('productos').select().order('id'));
-      // Solo interesan para sumar saldoPendiente (cuentas por cobrar/pagar), así
-      // que se filtran del lado del servidor los créditos ya saldados en vez de
-      // traer la tabla completa (con historial largo, la mayoría termina
-      // pagada) y descartarlos recién en el cliente.
       final ventasCreditoFuture = traerTodo(
         () => _db.from('ventas_credito').select().gt('saldo_pendiente', 0).order('id'),
       );
@@ -239,10 +217,6 @@ class ReporteFinancieroRepository with ConRedMixin {
       );
       final egresosUltimos3MesesFuture = _egresoRepository
           .obtenerEgresosPorRango(hace3Meses, DateTime.now());
-      // Solo clientes activos: un cliente inactivo (estado=false, ya dado de
-      // baja) no tiene sentido incluirlo en "clientes inactivos" -eso es para
-      // clientes vigentes que se dejaron de aparecer, no para los ya dados de
-      // baja a propósito-. Filtro simple de un solo campo, sin índice extra.
       final clientesActivosFuture = traerTodo(
         () => _db.from('clientes').select().eq('estado', true).order('id'),
       );
@@ -475,10 +449,6 @@ class ReporteFinancieroRepository with ConRedMixin {
     });
   }
 
-  /// Regresión lineal simple (mínimos cuadrados) sobre la serie mensual ya
-  /// calculada para "Comparación Mensual", proyectando un mes más. Con
-  /// menos de 3 puntos la pendiente no es confiable, así que se usa
-  /// directamente el promedio como estimado.
   PronosticoVentas _calcularPronostico(List<PuntoMensual> serie) {
     final montos = serie.map((p) => p.totalVentas).toList();
     final promedio = montos.isEmpty
@@ -515,10 +485,6 @@ class ReporteFinancieroRepository with ConRedMixin {
     );
   }
 
-  /// Cuánta deuda vencida (y total) tiene cada proveedor ahora mismo, para
-  /// no sugerir comprarle más a uno que ya está muy atrasado. Reusa las
-  /// mismas filas de `compras_credito` con saldo pendiente que ya se
-  /// pidieron para el Balance General — no dispara consultas nuevas.
   Map<String, ({double vencida, double total})> _estadoCuentaPorProveedor(
     List<Map<String, dynamic>> filas,
   ) {
@@ -537,11 +503,6 @@ class ReporteFinancieroRepository with ConRedMixin {
     return resultado;
   }
 
-  /// Productos activos cuyo stock, a la velocidad de venta que tuvieron en
-  /// el rango del reporte, se agotaría pronto (menos de [_diasUmbralReposicion]
-  /// días). Se pondera con el estado de cuenta del proveedor más reciente
-  /// conocido para cada producto (la compra más nueva del rango que lo
-  /// incluya). Todo con datos ya pedidos para el resto del reporte.
   static const _diasUmbralReposicion = 14;
 
   List<SugerenciaCompra> _calcularSugerenciasCompra({
@@ -552,9 +513,6 @@ class ReporteFinancieroRepository with ConRedMixin {
     required List<Map<String, dynamic>> comprasCreditoFilas,
     required int diasPeriodo,
   }) {
-    // Proveedor más reciente conocido por producto: comprasValidas ya viene
-    // ordenado de más nueva a más vieja (ver ReporteRepository.obtenerReporteCompras),
-    // así que la primera compra que mencione un producto es la más reciente.
     final proveedorPorProducto =
         <String, (String idProveedor, String nombre)>{};
     for (
@@ -614,13 +572,6 @@ class ReporteFinancieroRepository with ConRedMixin {
     return sugerencias.take(_topN).toList();
   }
 
-  /// Agrupa por [ReporteVentaModel.idCliente] (vínculo real, CRM Fase 1)
-  /// cuando la venta lo trae; si no -ventas de antes de ese vínculo, o hechas
-  /// sin cliente elegido-, cae al agrupamiento anterior por el texto de
-  /// nombreCliente (normalizado a mayúsculas/sin espacios de sobra, para no
-  /// separar "Juan Perez" de "juan perez " en dos filas distintas). El
-  /// nombre que se muestra es el de la primera venta de cada grupo -no hace
-  /// falta releer el registro de Clientes solo para esto-.
   List<ClienteTop> _agruparClientesTop(List<ReporteVentaModel> ventas) {
     final totalPorClave = <String, double>{};
     final conteoPorClave = <String, int>{};
@@ -652,10 +603,6 @@ class ReporteFinancieroRepository with ConRedMixin {
     return lista.take(_topN).toList();
   }
 
-  /// Ventas con un nombre tipeado que no quedó vinculado a un cliente real
-  /// (sin idCliente) — agrupadas por nombre normalizado, ordenadas por
-  /// frecuencia (no por monto): el objetivo es detectar compradores
-  /// frecuentes sin registrar, no a quién más le vendieron una sola vez.
   List<VentaSinCliente> _agruparVentasSinCliente(
     List<ReporteVentaModel> ventas,
   ) {
@@ -687,12 +634,6 @@ class ReporteFinancieroRepository with ConRedMixin {
     return lista.take(_topN).toList();
   }
 
-  /// Clientes activos (ya filtrados por estado=true en la consulta) con más
-  /// de [_diasUmbralClienteInactivo] días desde su última compra -o que
-  /// nunca han comprado (fechaUltimaCompra null), que también cuentan como
-  /// inactivos-. Todo en memoria, sin consulta ni índice adicional (la fecha
-  /// de última compra ya viene denormalizada en cada ClienteModel desde CRM
-  /// Fase 1 — ver VentaRepository.registrarVenta).
   List<ClienteInactivo> _calcularClientesInactivos(
     List<ClienteModel> clientesActivos,
   ) {
@@ -721,9 +662,6 @@ class ReporteFinancieroRepository with ConRedMixin {
         );
       }
     }
-    // Los que nunca han comprado van al final: no hay "hace cuántos días" que
-    // ordenar ahí, y los más urgentes de recuperar son los que sí compraron
-    // pero hace más tiempo.
     inactivos.sort((a, b) {
       if (a.diasSinComprar == null && b.diasSinComprar == null) return 0;
       if (a.diasSinComprar == null) return 1;

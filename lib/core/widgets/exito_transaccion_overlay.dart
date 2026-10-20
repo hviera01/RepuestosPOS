@@ -1,13 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Check verde chico en el centro de la pantalla al terminar una venta o
-/// compra -pedido explícito del dueño-: confirma de un vistazo que la
-/// transacción se realizó, sin interrumpir el flujo (no bloquea nada, se
-/// desvanece solo). Usa un OverlayEntry en vez de un diálogo a propósito:
-/// no depende de un Navigator ni compite con otros diálogos que puedan
-/// abrirse justo después (ej. el de imprimir), y con [IgnorePointer] el
-/// cajero puede seguir tocando la pantalla de abajo mientras se desvanece.
 void mostrarExitoTransaccion(BuildContext context, {String mensaje = 'Transacción realizada correctamente'}) {
   final overlayState = Overlay.maybeOf(context);
   if (overlayState == null) return;
@@ -60,14 +53,6 @@ class _ExitoTransaccionOverlayState extends State<_ExitoTransaccionOverlay> with
             opacity: _opacidad,
             child: ScaleTransition(
               scale: _escala,
-              // Material(type: transparency): este widget se inserta con un
-              // OverlayEntry crudo, no con showDialog/MaterialPageRoute -
-              // esos SIEMPRE envuelven su contenido en un Material por
-              // dentro, pero un OverlayEntry a mano no. Sin esto, el Text de
-              // abajo no encuentra un ancestro Material y Flutter lo marca
-              // con un subrayado amarillo doble -pedido explícito del
-              // dueño: "esas remarcaciones de amarillo no me gustan", eso
-              // es justo lo que eran, no un dato mal calculado.
               child: Material(
                 type: MaterialType.transparency,
                 child: Container(

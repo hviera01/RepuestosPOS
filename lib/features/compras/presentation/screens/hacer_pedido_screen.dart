@@ -13,9 +13,6 @@ import '../widgets/buscar_producto_compra_dialog.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
 
-/// Pedido de compra: agregás productos y la cantidad que necesitás, y se
-/// genera un PDF listo para enviarle al proveedor. No se guarda nada en
-/// Firestore — es una herramienta de una sola vez, no un historial.
 class HacerPedidoScreen extends ConsumerStatefulWidget {
   const HacerPedidoScreen({super.key});
 

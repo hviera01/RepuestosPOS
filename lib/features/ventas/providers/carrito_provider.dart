@@ -7,8 +7,6 @@ import '../data/registrar_venta_vista_storage.dart';
 import '../../productos/data/producto_model.dart';
 import '../../../core/utils/formato_moneda.dart';
 
-/// [forzarFactura] distingue "Duplicar venta" (la cotización sigue siendo
-/// cotización) de "Convertir a venta" (la cotización pasa a Factura).
 class DatosVentaParaCargar {
   final VentaModel venta;
   final bool forzarFactura;
@@ -16,12 +14,6 @@ class DatosVentaParaCargar {
   DatosVentaParaCargar({required this.venta, this.forzarFactura = false});
 }
 
-/// Guarda una venta "de paso" para que la próxima pestaña de Registrar Venta
-/// que se abra la cargue en su carrito (ver duplicar/convertir en
-/// DetalleVentaScreen). Es un provider global (no por pestaña, a diferencia
-/// de carritoVentaProvider) a propósito: se llena justo antes de abrir la
-/// pestaña nueva y esa pestaña lo consume (lo deja en null) apenas arranca,
-/// así que no hay riesgo de que se cuele en una pestaña futura sin querer.
 class VentaParaCargarNotifier extends Notifier<DatosVentaParaCargar?> {
   @override
   DatosVentaParaCargar? build() => null;
@@ -56,16 +48,9 @@ class CarritoVentaState {
   final String metodoPago;
   final String documentoCliente;
   final String nombreCliente;
-  // Vínculo real al registro de 'clientes' (ver CRM de clientes). Se limpia
-  // a null apenas el cajero edita a mano el nombre o el documento después de
-  // haber elegido un cliente por el buscador, para no dejar un vínculo
-  // falso -ver establecerDocumentoCliente/establecerNombreClienteManual-.
   final String? idCliente;
   final DateTime fecha;
   final DateTime? fechaVencimiento;
-  // Teléfono de contacto propio de este crédito (ver VentaCreditoModel.
-  // telefono) — solo relevante cuando condicion == 'Credito'. Se precarga
-  // con el del cliente vinculado, pero es independiente y editable.
   final String telefonoCredito;
   final String oc;
   final String regExonerado;
@@ -74,8 +59,6 @@ class CarritoVentaState {
   final double pagoCon;
   final double cambio;
   final double descuentoGlobalPorcentaje;
-  // Desglose cuando metodoPago == 'Mixto' (ver PagoMixtoDialog). Vacío en
-  // cualquier otro método.
   final List<PagoDetalle> pagosMixtos;
 
   CarritoVentaState({
@@ -106,8 +89,6 @@ class CarritoVentaState {
   bool get esCredito => condicion == 'Credito';
   bool get esPagoMixto => metodoPago == 'Mixto';
 
-  // Este negocio no cobra ISV en su venta normal (Venta Sin Facturar): solo
-  // se aplica el 15% si alguna vez se emite una Factura o Boleta formal.
   bool get _aplicaIsv => tipoDocumento == 'Factura' || tipoDocumento == 'Boleta';
 
   double get _subtotalLineasSinDescuentoGlobal =>
@@ -117,12 +98,6 @@ class CarritoVentaState {
     _subtotalLineasSinDescuentoGlobal * (1 - descuentoGlobalPorcentaje / 100),
   );
 
-  /// Cuánto se rebajó en total (por descuento de línea y/o descuento
-  /// general), sin ISV. Cada línea se compara contra SU PROPIO precio de
-  /// lista ya redondeado a centavos (no una suma sin redondear contra el
-  /// subtotal final, que sí viene redondeado) — así una venta sin ningún
-  /// descuento da 0.00 exacto en vez de un residuo tipo -0.01 quedando
-  /// precios que no caen en centavos exactos al sacarles el ISV.
   double get descuentosYRebajas {
     final listaSinDescuento = items.fold<double>(
       0,
@@ -141,13 +116,8 @@ class CarritoVentaState {
     return redondearMoneda(total);
   }
 
-  // redondearMoneda acá también: aunque _totalConImpuestoBase y subtotal ya
-  // vienen cada uno redondeado a centavos, restar dos doubles "limpios" en
-  // punto flotante binario puede dar un resultado como 79.99999999999997 en
-  // vez de 80.00 exacto, y eso terminaba imprimiéndose como 79.99 o 80.01.
   double get impuesto => redondearMoneda(_totalConImpuestoBase - subtotal);
 
-  /// Redondeo a lempira entero: si el residuo es >= .90 sube, si no baja.
   double get totalAPagar {
     final t = _totalConImpuestoBase;
     final base = t.floorToDouble();
@@ -220,10 +190,6 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     state = state.copyWith(items: [...state.items, item]);
   }
 
-  /// Agrega un producto directamente a la tabla (seleccionado desde el modal
-  /// de búsqueda), con cantidad 1 y sin descuento por defecto. Si el cajero
-  /// eligió un nivel de precio distinto al principal, [precioSeleccionado]
-  /// trae ese precio.
   void agregarProductoDirecto(
     ProductoModel producto, {
     double? precioSeleccionado,
@@ -246,14 +212,6 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     state = state.copyWith(items: [...state.items, item]);
   }
 
-  /// Igual que agregarProductoDirecto, pero cuando [fusionarSiYaExiste] es
-  /// true y el producto ya está en el carrito como línea normal (no combo),
-  /// en vez de crear una línea nueva le suma 1 a la cantidad de esa línea
-  /// existente -devuelve el índice de la línea afectada (la existente si se
-  /// fusionó, o la recién creada si no), para que quien llama (por ejemplo,
-  /// para aplicar una promoción) sepa sobre cuál línea actuar-.
-  ///
-  /// Quién decide [fusionarSiYaExiste] es RegistrarVentaScreen.
   int agregarOFusionarProductoDirecto(
     ProductoModel producto, {
     double? precioSeleccionado,
@@ -279,10 +237,6 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     return state.items.length - 1;
   }
 
-  /// Agrega un producto tipo combo/kit directamente a la tabla, en una sola
-  /// línea. La receta de componentes se congela (snapshot) en el momento de
-  /// agregarlo -no se resuelve de nuevo después- para que anular la venta
-  /// más adelante siga sabiendo qué reponer aunque el combo se edite.
   void agregarComboDirecto(
     ProductoModel combo, {
     required Map<String, ProductoModel> mapaProductos,
@@ -317,9 +271,6 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     state = state.copyWith(items: nuevos);
   }
 
-  /// Cambia la posición de una línea en la tabla (subir/bajar o arrastrar).
-  /// Ese orden es el que se guarda al registrar la venta y el que después
-  /// se respeta en el detalle y en la reimpresión.
   void moverItem(int oldIndex, int newIndex) {
     final nuevos = [...state.items];
     final item = nuevos.removeAt(oldIndex);
@@ -333,8 +284,6 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     state = state.copyWith(items: nuevos);
   }
 
-  /// Actualiza cantidad, precio y/o descuento de línea directamente desde la
-  /// tabla, recalculando el subtotal.
   void actualizarLinea(
     int index, {
     double? cantidad,
@@ -364,21 +313,12 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     state = state.copyWith(items: nuevos);
   }
 
-  /// Marca/desmarca una línea como "venta anticipada" (se vende sin saber
-  /// todavía qué producto exacto la va a reponer). No cambia nada del
-  /// descuento de stock ni del costo de la línea en este momento -eso ya
-  /// pasa igual que siempre-; solo queda la bandera que, al confirmar la
-  /// venta, hace que VentaRepository deje un registro en 'pendientesReposicion'
-  /// para que la próxima compra de ese producto la empareje automáticamente
-  /// (ver PendienteReposicionRepository y CompraRepository.registrarCompra).
   void marcarPendienteCompra(int index, bool valor) {
     final nuevos = [...state.items];
     nuevos[index] = nuevos[index].copyWith(pendienteCompra: valor);
     state = state.copyWith(items: nuevos);
   }
 
-  /// Cambia la descripción mostrada/impresa de una línea del carrito (no
-  /// afecta el producto real).
   void actualizarDescripcion(int index, String nuevaDescripcion) {
     final texto = nuevaDescripcion.trim();
     if (texto.isEmpty) return;
@@ -387,9 +327,6 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     state = state.copyWith(items: nuevos);
   }
 
-  /// Reemplaza la lista completa de códigos de color de una línea del
-  /// carrito. Sí se puede dejar vacía -quitar todos los códigos ya cargados
-  /// es una edición válida-.
   void actualizarCodigosColor(int index, List<String> nuevosCodigos) {
     final nuevos = [...state.items];
     nuevos[index] = nuevos[index].copyWith(codigosColor: nuevosCodigos);
@@ -419,15 +356,9 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     pagosMixtos: v == 'Mixto' ? state.pagosMixtos : const [],
   );
 
-  /// Guarda el desglose confirmado en PagoMixtoDialog. No cambia metodoPago:
-  /// eso ya se hizo al elegir "Mixto" en el dropdown.
   void establecerPagosMixtos(List<PagoDetalle> pagos) =>
       state = state.copyWith(pagosMixtos: pagos);
 
-  /// [idCliente] es el vínculo real al registro de 'clientes' (viene de
-  /// BuscarClienteDialog). Al no pasarlo (o pasar null explícito) se limpia
-  /// -es lo correcto para un nombre/documento tipeado a mano sin cliente
-  /// elegido-.
   void establecerCliente({
     required String documento,
     required String nombre,
@@ -440,14 +371,9 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     );
   }
 
-  /// El cajero tipeó el documento a mano: si antes había un cliente elegido
-  /// por el buscador, ese vínculo ya no es confiable (pudo cambiar el RTN a
-  /// mano sin que sea el mismo cliente), así que se limpia.
   void establecerDocumentoCliente(String v) =>
       state = state.copyWith(documentoCliente: v, idCliente: null);
 
-  /// Igual que establecerDocumentoCliente pero para el campo de nombre
-  /// (RegistrarVentaScreen lo conecta al onChanged del campo "Cliente").
   void establecerNombreClienteManual(String v) =>
       state = state.copyWith(nombreCliente: v, idCliente: null);
   void establecerFecha(DateTime v) => state = state.copyWith(fecha: v);
@@ -465,11 +391,6 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     state = state.copyWith(pagoCon: pagoCon, cambio: cambio);
   }
 
-  /// Registra el id del documento de 'ventasEnEspera' que quedó respaldando
-  /// esta venta en curso tras el primer autoguardado (ver
-  /// RegistrarVentaScreen). Distinto de _guardarEnEspera (botón manual, que
-  /// además limpia el carrito): esto solo deja la referencia para que el
-  /// próximo autoguardado actualice el mismo documento en vez de crear otro.
   void establecerIdEnEspera(String id) =>
       state = state.copyWith(idEnEspera: id);
 
@@ -482,10 +403,6 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
       metodoPago: sesion.metodoPago,
       documentoCliente: sesion.documentoCliente,
       nombreCliente: sesion.nombreCliente,
-      // Restaura el vínculo real tal cual estaba al poner la venta en
-      // espera -sin esto, resumirla la dejaba dependiendo de la
-      // re-resolución por nombre en VentaRepository al confirmar, con
-      // riesgo de emparejar mal o duplicar el cliente-.
       idCliente: sesion.idCliente,
       fechaVencimiento: sesion.fechaVencimiento,
       oc: sesion.oc,
@@ -496,19 +413,8 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     );
   }
 
-  /// Carga en el carrito los productos y datos de una venta ya registrada
-  /// (para "Duplicar venta" o, si era una cotización, "Convertir a venta"
-  /// desde DetalleVentaScreen): arma una venta nueva desde cero con los
-  /// mismos productos, no continúa ni modifica la original. [forzarFactura]
-  /// solo aplica cuando la original es una cotización: "Duplicar" la deja
-  /// como cotización otra vez, "Convertir a venta" la pasa a Factura.
   void cargarDesdeVenta(VentaModel venta, {bool forzarFactura = false}) {
     state = CarritoVentaState(
-      // Sin reembasado: si algún item lo tenía marcado en la venta
-      // original, el descuento de stock del producto base ya se hizo en su
-      // momento. Esta es una venta nueva, así que si vuelve a faltar
-      // existencia, se pregunta por reembasado de nuevo en vez de asumir
-      // que ya está resuelto.
       items: venta.detalle
           .map(
             (item) => ItemVentaModel(
@@ -534,9 +440,6 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
           : (venta.metodoPago.isEmpty ? 'Efectivo' : venta.metodoPago),
       documentoCliente: venta.documentoCliente,
       nombreCliente: venta.nombreCliente,
-      // La venta original ya tiene un vínculo real a 'clientes' (o no lo
-      // tiene, si es de antes de este campo): se copia tal cual, no hay
-      // ambigüedad -es el mismo cliente, solo se está duplicando la venta-.
       idCliente: venta.idCliente,
       fechaVencimiento: venta.condicion == 'Credito'
           ? DateTime.now().add(const Duration(days: 30))
@@ -559,12 +462,6 @@ final carritoVentaProvider =
       CarritoVentaNotifier.new,
     );
 
-/// Qué diseño de Registrar Venta eligió el usuario -pedido explícito del
-/// dueño: 'clasica' (la de siempre), 'dividida' (buscador con fotos +
-/// carrito lado a lado) o 'dynamics' (tabla del carrito ocupando casi toda
-/// la pantalla)-. `build()` arranca en 'clasica' (SharedPreferences no es
-/// síncrono la primera vez, mismo motivo que _cargarCredencialFaceId en
-/// LoginScreen) y se actualiza sola apenas resuelve la lectura guardada.
 class RegistrarVentaVistaNotifier extends Notifier<String> {
   @override
   String build() {

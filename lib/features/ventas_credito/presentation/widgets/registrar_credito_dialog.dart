@@ -28,14 +28,7 @@ class _RegistrarCreditoDialogState
   DateTime _fechaVencimiento = DateTime.now().add(const Duration(days: 15));
   bool _guardando = false;
   String? _error;
-  // Cliente elegido con BuscarClienteDialog (opcional): si se elige, este
-  // crédito manual queda vinculado de verdad al registro de 'clientes' -ver
-  // CRM de clientes-, no solo con el nombre/RTN tipeados a mano. Se limpia
-  // si el cajero edita el nombre/RTN después de elegirlo (ver
-  // _limpiarClienteSiEdit).
   ClienteModel? _clienteSeleccionado;
-  // Saldo vencido (si hay) del cliente elegido: aviso NO bloqueante, igual
-  // que en RegistrarVentaScreen -no impide seguir registrando el crédito-.
   double? _saldoVencidoCliente;
 
   @override
@@ -66,8 +59,6 @@ class _RegistrarCreditoDialogState
     await _verificarCreditoVencido(cliente.id);
   }
 
-  /// Aviso NO bloqueante -ver el mismo mecanismo en RegistrarVentaScreen-:
-  /// solo informa, no impide seguir registrando el crédito manual.
   Future<void> _verificarCreditoVencido(String idCliente) async {
     try {
       final creditos = await ref
@@ -81,13 +72,9 @@ class _RegistrarCreditoDialogState
         () => _saldoVencidoCliente = totalVencido > 0 ? totalVencido : null,
       );
     } catch (_) {
-      // Best-effort: sin internet u otro error transitorio, no se muestra el
-      // aviso esta vez.
     }
   }
 
-  /// El cajero editó a mano el nombre/RTN después de haber elegido un
-  /// cliente con el buscador: ese vínculo ya no es confiable.
   void _limpiarClienteSiEdit() {
     if (_clienteSeleccionado == null) return;
     setState(() {

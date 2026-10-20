@@ -9,16 +9,6 @@ import '../../providers/ventas_provider.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
 
-/// Mismo diálogo sirve para las dos pantallas -pedido explícito del dueño:
-/// separar "Ver en Espera" (lo que el cajero pone en espera A PROPÓSITO,
-/// con el stock reservado mientras tanto) de "Ver Perdidas" (autoguardados
-/// silenciosos de un carrito que quedó a medias -se cerró la pestaña/la app
-/// antes de confirmar o descartar-, nunca reservan stock). [perdidas]
-/// decide de cuál de las dos colecciones filtradas lee (ver
-/// VentaRepository.obtenerVentasEnEspera/obtenerVentasPerdidas) y los
-/// textos; el resto del comportamiento (tocar una fila la recupera al
-/// carrito, el ícono de basura la elimina -soltando la reserva de stock si
-/// la tenía-) es idéntico para las dos.
 class VentasEnEsperaDialog extends ConsumerWidget {
   final bool perdidas;
   const VentasEnEsperaDialog({super.key, this.perdidas = false});
@@ -179,9 +169,6 @@ class VentasEnEsperaDialog extends ConsumerWidget {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      // totalFinal (con ISV y descuento global, lo que de verdad
-                                      // pagaría el cliente) -pedido explícito del dueño: antes
-                                      // salía el subtotal sin impuesto-.
                                       '${tiposDocumento[sesion.tipoDocumento] ?? sesion.tipoDocumento} · ${sesion.items.length} producto(s) · ${formatearMoneda(sesion.totalFinal)}',
                                       style: GoogleFonts.poppins(
                                         fontSize: 11.5,

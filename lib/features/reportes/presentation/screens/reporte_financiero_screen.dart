@@ -44,10 +44,6 @@ const _tabs = <(String, IconData, _SeccionBuilder)>[
   ('Clientes', Icons.groups_outlined, seccionClientes),
 ];
 
-/// Reporte Financiero: un solo módulo del menú, con todas sus secciones
-/// como pestañas internas — un único rango de fechas y un único cálculo
-/// (`ReporteFinancieroData`) alimenta todas las pestañas, así que cambiar de
-/// pestaña no dispara ninguna consulta nueva.
 class ReporteFinancieroScreen extends ConsumerStatefulWidget {
   const ReporteFinancieroScreen({super.key});
 
@@ -60,8 +56,6 @@ class _ReporteFinancieroScreenState
     extends ConsumerState<ReporteFinancieroScreen> {
   final _servicioExport = ReporteFinancieroExportService();
 
-  // Claves para el tutorial guiado: cada una apunta al widget real que se
-  // resalta al explicar ese paso.
   final _keyFechaDesde = GlobalKey();
   final _keyFechaHasta = GlobalKey();
   final _keyChipsRango = GlobalKey();
@@ -74,10 +68,6 @@ class _ReporteFinancieroScreenState
   String? _error;
   ReporteFinancieroData? _data;
 
-  // Tablas que alimentan el reporte financiero y, al cambiar, deben
-  // re-disparar _generar() -mismo rango de fecha ya elegido, sin resetear
-  // nada- para que el reporte no quede desactualizado si el dueño lo deja
-  // abierto en una pestaña y sigue vendiendo/comprando en otra.
   static const _tablasQueAfectanReporte = [
     'ventas',
     'compras',
@@ -95,9 +85,6 @@ class _ReporteFinancieroScreenState
     _generar();
   }
 
-  // Atajos de rango rápido: tocar uno aplica el rango y dispara la
-  // generación del reporte de una vez, sin tener que abrir el selector de
-  // fecha dos veces.
   void _aplicarRango(DateTime inicio, DateTime fin) {
     setState(() {
       _fechaInicio = inicio;
@@ -183,12 +170,6 @@ class _ReporteFinancieroScreenState
     }
   }
 
-  // Re-dispara _generar() (mismo rango de fecha ya elegido, sin resetear
-  // nada) cuando algo cambia en [tabla] -mismo mecanismo que
-  // ReporteVentasScreen/ReporteComprasScreen, ver ese comentario para el
-  // detalle-. cambiosEnTablaProvider ya solo emite ante un INSERT/UPDATE/
-  // DELETE real (ver ReporteRepository.observarCambiosEnTabla), así que acá
-  // no hace falta descartar ningún "primer evento".
   void _escucharCambios(String tabla) {
     ref.listen<AsyncValue<void>>(cambiosEnTablaProvider(tabla), (
       previous,
@@ -242,13 +223,6 @@ class _ReporteFinancieroScreenState
           child: LayoutBuilder(
             builder: (context, constraints) {
               final esMovil = constraints.maxWidth < 900;
-          // Todo el contenido -encabezado, chips de rango rápido y las
-          // pestañas con sus resultados- vive dentro de este único ListView
-          // (una sola superficie de scroll, sin nada fijo arriba): pedido
-          // explícito del dueño para que al bajar el scroll los filtros
-          // también se desplacen y quede más espacio limpio para ver las
-          // utilidades/números. Antes el encabezado y los chips vivían en un
-          // Column afuera de cualquier área scrolleable.
           return ListView(
             padding: EdgeInsets.zero,
             children: [
@@ -289,9 +263,6 @@ class _ReporteFinancieroScreenState
             },
           ),
         ),
-        // Fuera del ListView de arriba (que scrollea toda la pantalla junta),
-        // para que el botón de tutorial quede siempre visible fijo en la
-        // esquina sin importar cuánto se baje el scroll.
         Positioned(
           right: 16,
           bottom: 16,
@@ -370,13 +341,6 @@ class _ReporteFinancieroScreenState
     ),
   ];
 
-  // Ya no usa TabBarView (un PageView, que necesita una altura acotada:
-  // Expanded dentro de un Column con altura fija) porque ahora esta sección
-  // vive dentro del ListView de build(), donde la altura no está acotada.
-  // El TabBar sigue sirviendo para elegir la pestaña -tap y flechitas, como
-  // antes-, pero el contenido de abajo ya no es deslizable con el dedo/mouse
-  // entre pestañas: solo se muestra la de la pestaña activa, igual que antes
-  // pero fluyendo en el mismo scroll que el resto de la pantalla.
   Widget _tabsYContenido(ReporteFinancieroData data, bool esMovil) {
     return DefaultTabController(
       length: _tabs.length,
@@ -387,13 +351,6 @@ class _ReporteFinancieroScreenState
             color: Colors.white,
             child: Builder(
               builder: (context) {
-                // Con tantas pestañas (llegó "Clientes" al final) no entran
-                // todas de una en pantallas normales: isScrollable ya
-                // permite arrastrar/hacer scroll horizontal, pero eso no se
-                // nota a simple vista con mouse -acá se agregan flechitas
-                // que mueven la selección una pestaña a la vez y de paso la
-                // traen a la vista (TabBar ya hace scroll automático hasta
-                // la pestaña seleccionada).
                 final controlador = DefaultTabController.of(context);
                 return Row(
                   children: [

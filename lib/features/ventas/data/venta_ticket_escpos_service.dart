@@ -11,11 +11,6 @@ import '../../../core/utils/logo_escpos.dart';
 import '../../../core/utils/texto_utils.dart';
 import '../../negocio/data/negocio_model.dart';
 
-/// Una franja de la guía "grande" (ver
-/// VentaTicketEscPosService._renderizarGuiaRotada): etiqueta chica arriba,
-/// valor grande abajo. [medir] arma los TextPainter y calcula [ancho]
-/// -llamarlo antes de [pintar]-; el valor se envuelve solo si hace falta
-/// (TextPainter con maxWidth), no a mano como en el ticket normal.
 class _SeccionGuiaGrande {
   _SeccionGuiaGrande(this.etiqueta, this.valor, {required this.fontEtiqueta, required this.fontValor, required this.maxAnchoValor});
 
@@ -42,9 +37,6 @@ class _SeccionGuiaGrande {
   }
 
   void pintar(Canvas canvas, double x, double altoLienzo) {
-    // La etiqueta va arriba y el valor centrado en el espacio que sobra
-    // -así una etiqueta+valor cortos no quedan pegados al borde de arriba
-    // ni desalineados entre secciones de distinto tamaño de fuente-.
     const espacioEtiquetaValor = 14.0;
     final altoBloque = _painterEtiqueta.height + espacioEtiquetaValor + _painterValor.height;
     final yInicial = ((altoLienzo - altoBloque) / 2).clamp(0.0, altoLienzo);
@@ -53,28 +45,11 @@ class _SeccionGuiaGrande {
   }
 }
 
-/// Genera el mismo contenido del ticket térmico de `generarPdfFactura` (ver
-/// VentaExportService) pero como comandos ESC/POS crudos: la vía que ya
-/// usaba la impresión por red/celular, y que en Windows ahora también se usa
-/// en vez de un PDF -algunos drivers de impresora térmica tienen un tamaño
-/// de página máximo fijo y recortan o reescalan cualquier factura más larga
-/// que eso, sin importar qué le pidamos al PDF (ver el comentario grande en
-/// venta_export_service.dart)-.
 class VentaTicketEscPosService {
-  /// [forzarCopia] mismo significado que en
-  /// `VentaExportService.generarPdfFactura`: null (venta recién confirmada)
-  /// imprime ORIGINAL y, si el negocio tiene activado `facturaImprimirCopia`,
-  /// agrega una COPIA a continuación (mismo trabajo de impresión, separado
-  /// por su propio corte de papel). true/false fuerza una sola copia sin
-  /// importar esa configuración -para reimprimir una en particular desde el
-  /// detalle de venta-.
   Future<List<int>> generarTicket(VentaModel venta, NegocioModel negocio, {bool? forzarCopia}) async {
     final perfil = await CapabilityProfile.load();
     final paperSize = _paperSizePara(negocio);
     final generador = Generator(paperSize, perfil);
-    // Un poco más grande/ancho que el default (300) para que se note más
-    // pegado al nombre del negocio, sin pasarse de los puntos de ancho reales
-    // que tiene la impresora (576 en 80mm, 384 en 58mm -ver _paperSizePara-).
     final logo = decodificarLogoEscPos(negocio.logoBnBase64, maxDimension: paperSize == PaperSize.mm58 ? 280 : 420);
     final anchoDescripcion = _anchoDescripcionPara(paperSize);
     final anchoTexto = _anchoTextoPara(paperSize);
@@ -88,26 +63,8 @@ class VentaTicketEscPosService {
     return bytes;
   }
 
-  // Ancho del rollo elegido en Negocio (ver NegocioModel.anchoTicketMm) —
-  // pedido explícito del dueño de tener las DOS medidas disponibles (58mm
-  // angosto/32 columnas, tipo POS de tarjeta, y el de siempre 80mm/48
-  // columnas), siempre por la vía ESC/POS cruda (nunca como alternativa en
-  // PDF). mm58/mm80 ya vienen soportados por esc_pos_utils_plus.
   PaperSize _paperSizePara(NegocioModel negocio) => negocio.anchoTicketMm == 58 ? PaperSize.mm58 : PaperSize.mm80;
 
-  /// Guía de envío -pedido explícito del dueño: "imprimir en la térmica así
-  /// como a lo ancho para poder hacer la letra un poco grande y clara y
-  /// poder pegar eso a una caja"-. [grande]==false: ticket normal, angosto,
-  /// con PosTextSize.size2 en nombre/teléfono (texto ESC/POS de verdad, más
-  /// rápido/liviano). [grande]==true: "volteado" -pedido explícito del
-  /// dueño, aclarado después de que la primera versión (solo letra doble
-  /// ancho/alto, sin rotar) no era lo que pedía-: se arma como una IMAGEN
-  /// (no hay comando ESC/POS que rote texto de verdad) con cada dato en una
-  /// franja bien grande, y esa imagen se rota 90° antes de mandarla a
-  /// imprimir. El resultado es una tira más larga que hay que girar de lado
-  /// para leer, pero con letra mucho más grande que cualquier texto ESC/POS
-  /// normal -el ancho del papel (fijo, ~8cm) pasa a ser la ALTURA de la
-  /// letra en vez de cuántos caracteres entran por línea-.
   Future<List<int>> generarGuiaEnvio(VentaModel venta, NegocioModel negocio, {bool grande = false}) async {
     final perfil = await CapabilityProfile.load();
     final generador = Generator(PaperSize.mm80, perfil);
@@ -132,9 +89,6 @@ class VentaTicketEscPosService {
     bytes += generador.emptyLines(1);
 
     bytes += _texto(generador, 'PARA:', styles: const PosStyles(bold: true));
-    // _anchoDoble (24, la mitad de las 48 columnas normales de una línea
-    // completa en papel de 80mm): a doble ancho cada carácter ocupa el
-    // doble de espacio, así que entra la mitad por línea.
     for (final linea in _envolverDescripcion(venta.envioNombre, _anchoDoble)) {
       bytes += _texto(generador, linea, styles: const PosStyles(bold: true, height: PosTextSize.size2, width: PosTextSize.size2));
     }
@@ -166,29 +120,10 @@ class VentaTicketEscPosService {
     return bytes;
   }
 
-  // Alto del lienzo ANTES de rotar = ancho real de impresión de una
-  // térmica de 80mm en puntos (mismo dato citado en todo este archivo).
-  // Después de rotar 90°, este alto se convierte en el ANCHO de la imagen
-  // ya impresa -tiene que quedar exacto o menor a esto, es un límite físico
-  // del cabezal-.
   static const _altoLienzoGuiaGrande = 576;
   static const _margenGuiaGrande = 24.0;
   static const _separacionSeccionGuiaGrande = 48.0;
 
-  /// Arma la guía "grande" como imagen y la rota 90° -ver el doc grande de
-  /// [generarGuiaEnvio]-. Cada dato (nombre, dirección, teléfono) es una
-  /// franja: etiqueta chica arriba, valor en letra grande abajo, una franja
-  /// al lado de la otra a lo ANCHO del lienzo (que es lo que se vuelve el
-  /// LARGO de la tira ya impresa, sin límite real). [maxAnchoValor] de cada
-  /// sección se deja angosto A PROPÓSITO -pedido explícito del dueño,
-  /// después de ver la primera versión: "no lo quiero tan grande, que
-  /// agarre varias líneas siempre, no tan largo el papel"-: fuerza que el
-  /// texto envuelva en 2-4 líneas en vez de salir como una sola línea
-  /// gigante, dejando la tira bastante más corta con la misma letra clara.
-  /// No se prueba en una impresora física desde acá -si sale al revés (hay
-  /// que girar la tira para el otro lado) o la letra sale cortada por los
-  /// bordes, avisar: es un ajuste de una línea (ángulo en copyRotate, o los
-  /// tamaños de acá abajo).
   Future<img.Image> _renderizarGuiaRotada(VentaModel venta, NegocioModel negocio) async {
     final secciones = <_SeccionGuiaGrande>[
       _SeccionGuiaGrande('PARA', venta.envioNombre, fontEtiqueta: 26, fontValor: 65, maxAnchoValor: 550),
@@ -231,17 +166,6 @@ class VentaTicketEscPosService {
     return img.copyRotate(lienzo, angle: 90).convert(numChannels: 3);
   }
 
-  // Muchas impresoras térmicas no tienen bien configurada la página de
-  // códigos para tildes/eñes y las imprimen mal (un carácter random, o
-  // cortan la línea ahí) — por eso todo el texto que se manda a imprimir
-  // pasa por quitarTildes antes. Estos dos wrappers evitan tener que
-  // acordarse de hacerlo a mano en cada línea.
-  // [maxAncho] (cantidad de caracteres): si se manda, envuelve el texto por
-  // palabra completa (mismo mecanismo que _envolverDescripcion, nunca corta
-  // a mitad de palabra) antes de mandarlo -pedido explícito del dueño tras
-  // ver palabras cortadas en un ticket real-. Sin esto, un texto más largo
-  // que el ancho del papel lo corta la propia impresora/librería a la
-  // cantidad exacta de caracteres, sin importar si cae a mitad de palabra.
   List<int> _texto(Generator g, String texto, {PosStyles styles = const PosStyles(), int? maxAncho}) {
     final limpio = quitarTildes(texto);
     if (maxAncho == null) return g.text(limpio, styles: styles);
@@ -256,40 +180,13 @@ class VentaTicketEscPosService {
     return PosColumn(text: quitarTildes(texto), width: width, styles: styles);
   }
 
-  // Ancho real (en caracteres) de la columna de 8/12 donde va la
-  // descripción del producto, según el tamaño de papel: ver Generator.row en
-  // esc_pos_utils_plus -misma fórmula que usa la librería para decidir dónde
-  // cortar una columna que no entra (maxCharactersNb = floor((toPos-fromPos)
-  // /charWidth), con charWidth=paperWidth/charsPerLine=12 en ambos tamaños)-.
-  // 80mm: paperWidth=576, floor((576*8/12 - 1 - 5) / 12) = 31.
-  // 58mm: paperWidth=384, floor((384*8/12 - 1 - 5) / 12) = 20.
-  // Si algún día cambia el ancho de columna acá (8) o spaceBetweenRows (5),
-  // estos números hay que recalcularlos con la misma fórmula.
   int _anchoDescripcionPara(PaperSize paperSize) => paperSize == PaperSize.mm58 ? 20 : 31;
 
-  // Ancho real (en caracteres) de una línea de texto normal a todo lo ancho
-  // del papel (Generator.text, sin dividir en columnas) -32 en 58mm, 48 en
-  // 80mm, valores estándar de fuente A de ESC/POS para esos dos tamaños de
-  // rollo (mismo dato ya usado en _anchoCompleto para la guía de envío)-.
   int _anchoTextoPara(PaperSize paperSize) => paperSize == PaperSize.mm58 ? 32 : 48;
 
-  // Usados por generarGuiaEnvio: 48 caracteres por línea completa a ancho
-  // normal (mismo dato citado arriba, ver Generator en esc_pos_utils_plus
-  // para papel de 80mm); a doble ancho (PosTextSize.size2 en width) cada
-  // carácter ocupa el doble de espacio, así que entran la mitad por línea.
   static const _anchoCompleto = 48;
   static const _anchoDoble = 24;
 
-  // La librería (Generator.row con multiLine) parte el texto que no entra
-  // en una línea cortando a la cantidad de caracteres exacta, sin importar
-  // si eso cae a mitad de una palabra ni dejando ningún indicio del corte
-  // -por eso una descripción larga podía salir partida en cualquier punto,
-  // a veces dejando una sola letra suelta en el renglón de abajo-. Acá se
-  // arma el wrap a mano, por palabra completa, ANTES de pasarle el texto a
-  // la librería (una línea por row, ya corta de entrada): si una palabra
-  // sola no entra en el ancho disponible, se parte con un guion al final,
-  // pero nunca dejando menos de 2 letras a cualquier lado del corte (por
-  // ejemplo "electrodo-" / "mestico" en vez de "electrodomestic-" / "o").
   List<String> _envolverDescripcion(String texto, int maxAncho) {
     final palabras = texto.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
     if (palabras.isEmpty) return [''];
@@ -319,13 +216,10 @@ class VentaTicketEscPosService {
         continue;
       }
 
-      // La palabra sola no entra en una línea completa: se reparte en
-      // fragmentos con guion, siempre empezando en una línea nueva.
       cerrarLinea();
       var restante = palabra;
       while (restante.length > maxAncho) {
-        var corte = maxAncho - 1; // -1 para dejar espacio al guion
-        // Nunca un fragmento de 1 sola letra a ningún lado del corte.
+        var corte = maxAncho - 1;
         if (restante.length - corte < 2) corte -= (2 - (restante.length - corte));
         corte = corte.clamp(2, maxAncho - 1);
         lineas.add('${restante.substring(0, corte)}-');
@@ -341,13 +235,6 @@ class VentaTicketEscPosService {
     final formatoFecha = DateFormat('dd/MM/yyyy hh:mm a');
     final formatoDia = DateFormat('dd/MM/yyyy');
 
-    // Este negocio no cobra ISV en su venta normal (VentaSinFacturar): solo
-    // se aplica el 15% si esta venta es Factura o Boleta formal (ver
-    // CarritoVentaState._aplicaIsv). El desglose "Gravado 15%:"/"ISV 15%:"
-    // de abajo, y el toggle facturaPreciosConIsv (que decide si el precio
-    // unitario/importe de cada línea se ve con o sin el 15% cargado), solo
-    // tienen sentido cuando de verdad hay ISV de por medio -si no, el
-    // precio que se ve YA es el precio final, sin ningún ajuste-.
     final esFacturable = venta.tipoDocumento == 'Factura' || venta.tipoDocumento == 'Boleta';
     final mostrarConIsv = esFacturable && negocio.facturaPreciosConIsv;
     double precioMostrado(dynamic item) => mostrarConIsv ? redondearMoneda((item.precioVenta as double) * 1.15) : item.precioVenta as double;
@@ -400,15 +287,6 @@ class VentaTicketEscPosService {
     bytes += generador.hr();
 
     for (final item in venta.detalle) {
-      // El nombre va en una columna de ancho 8 (con la columna 4 de la
-      // derecha vacía, la misma proporción que la fila de cantidad/importe
-      // de abajo) en vez de a todo el ancho: así, si el nombre es largo y se
-      // parte en más de una línea, esa segunda línea nunca llega hasta donde
-      // va el importe -queda esa columna siempre limpia, sin que el cliente
-      // confunda dónde termina la descripción-. El wrap en sí lo hace
-      // _envolverDescripcion (por palabra completa, con guion si hace falta
-      // partir una palabra), una línea por row: así la librería nunca corta
-      // por su cuenta a mitad de palabra.
       for (final linea in _envolverDescripcion(item.nombreProducto, anchoDescripcion)) {
         bytes += generador.row([
           _columna(linea, width: 8),
@@ -419,8 +297,6 @@ class VentaTicketEscPosService {
         _columna('${_formatoCantidad(item.cantidad)} x ${formatearMoneda(precioMostrado(item))}${item.descuentoPorcentaje > 0 ? ' (-${_formatoCantidad(item.descuentoPorcentaje)}%)' : ''}', width: 8),
         _columna(formatearMoneda(importeMostrado(item)), width: 4, styles: const PosStyles(align: PosAlign.right)),
       ]);
-      // Más espacio antes del siguiente producto: antes quedaban todos los
-      // renglones pegados uno con otro.
       bytes += generador.emptyLines(1);
     }
     bytes += generador.hr();
@@ -462,10 +338,6 @@ class VentaTicketEscPosService {
     if (negocio.fechaLimiteEmision != null) {
       bytes += _texto(generador, 'Fecha Limite: ${formatoDia.format(negocio.fechaLimiteEmision!)}', maxAncho: anchoTexto);
     }
-    // Pedido explícito del dueño: quitar el resto del pie legal ("ORIGINAL:
-    // CLIENTE"/"COPIA: OBLIGADO TRIBUTARIO EMISOR"/"LA FACTURA ES BENEFICIO
-    // DE TODOS"), dejando solo el agradecimiento y el ORIGINAL/COPIA de
-    // más abajo.
     bytes += generador.emptyLines(1);
     bytes += _texto(generador, 'GRACIAS POR SU COMPRA!', styles: const PosStyles(align: PosAlign.center, bold: true), maxAncho: anchoTexto);
     bytes += generador.emptyLines(1);
@@ -475,11 +347,6 @@ class VentaTicketEscPosService {
     return bytes;
   }
 
-  // Ver el mismo comentario/pedido en venta_export_service.dart: si el
-  // nombre del negocio tiene más de una palabra, la primera va sola en su
-  // propia línea (la marca corta, "CK") y el resto abajo (la razón social
-  // completa, "S DE R.L. DE C.V."), en vez de dejar que se envuelva donde
-  // caiga por ancho de columna.
   List<int> _encabezadoNombreNegocio(Generator g, String nombre, int anchoTexto) {
     final nombreMayus = nombre.toUpperCase().trim();
     const styles = PosStyles(align: PosAlign.center, bold: true, height: PosTextSize.size2, width: PosTextSize.size2);

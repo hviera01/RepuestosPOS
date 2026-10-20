@@ -10,10 +10,6 @@ import '../../../auth/providers/auth_provider.dart';
 import '../../../usuarios/data/usuario_model.dart';
 import '../../../usuarios/providers/usuarios_provider.dart';
 
-/// Resultado de [verificarAccesoEspecial]: si quedó autorizado y, cuando
-/// aplica, qué usuario del sistema asumió la responsabilidad de autorizar
-/// (no es necesariamente quien está logueado, es a quien el cajero le pidió
-/// el visto bueno).
 class ResultadoAccesoEspecial {
   final bool autorizado;
   final String usuarioAutoriza;
@@ -21,32 +17,12 @@ class ResultadoAccesoEspecial {
   const ResultadoAccesoEspecial({required this.autorizado, this.usuarioAutoriza = ''});
 }
 
-/// Si el permiso [permisoKey] está activado y hay una clave especial configurada,
-/// pide la clave y quién autoriza antes de continuar. Si no está activado (o no hay
-/// clave configurada), retorna autorizado de inmediato sin mostrar nada, con el
-/// usuario logueado como responsable implícito. El Administrador nunca la pide: es
-/// el único rol que puede hacer todo sin restricciones (siempre libre).
-///
-/// El rol Encargado tiene, además del toggle compartido de Negocio, su propio
-/// permiso individual (`accionesPermitidas`, marcado por el Administrador al
-/// crear ese usuario). Si a este Encargado puntual no se lo marcaron para
-/// [permisoKey], NO se lo deja pasar directo aunque el toggle de Negocio esté
-/// apagado para todos los demás -pero tampoco se lo bloquea en seco-: se le
-/// muestra el mismo diálogo de clave especial, para que alguien autorizado
-/// (por ejemplo un Administrador cerca de la caja) pueda destrabarlo ahí
-/// mismo sin que el Encargado tenga que ir a buscarlo a otra pantalla.
 Future<ResultadoAccesoEspecial> verificarAccesoEspecial(BuildContext context, WidgetRef ref, String permisoKey) async {
   final usuarioLogueado = ref.read(authProvider).usuario;
   if (usuarioLogueado?.rol == Roles.administrador) {
     return ResultadoAccesoEspecial(autorizado: true, usuarioAutoriza: usuarioLogueado?.nombreCompleto ?? '');
   }
 
-  // Las lecturas de abajo reintentan solas ante una demora de red (ver
-  // obtenerNegocioParaSeguridad/obtenerUsuariosParaSeguridad), lo que en el
-  // peor caso (arranque en frío con conexión lenta) puede tardar bastante
-  // más que "al toque". Sin este aviso, el campo de precio se quedaba viendo
-  // "congelado" sin ninguna señal de que en realidad está verificando algo
-  // -exactamente lo que se reportó como "toco el precio y no pasa nada"-.
   ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? verificando;
   if (context.mounted) {
     verificando = ScaffoldMessenger.of(context).showSnackBar(
@@ -68,12 +44,6 @@ Future<ResultadoAccesoEspecial> verificarAccesoEspecial(BuildContext context, Wi
     try {
       negocio = await ref.read(negocioRepositoryProvider).obtenerNegocioParaSeguridad();
     } catch (_) {
-      // Sin esto, una falla de red (agotados ya los reintentos) hacía que
-      // esta función asumiera "no hay clave especial configurada" y, según
-      // el rol, dejara pasar la acción sin pedir nada o la bloqueara sin
-      // ningún aviso -en ambos casos en silencio-. Acá se bloquea siempre
-      // (fail-closed) con un mensaje claro para que quede evidente que fue
-      // un problema de conexión y no de permisos.
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No se pudo verificar el acceso especial: sin conexión con el servidor. Probá de nuevo.')),
@@ -84,25 +54,13 @@ Future<ResultadoAccesoEspecial> verificarAccesoEspecial(BuildContext context, Wi
     if (!context.mounted) return const ResultadoAccesoEspecial(autorizado: false);
 
     if (usuarioLogueado?.rol == Roles.encargado) {
-      // Para Encargado el permiso individual manda por completo, sin
-      // importar el toggle compartido de Negocio (ese es para Empleado/Semi
-      // Administrador, ver más abajo): si el Administrador SÍ le marcó este
-      // permiso puntual al crearlo, pasa libre sin pedir nada. Si NO se lo
-      // marcó, siempre se le pide la clave especial (si hay una
-      // configurada) -nunca pasa libre, aunque el toggle compartido esté
-      // apagado, y nunca queda bloqueado en seco: alguien autorizado puede
-      // destrabarlo ahí mismo con la clave-.
       if (usuarioLogueado?.accionesPermitidas[permisoKey] == true) {
         return ResultadoAccesoEspecial(autorizado: true, usuarioAutoriza: usuarioLogueado?.nombreCompleto ?? '');
       }
     } else if (!negocio.tieneClaveEspecial || !negocio.tienePermiso(permisoKey)) {
-      // Empleado / Semi Administrador: rige el toggle compartido de Negocio.
       return ResultadoAccesoEspecial(autorizado: true, usuarioAutoriza: usuarioLogueado?.nombreCompleto ?? '');
     }
 
-    // A partir de acá hace falta la clave especial. Si nunca se configuró
-    // una (Negocio > Seguridad), no hay forma de que nadie la destrabe: se
-    // avisa en vez de abrir un diálogo que jamás podría tener éxito.
     if (!negocio.tieneClaveEspecial) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -115,12 +73,6 @@ Future<ResultadoAccesoEspecial> verificarAccesoEspecial(BuildContext context, Wi
     final repo = ref.read(negocioRepositoryProvider);
     final List<UsuarioModel> usuarios;
     try {
-      // Lectura única con timeout y reintentos en vez de esperar el primer
-      // valor del stream `usuariosStreamProvider` (ver
-      // `obtenerUsuariosParaSeguridad`): ese `.future` no tenía timeout y,
-      // si el listener en vivo todavía no había conectado (arranque en
-      // frío), se quedaba esperando sin mostrar el diálogo ni ningún error
-      // -exactamente el mismo síntoma de "toco el precio y no pasa nada"-.
       usuarios = await ref.read(usuarioRepositoryProvider).obtenerUsuariosParaSeguridad();
     } catch (_) {
       if (context.mounted) {
@@ -170,9 +122,6 @@ class _ClaveEspecialDialogState extends State<_ClaveEspecialDialog> {
   @override
   void initState() {
     super.initState();
-    // Preselecciona al usuario que está logueado en la caja, si está en la
-    // lista de usuarios activos — el cajero solo tiene que cambiarlo si
-    // realmente es OTRA persona quien está autorizando.
     if (widget.usuarios.any((u) => u.id == widget.usuarioLogueadoId)) {
       _usuarioSeleccionadoId = widget.usuarioLogueadoId;
     } else if (widget.usuarios.isNotEmpty) {

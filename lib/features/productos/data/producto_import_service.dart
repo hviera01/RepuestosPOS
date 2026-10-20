@@ -62,8 +62,6 @@ class ProductoImportService {
     return t != 'inactivo' && t != 'no' && t != 'false' && t != '0';
   }
 
-  /// Lee un .xlsx y devuelve las filas encontradas (válidas o con error).
-  /// Lanza [FormatException] si el archivo no se pudo leer en absoluto.
   static List<FilaImportacionProducto> leerBytes(List<int> bytes) => ProductoImportService().leer(bytes);
 
   List<FilaImportacionProducto> leer(List<int> bytes) {
@@ -138,8 +136,6 @@ class ProductoImportService {
       if (error == null && precioVenta == null) error = 'Precio de venta inválido: "$precioVentaTexto"';
       if (error == null && precioCompra == null) error = 'Precio de compra inválido: "$precioCompraTexto"';
 
-      // Existencias negativas se registran en 0: no tiene sentido cargar un
-      // producto nuevo (o actualizar uno) con stock negativo desde el Excel.
       final stockFinal = (stock ?? 0) < 0 ? 0.0 : (stock ?? 0);
 
       filas.add(FilaImportacionProducto(

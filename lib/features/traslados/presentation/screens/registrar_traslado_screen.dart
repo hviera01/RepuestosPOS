@@ -23,10 +23,6 @@ import '../../../ventas/providers/ventas_provider.dart' show presenciaImpresionR
 import '../../../../core/widgets/pdf_preview_dialog.dart';
 import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
-/// Registrar Traslado: antes era un diálogo chico centrado; ahora es una
-/// pestaña grande como Registrar Venta/Compra, con la tabla de productos
-/// ampliable ("Ver más grande") para que nunca quede apretada ni con texto
-/// cortado, sin importar cuántos productos tenga el traslado.
 class RegistrarTrasladoScreen extends ConsumerStatefulWidget {
   const RegistrarTrasladoScreen({super.key});
 
@@ -45,18 +41,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
   final Map<int, TextEditingController> _ctrlUbicacion = {};
   bool _guardando = false;
   String? _error;
-  // Igual que el sistema viejo (frmTraslado, checkboxes Pendiente/Enviado/
-  // Entregado mutuamente excluyentes): al registrar se puede elegir de una
-  // vez en qué estado queda el traslado, en cadena (Entregado dispara
-  // Enviado y Recepcionar uno detrás del otro). "Entregado" es el default
-  // real del sistema viejo (chkEntregado.Checked = true en su Load), pensado
-  // para cuando el traslado físico ya se hizo y se está registrando después.
   String _estadoDeseado = 'Entregado';
-  // Igual que el sistema viejo (cboSucursalOrigen.SelectedIndex = 0,
-  // cboSucursalDestino.SelectedIndex = 1): al abrir la pantalla ya vienen
-  // elegidas la primera sucursal como origen y la segunda como destino, sin
-  // tener que tocar nada si es el traslado más común (Principal -> Sucursal
-  // 2). Se aplica una sola vez, no pisa lo que el usuario haya cambiado.
   bool _defaultsSucursalAplicados = false;
 
   @override
@@ -92,12 +77,6 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
       return;
     }
     setState(() {
-      // La ubicación se autocompleta con la descripción que ya tiene el
-      // producto (campo relabeleado a "Ubicación" en Inventario) — igual
-      // que el sistema viejo, que llenaba el textbox de descripción del
-      // traslado con Producto.Descripcion al elegir el producto. Sigue
-      // siendo editable después por si hace falta corregirla para este
-      // traslado puntual.
       _items = [..._items, ItemTrasladoModel(idProducto: producto.id, nombreProducto: producto.nombre, cantidad: 1, ubicacion: producto.descripcion)];
       _error = null;
     });
@@ -143,12 +122,6 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
     try {
       final repo = ref.read(trasladoRepositoryProvider);
       final usuario = ref.read(authProvider).usuario?.nombreCompleto ?? '';
-      // El estado final elegido (Pendiente/Enviado/Entregado, igual que el
-      // sistema viejo) se manda de una vez a registrar(): antes esto se
-      // encadenaba con enviar()/recepcionar()/obtenerPorId() aparte, hasta 4
-      // idas y vueltas seguidas a Firestore para el caso más común
-      // (Entregado, que viene preseleccionado). Mismo usuario que crea
-      // también como quien recibe, sin pedir un segundo usuario aparte.
       final traslado = await repo.registrar(
         idSucursalOrigen: _origen!.id,
         nombreSucursalOrigen: _origen!.nombre,
@@ -163,12 +136,6 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
       if (!mounted) return;
       mostrarExitoTransaccion(context, mensaje: 'Traslado registrado correctamente');
 
-      // Desde el celular (APK) o el navegador de un celular no hay
-      // impresora térmica a mano para elegir: en vez de preguntar y abrir
-      // una vista previa que no sirve de mucho ahí, se manda directo la
-      // solicitud de impresión en vivo a la PC principal (si está
-      // conectada) — mismo criterio que Ventas (ver RegistrarVentaScreen.
-      // _manejarImpresion, rama kIsWeb && esMovil).
       final esMovil = defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
       final esCelularOWebMovil = (!kIsWeb && Platform.isAndroid) || (kIsWeb && esMovil);
       if (esCelularOWebMovil) {
@@ -243,13 +210,6 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
     _ctrlUbicacion.clear();
   }
 
-  // Memoizado: _construirListaItems lo llama en cada rebuild de la lista de
-  // ítems (cada tecla escrita en cantidad/ubicación de CUALQUIER fila, por
-  // el setState de alReconstruir), y recorrer ~3900 productos entero en cada
-  // una de esas teclas -en un traslado con muchos productos, muchas
-  // rebuilds- era exactamente lo que se sentía "pegado"/lento al cargar un
-  // traslado grande. Se recalcula solo si la lista de productos del stream
-  // cambió de referencia (nuevo snapshot de Firestore), no en cada build.
   List<ProductoModel>? _cacheProductosCodigos;
   Map<String, String> _cacheCodigos = const {};
 
@@ -262,9 +222,6 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
   }
 
   Future<void> _imprimir(TrasladoModel traslado) async {
-    // Por si el stream de productos todavía no trajo el primer valor (ver
-    // mismo criterio en DetalleTrasladoScreen._reimprimir): esperar antes de
-    // armar el mapa de códigos, para no imprimir el ticket sin ninguno.
     if (ref.read(productosStreamProvider).value == null) {
       try {
         await ref.read(productosStreamProvider.future);
@@ -356,11 +313,6 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
 
   @override
   Widget build(BuildContext context) {
-    // Con watch (no read): si se entra a esta pantalla antes de que el
-    // stream de productos trajera su primer snapshot, la pantalla se
-    // reconstruye sola apenas llega -sin esto, _codigosPorProducto() podía
-    // quedar cacheado en vacío para siempre, ver mismo criterio en
-    // DetalleTrasladoScreen-.
     ref.watch(productosStreamProvider);
     return Container(
       color: const Color(0xFFF2F3F7),
@@ -437,9 +389,6 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
     );
   }
 
-  // Igual que el sistema viejo: al registrar se elige de una vez en qué
-  // estado queda el traslado (Pendiente/Enviado/Entregado, mutuamente
-  // excluyentes) — "Entregado" viene preseleccionado por defecto.
   Widget _selectorEstadoInicial() {
     Widget opcion(String valor, String etiqueta) {
       final activo = _estadoDeseado == valor;
@@ -516,13 +465,6 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
               child: Center(child: Text('Sin productos todavía', style: GoogleFonts.poppins(fontSize: 13.5, color: Colors.grey.shade500))),
             )
           else
-            // Column sin virtualizar (no ListView): un traslado no tiene la
-            // escala de un inventario completo. Cuando la tarjeta tiene alto
-            // acotado (escritorio con SizedBox, o la vista "más grande" a
-            // pantalla completa) esta lista scrollea sola adentro de la
-            // tarjeta; cuando no (celular, adentro del scroll general de la
-            // pantalla) es una Column suelta, para no pelearse con
-            // restricciones de alto no acotado.
             _construirListaItems(grande: grande, alturaAcotada: alturaAcotada, alReconstruir: alReconstruir),
           if (_error != null) ...[
             const SizedBox(height: 10),
@@ -538,17 +480,6 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
     );
   }
 
-  // Antes esto se armaba siempre como una Column con TODAS las filas ya
-  // construidas de una (sin importar si estaban visibles en pantalla o no):
-  // en un traslado con muchos productos, cada tecla escrita en CUALQUIER
-  // campo reconstruía las N filas enteras, lo que se sentía "pegado"/lento.
-  // Ahora, cuando el alto está acotado (escritorio, o la vista "más
-  // grande"), se arma con ListView.builder: Flutter solo construye las
-  // filas que están (o van a estar pronto) visibles. En celular, embebido
-  // en el scroll general de la pantalla con alto no acotado, sigue como
-  // Column (ListView.builder ahí necesitaría shrinkWrap, que igual
-  // construye todo de una — no gana nada, y los traslados hechos desde el
-  // celular no suelen ser tan grandes).
   Widget _filaItem(int index, {required bool grande, required Map<String, String> codigos, required VoidCallback alReconstruir}) {
     final item = _items[index];
     final ctrl = _ctrlCantidad.putIfAbsent(index, () => TextEditingController(text: item.cantidad.toStringAsFixed(item.cantidad == item.cantidad.roundToDouble() ? 0 : 2)));
@@ -562,9 +493,6 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Letra clara y sin límite de líneas: por largo que sea
-                      // el nombre del producto, nunca se recorta con "...",
-                      // solo se envuelve.
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -589,9 +517,6 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
                             fillColor: const Color(0xFFE8EAF0),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                           ),
-                          // En escritorio, un clic en el campo abre el teclado
-                          // numérico en pantalla (igual que en Ventas/Compras);
-                          // en celular no, ahí ya está el teclado del sistema.
                           onTap: defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS
                               ? null
                               : () async {
@@ -620,9 +545,6 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
                     ],
                   ),
                   const SizedBox(height: 6),
-                  // Ubicación (bodega/estante en la sucursal de origen):
-                  // opcional, igual que en el sistema viejo — se imprime en
-                  // el ticket como "Ubicación: X" debajo del producto.
                   SizedBox(
                     width: grande ? 260 : 200,
                     child: TextField(
@@ -647,8 +569,6 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
   }
 
   Widget _construirListaItems({required bool grande, required bool alturaAcotada, required VoidCallback alReconstruir}) {
-    // Se calcula una sola vez para toda la lista (no por cada fila), para no
-    // repetir el armado del mapa código->producto por cada ítem del traslado.
     final codigos = _codigosPorProducto();
 
     if (alturaAcotada) {

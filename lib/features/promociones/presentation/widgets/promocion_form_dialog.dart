@@ -602,10 +602,6 @@ class _PromocionFormDialogState extends ConsumerState<PromocionFormDialog> {
     );
   }
 
-  // Multi-selección: "Todos" equivale a la lista vacía (se puede combinar
-  // Efectivo + Transferencia, por ejemplo, sin aceptar Tarjeta). Tocar
-  // "Todos" limpia cualquier selección puntual; tocar un método puntual
-  // mientras "Todos" está activo pasa a restringir solo a ese método.
   Widget _selectorMetodoPago() {
     Widget opcion(String texto, String valor) {
       final esTodos = valor == 'Todos';

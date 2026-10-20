@@ -28,11 +28,6 @@ class ClienteRepository with ConRedMixin {
     });
   }
 
-  // Devuelve el ClienteModel recién creado (con su id real ya asignado) -lo
-  // necesita, por ejemplo, "Crear cliente nuevo" desde BuscarClienteDialog
-  // (ver item 5 del pedido del dueño): tiene que poder vincular ese cliente
-  // a la venta en curso apenas se guarda, con el mismo Navigator.pop(context,
-  // cliente) que usa elegir uno ya existente.
   Future<ClienteModel> crear({
     required String dni,
     required String nombreCompleto,
@@ -44,9 +39,6 @@ class ClienteRepository with ConRedMixin {
       if (dni.isNotEmpty && _tabla.actual.any((c) => c.dni == dni)) {
         throw Exception('Ya existe un cliente con ese DNI');
       }
-      // 'nombre_normalizado' (mayúsculas/tildes/espacios colapsados) para que
-      // VentaRepository pueda encontrar un cliente por nombre sin exigir
-      // igualdad exacta de string.
       final Map<String, dynamic> fila;
       try {
         fila = await _db.from('clientes').insert({
@@ -77,8 +69,6 @@ class ClienteRepository with ConRedMixin {
       if (dni.isNotEmpty && _tabla.actual.any((c) => c.id != id && c.dni == dni)) {
         throw Exception('Ya existe un cliente con ese DNI');
       }
-      // A propósito NO se toca fecha_ultima_compra acá (ver comentario en
-      // ClienteModel.toMap): ese campo lo escribe otro flujo (registrar venta).
       try {
         final fila = await _db.from('clientes').update({
           'dni': dni,

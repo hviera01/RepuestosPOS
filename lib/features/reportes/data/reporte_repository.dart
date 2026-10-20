@@ -111,26 +111,6 @@ class ReporteRepository with ConRedMixin {
     return controlador.stream;
   }
 
-  /// Emite un evento (sin contenido útil, solo "avisa") cada vez que cambia
-  /// algo en [tabla] vía Supabase Realtime. No trae ni mapea filas -a
-  /// diferencia de [observarReporteVentas]-, solo sirve para que una
-  /// pantalla de Reporte ya abierta se re-dispare sola (misma consulta,
-  /// mismo rango de fecha ya elegido, sin resetear ningún filtro) cuando el
-  /// dueño registra/anula algo en otra pestaña mientras el reporte sigue
-  /// abierto en esta -pedido explícito: "entro a ver el reporte y la venta
-  /// que acabo de hacer no aparece hasta que lo busco de nuevo a mano"-.
-  ///
-  /// Escucha directo los eventos de Postgres Changes (INSERT/UPDATE/DELETE)
-  /// -a propósito, NO usa `.from(tabla).stream()`-: ese `.stream()` mantiene
-  /// una copia completa de la tabla y la re-emite entera no solo cuando algo
-  /// cambia sino también cada vez que el canal de Realtime se reconecta (un
-  /// blip de red, la pestaña quedó en segundo plano, etc. -algo que puede
-  /// pasar sin que el dueño toque nada-), y esa re-emisión de reconexión
-  /// llega al código de arriba indistinguible de un cambio real, disparando
-  /// una recarga espontánea del reporte. Con Postgres Changes puro, una
-  /// reconexión no emite nada por sí sola -solo un INSERT/UPDATE/DELETE de
-  /// verdad dispara [callback]-, así que ya no hace falta descartar "el
-  /// primer evento" a mano en la pantalla.
   Stream<void> observarCambiosEnTabla(String tabla) {
     return conRedStream(() => _streamCambiosPostgres(tabla));
   }

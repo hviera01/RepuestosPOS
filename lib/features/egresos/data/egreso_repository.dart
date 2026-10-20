@@ -40,9 +40,6 @@ class EgresoRepository with ConRedMixin {
     });
   }
 
-  /// Junta ventas de contado, abonos a crédito (venta y compra) y egresos
-  /// manuales del rango en una sola lista de movimientos, igual que el libro
-  /// financiero del sistema anterior.
   Future<List<T>> _tolerante<T>(String fuente, Future<List<T>> future) {
     return future.catchError((Object e) {
       debugPrint('Libro financiero: falló la fuente "$fuente": $e');

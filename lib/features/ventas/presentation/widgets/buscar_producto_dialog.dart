@@ -21,8 +21,6 @@ import '../../../../core/widgets/imagen_zoom_dialog.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
 
-/// Resultado de elegir un producto (y el nivel de precio con el que se va a
-/// vender) desde el buscador.
 class ProductoConPrecio {
   final ProductoModel producto;
   final double precio;
@@ -36,16 +34,8 @@ class ProductoConPrecio {
 }
 
 class BuscarProductoDialog extends ConsumerStatefulWidget {
-  // Condición de la venta en curso ('Contado' | 'Credito'), para saber qué
-  // promociones son aplicables al armar el badge de cada producto (ver
-  // PromocionModel.aplicaCondicion). Con 'Contado' por defecto para no
-  // romper otros lugares que todavía no pasan este parámetro.
   final String condicion;
 
-  // Método de pago ya elegido en la venta en curso ('Efectivo' | 'Tarjeta' |
-  // 'Transferencia' | 'Mixto'), filtro independiente de [condicion] (ver
-  // PromocionModel.aplicaMetodoPago). Con 'Efectivo' por defecto, el mismo
-  // valor por defecto que trae CarritoVentaState.metodoPago.
   final String metodoPago;
 
   const BuscarProductoDialog({
@@ -66,36 +56,16 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   FiltroVehiculo _vehiculo = const FiltroVehiculo();
   FiltroVehiculo? _vehiculoCacheado;
   final _focusNodeLista = FocusNode();
-  // Sin `autofocus`: en Windows, pedir el foco durante el primer build (que
-  // es lo que hace `autofocus`) compite con la animación de apertura de
-  // esta pantalla y se pierde la primera tecla que se escribe. Pidiéndolo a
-  // mano después del primer frame (mismo mecanismo que ya usa
-  // registrar_venta_screen para este mismo problema) el foco queda firme
-  // antes de que llegue cualquier tecla.
   final _focusBusqueda = FocusNode();
   String _busquedaAplicada = '';
-  // Cuando la búsqueda viene de escanear un código de barras se filtra por
-  // coincidencia exacta de código, no con el buscador difuso (que con
-  // códigos largos puede "acercarse" a varios productos distintos).
   bool _busquedaExacta = false;
   List<ProductoModel> _listaActual = [];
   String? _filaSeleccionada;
   int _nivelActivo = 1;
-  // Orden de la lista de resultados (solo la columna "Existencia" por
-  // ahora, ver _encabezadoOrdenable). null = sin ordenar, en el orden que
-  // ya trae el stream.
   String? _columnaOrden;
   bool _ordenAscendente = true;
-  // Sección "Combos" separada de "Productos" (ver _selectorSeccion): un
-  // combo no tiene existencia propia real, así que se filtran y se listan
-  // aparte para no mezclarlos con el catálogo normal.
   bool _verCombos = false;
 
-  // Cachea el resultado del filtro/orden: sin esto, cada setState (por
-  // ejemplo, solo resaltar una fila al hacer clic o mover la selección con
-  // las flechas) volvía a recorrer todo el catálogo con coincideFuzzy dentro
-  // de build(), aunque nada de lo que afecta al filtro hubiera cambiado. Eso
-  // era lo que se sentía "pesado y lento" al seleccionar.
   List<ProductoModel>? _productosCacheados;
   String? _busquedaFiltroCacheada;
   bool? _exactaFiltroCacheada;
@@ -103,33 +73,17 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   bool? _ordenAscendenteCacheado;
   bool? _verCombosCacheado;
 
-  // Una GlobalKey por fila visible (indexada por posición en _listaActual)
-  // para poder pedirle a la lista que haga scroll hasta la fila resaltada al
-  // navegar con las flechas del teclado, aunque haya quedado fuera de la
-  // vista.
   final Map<int, GlobalKey> _clavesFila = {};
 
-  // defaultTargetPlatform (a diferencia de un ancho de pantalla angosto,
-  // que también puede pasar en un navegador de escritorio con la ventana
-  // chica) detecta el sistema operativo real del equipo.
   bool get _esPlataformaMovil =>
       defaultTargetPlatform == TargetPlatform.android ||
       defaultTargetPlatform == TargetPlatform.iOS;
 
-  // Específicamente el navegador de un celular (no la PC, no la app de
-  // escritorio): ver el comentario en initState sobre por qué solo ahí se
-  // ordena por existencia de entrada.
   bool get _esWebMovil => kIsWeb && _esPlataformaMovil;
 
   @override
   void initState() {
     super.initState();
-    // En web móvil se muestra primero el producto con más existencia por
-    // defecto: ayuda a elegir rápido en la pantalla chica, donde ni se ve
-    // la columna "Existencia" (ver _encabezadoTabla, solo en la tabla de
-    // escritorio) ni hay forma de tocarla para ordenar a mano. En
-    // escritorio se deja tal cual estaba: sin ordenar, en el orden que ya
-    // trae el stream (el cajero puede ordenar a mano tocando la columna).
     if (_esWebMovil) {
       _columnaOrden = 'existencia';
       _ordenAscendente = false;
@@ -235,12 +189,6 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     if (!_focusNodeLista.hasFocus) _focusNodeLista.requestFocus();
   }
 
-  // Mismo arreglo que Inventario (ver InventarioScreen._tocarFila): antes
-  // esta fila tenía `onTap` Y `onDoubleTap` juntos en el mismo InkWell, y
-  // Flutter tiene que esperar la ventana de doble-tap (~300ms) antes de
-  // disparar el toque simple para poder distinguirlo de un doble toque -acá
-  // se detecta a mano (dos toques al mismo producto dentro de 300ms) usando
-  // solo `onTap`, para que seleccionar un producto responda de inmediato.
   static const _ventanaDobleTap = Duration(milliseconds: 300);
   DateTime? _ultimoTapProductoEn;
   String? _ultimoTapProductoId;
@@ -253,7 +201,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
         ahora.difference(_ultimoTapProductoEn!) < _ventanaDobleTap;
     _ultimoTapProductoEn = esDobleTap
         ? null
-        : ahora; // no encadenar un tercer toque como otro "doble"
+        : ahora;
     _ultimoTapProductoId = p.id;
 
     _tomarFocoLista();
@@ -270,9 +218,6 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     return valor > 0 ? valor : null;
   }
 
-  /// Precio con el que se agrega el producto: el nivel activo elegido en el
-  /// selector de arriba, o el primero disponible si ese nivel no está
-  /// configurado para este producto en particular.
   ({double precio, int nivel})? _precioActivo(ProductoModel p) {
     final directo = _precioNivel(p, _nivelActivo);
     if (directo != null) return (precio: directo, nivel: _nivelActivo);
@@ -313,21 +258,12 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     );
   }
 
-  /// La búsqueda no filtra en vivo: solo se aplica al presionar Enter o
-  /// tocar el botón de buscar. Si el texto tiene una sola coincidencia (por
-  /// ejemplo, un código exacto leído con lector de código de barras) se
-  /// agrega directo, sin necesidad de un segundo Enter para confirmar.
   bool _coincideExacto(ProductoModel p, String texto) =>
       p.codigoBarras.trim() == texto || p.codigo.trim() == texto;
 
   void _buscar({bool exacta = false}) {
     var texto = _busquedaController.text.trim();
     final productos = ref.read(productosStreamProvider).value ?? [];
-    // Si la búsqueda viene de un código escaneado y no matchea a nada, se
-    // prueban otras variantes válidas del mismo código (ver
-    // variantesCodigoBarras): corrige tanto el código leído al revés
-    // (algunos celulares) como el "0" que iPhone agrega al principio de los
-    // códigos UPC-A (Android no lo agrega).
     if (exacta &&
         texto.isNotEmpty &&
         !productos.any((p) => p.estado && _coincideExacto(p, texto))) {
@@ -349,12 +285,6 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     final coincidencias = productos
         .where((p) => p.estado && _coincide(p, texto))
         .toList();
-    // Un código escaneado (exacta) con un solo resultado se agrega directo
-    // en cualquier plataforma, para que escanear siga siendo instantáneo.
-    // Una búsqueda por escrito con un solo resultado también se agregaba
-    // directo en celular/tablet -pedido explícito del dueño: quitar eso,
-    // que cargue en la lista igual que en PC, para poder ver el producto
-    // antes de decidir en vez de que se agregue solo-.
     if (coincidencias.length == 1 && exacta) {
       _confirmarSeleccion(coincidencias.first);
     }
@@ -375,12 +305,6 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     _confirmarSeleccion(nuevo);
   }
 
-  // Editar un producto (por ejemplo, corregir un precio) sin salir de este
-  // buscador ni tener que ir hasta Inventario: útil en medio de una venta,
-  // cuando el cliente hace notar que un precio quedó mal cargado. No agrega
-  // el producto a la venta al guardar -eso lo sigue haciendo la fila misma,
-  // con doble clic o Enter-, el stream de productos ya refresca solo la
-  // lista con los datos nuevos.
   Future<void> _editarProducto(ProductoModel p) async {
     await showDialog<ProductoModel>(
       useRootNavigator: false,
@@ -417,10 +341,6 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     final codigo = await escanearCodigoBarras(context);
     if (codigo == null || codigo.isEmpty || !mounted) return;
     _busquedaController.text = codigo;
-    // Por si el stream de productos todavía no trajo el primer valor (poco
-    // común, pero puede pasar si se escanea apenas se abre la pantalla con
-    // internet lento): espera a que haya datos antes de buscar, para no
-    // buscar contra una lista vacía y fallar en silencio.
     if (ref.read(productosStreamProvider).value == null) {
       try {
         await ref.read(productosStreamProvider.future);
@@ -544,10 +464,6 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                   FiltroVehiculoCampos(vehiculoCtrl: _vehiculoCtrl, anioCtrl: _anioCtrl, onBuscar: _buscar, compacto: esMovil),
                   _selectorSeccion(),
                   _selectorNivelPrecio(),
-                  // Escanear con la cámara solo tiene sentido en el celular
-                  // (APK o navegador móvil): en escritorio no hay cámara
-                  // para esto, ahí el escaneo es "Escanear con celular" (QR,
-                  // desde Registrar Venta) o un lector físico.
                   if (defaultTargetPlatform == TargetPlatform.android ||
                       defaultTargetPlatform == TargetPlatform.iOS)
                     OutlinedButton.icon(
@@ -821,8 +737,6 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     );
   }
 
-  // Tocar el nombre de la columna ordena por esa columna (ascendente); si
-  // ya estaba ordenando por esa misma columna, invierte a descendente.
   Widget _encabezadoOrdenable(String texto, String clave, TextStyle estilo) {
     final activo = _columnaOrden == clave;
     return InkWell(

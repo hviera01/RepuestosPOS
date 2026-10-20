@@ -6,20 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import '../../../../core/services/impresora_bluetooth_service.dart';
 
-/// Impresión térmica Bluetooth: solo tiene sentido en Android (donde a veces
-/// se conecta la impresora por cable/Bluetooth en vez de por red WiFi -pedido
-/// explícito del dueño-). En Windows/macOS/Linux ya existe el listado de
-/// impresoras del sistema (ver SelectorImpresora); en iOS/web no hay una vía
-/// Bluetooth que no necesite este mismo plugin nativo, así que se deja fuera
-/// por ahora (no pedido).
 bool get _bluetoothDisponibleAca => !kIsWeb && Platform.isAndroid;
 
-/// Selector de impresora térmica Bluetooth para Negocio (mismo patrón que
-/// SelectorImpresora, pero listando dispositivos YA EMPAREJADOS por Android
-/// en vez de impresoras del sistema operativo -ver ImpresoraBluetoothService-).
-/// Guarda la dirección mac (id) y el nombre elegidos en NegocioModel
-/// (impresoraBluetoothId/impresoraBluetoothNombre); [onSeleccionar] los
-/// persiste en Supabase igual que el resto de selectores de esta pantalla.
 class SelectorImpresoraBluetooth extends StatefulWidget {
   final String idActual;
   final String nombreActual;

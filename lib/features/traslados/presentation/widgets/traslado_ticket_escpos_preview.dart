@@ -4,14 +4,6 @@ import '../../data/traslado_model.dart';
 import '../../../negocio/data/negocio_model.dart';
 import '../../../../core/utils/texto_utils.dart';
 
-/// Reproduce en pantalla, con widgets normales de Flutter (no un PDF), el
-/// mismo contenido y el mismo orden que imprime de verdad
-/// TrasladoTicketEscPosService en la impresora térmica -la vía que se usa en
-/// Windows, ver PdfPreviewDialog-. No es pixel-perfecto (una impresora
-/// térmica real usa su propia tipografía de matriz de puntos), pero muestra
-/// las mismas secciones, los mismos datos y en el mismo orden, a diferencia
-/// de la vista previa en PDF -que en ese camino ya no es lo que de verdad se
-/// manda a imprimir-.
 class TrasladoTicketEscPosPreview extends StatelessWidget {
   final TrasladoModel traslado;
   final NegocioModel negocio;
@@ -31,8 +23,6 @@ class TrasladoTicketEscPosPreview extends StatelessWidget {
     const estiloBase = TextStyle(fontFamily: 'monospace', fontSize: 12, color: Colors.black, height: 1.35);
     final formatoFecha = DateFormat('dd/MM/yyyy HH:mm');
 
-    // quitarTildes acá también: esta vista previa tiene que mostrar
-    // exactamente lo que va a salir impreso.
     Widget linea(String texto, {bool centrado = false, bool negrita = false, double tamano = 12}) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 1),

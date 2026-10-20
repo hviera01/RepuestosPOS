@@ -10,7 +10,6 @@ import '../../../../core/utils/formato_moneda.dart';
 import '../../../ventas/presentation/screens/detalle_venta_screen.dart';
 import '../../../compras/presentation/screens/detalle_compra_screen.dart';
 
-/// Fila normalizada para mostrar en la tabla, sea de venta o de compra.
 class _FilaHistorial {
   final DateTime? fecha;
   final String documento;
@@ -181,10 +180,6 @@ class _HistorialMovimientosDialogState extends ConsumerState<HistorialMovimiento
     );
   }
 
-  // Los lotes ya vienen ordenados del más viejo al más nuevo (ver
-  // LoteCostoRepository.obtenerLotes): ese es justo el orden en que el
-  // costeo FIFO los va a ir consumiendo, así que el primero con
-  // cantidadRestante > 0 es el que se va a vender/consumir primero.
   Widget _contenidoLotes(DateFormat formatoDia) {
     final async = ref.watch(lotesProductoProvider(widget.producto.id));
     return async.when(
@@ -228,9 +223,6 @@ class _HistorialMovimientosDialogState extends ConsumerState<HistorialMovimiento
     );
   }
 
-  // Cambia a mano cuál lote sale primero, moviendo uno hacia arriba/abajo
-  // entre los que todavía tienen existencia — se puede repetir cuantas
-  // veces se quiera, aunque el lote ya tenga ventas parciales encima.
   Future<void> _moverLote(List<LoteCostoModel> activos, int indice, int delta) async {
     final nuevoIndice = indice + delta;
     if (nuevoIndice < 0 || nuevoIndice >= activos.length) return;

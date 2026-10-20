@@ -2,10 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
-/// Sube fotos de producto a Cloudinary (plan gratis) usando un upload
-/// preset "unsigned": no hace falta guardar la API secret en la app, el
-/// preset ya define qué se puede subir. Ver tool/reporte_whatsapp para otro
-/// ejemplo de integración externa sin credenciales sensibles en el cliente.
 class CloudinaryService {
   static const _cloudName = 'jzlwbtwt';
   static const _uploadPreset = 'd0hcezcz';

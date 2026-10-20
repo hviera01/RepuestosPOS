@@ -14,9 +14,6 @@ import '../../../../core/widgets/imagen_zoom_dialog.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
 
-/// Buscador de productos para Compras: a diferencia del de Ventas no maneja
-/// niveles de precio de venta, sino el costo de compra registrado en el
-/// producto (que igual se puede editar después en la fila del carrito).
 class BuscarProductoCompraDialog extends ConsumerStatefulWidget {
   const BuscarProductoCompraDialog({super.key});
 
@@ -33,29 +30,14 @@ class _BuscarProductoCompraDialogState
   FiltroVehiculo _vehiculo = const FiltroVehiculo();
   FiltroVehiculo? _vehiculoCacheado;
   final _focusNodeLista = FocusNode();
-  // Sin `autofocus`: en Windows, pedir el foco durante el primer build (que
-  // es lo que hace `autofocus`) compite con la animación de apertura de
-  // esta pantalla y se pierde la primera tecla que se escribe. Pidiéndolo a
-  // mano después del primer frame (mismo mecanismo que ya usa
-  // registrar_venta_screen para este mismo problema) el foco queda firme
-  // antes de que llegue cualquier tecla.
   final _focusBusqueda = FocusNode();
   String _busquedaAplicada = '';
   List<ProductoModel> _listaActual = [];
   String? _filaSeleccionada;
 
-  // Cachea el resultado del filtro: sin esto, cada setState (por ejemplo,
-  // solo resaltar una fila al hacer clic o mover la selección con las
-  // flechas) volvía a recorrer todo el catálogo con coincideFuzzy dentro de
-  // build(), aunque la búsqueda no hubiera cambiado. Eso era lo que se
-  // sentía "pesado y lento" al seleccionar.
   List<ProductoModel>? _productosCacheados;
   String? _busquedaFiltroCacheada;
 
-  // Una GlobalKey por fila visible (indexada por posición en _listaActual)
-  // para poder pedirle a la lista que haga scroll hasta la fila resaltada al
-  // navegar con las flechas del teclado, aunque haya quedado fuera de la
-  // vista.
   final Map<int, GlobalKey> _clavesFila = {};
 
   @override
@@ -155,14 +137,6 @@ class _BuscarProductoCompraDialogState
     );
   }
 
-  /// La búsqueda no filtra en vivo: solo se aplica al presionar Enter o
-  /// tocar el botón de buscar. El escaneo de código de barras real de
-  /// Compras no pasa por acá -tiene su propio campo en
-  /// RegistrarCompraScreen (ver _confirmarCodigoBarras)-, así que esto es
-  /// siempre una búsqueda manual por nombre: antes, con una sola
-  /// coincidencia, se agregaba directo sin dejar verla primero -pedido
-  /// explícito del dueño: que cargue en la lista igual que en PC/Ventas, en
-  /// vez de agregarse sola-.
   void _buscar() {
     final texto = _busquedaController.text.trim();
     setState(() {

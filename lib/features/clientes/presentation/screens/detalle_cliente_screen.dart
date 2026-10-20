@@ -9,10 +9,6 @@ import '../../providers/clientes_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../ventas_credito/data/venta_credito_model.dart';
 
-/// Historial completo de un cliente en una sola pantalla: seguimiento de
-/// crédito, resumen de compras, compras recientes, qué compra más, historial
-/// de códigos de color y método de pago preferido. Se llega acá desde el
-/// menú de cada fila en ClientesScreen ("Ver detalle").
 class DetalleClienteScreen extends ConsumerStatefulWidget {
   final ClienteModel cliente;
 
@@ -93,7 +89,6 @@ class _DetalleClienteScreenState extends ConsumerState<DetalleClienteScreen> {
     );
   }
 
-  // ---------- Helpers de UI ----------
 
   Widget _tarjeta({required String titulo, IconData? icono, required Widget child}) {
     return Container(
@@ -138,7 +133,6 @@ class _DetalleClienteScreenState extends ConsumerState<DetalleClienteScreen> {
 
   String _fmtFecha(DateTime? fecha) => fecha == null ? 'N/D' : _formatoFecha.format(fecha);
 
-  // ---------- Encabezado ----------
 
   Widget _tarjetaEncabezado(ClienteModel cliente) {
     return _tarjeta(
@@ -157,7 +151,6 @@ class _DetalleClienteScreenState extends ConsumerState<DetalleClienteScreen> {
     );
   }
 
-  // ---------- Seguimiento de crédito ----------
 
   Widget _seccionCredito(ClienteHistorialData datos) {
     final sinHistorialCredito = datos.creditos.isEmpty && datos.abonosATiempo == null;
@@ -189,10 +182,6 @@ class _DetalleClienteScreenState extends ConsumerState<DetalleClienteScreen> {
                   ),
                   const SizedBox(height: 12),
                 ],
-                // Historial COMPLETO de créditos, pagados y no pagados -antes
-                // solo se mostraban los abiertos y un crédito ya liquidado
-                // desaparecía por completo de esta pantalla (bug reportado
-                // por el dueño con un cliente real, Ronald Camas).
                 if (datos.creditos.isNotEmpty) ...[
                   Text('Historial de créditos', style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600)),
                   const SizedBox(height: 8),
@@ -260,8 +249,6 @@ class _DetalleClienteScreenState extends ConsumerState<DetalleClienteScreen> {
     );
   }
 
-  // Vigente / Vencida / Liquidada -mismo idioma que el resto del sistema
-  // (ver VentasCreditoScreen) para no inventar un vocabulario nuevo acá.
   Widget _chipEstadoCredito(VentaCreditoModel credito) {
     final String texto;
     final MaterialColor color;
@@ -282,7 +269,6 @@ class _DetalleClienteScreenState extends ConsumerState<DetalleClienteScreen> {
     );
   }
 
-  // ---------- Resumen de compras ----------
 
   Widget _seccionResumenCompras(ClienteHistorialData datos, bool esMovil) {
     return _tarjeta(
@@ -302,7 +288,6 @@ class _DetalleClienteScreenState extends ConsumerState<DetalleClienteScreen> {
     );
   }
 
-  // ---------- Compras recientes ----------
 
   Widget _seccionVentasRecientes(ClienteHistorialData datos) {
     return _tarjeta(
@@ -353,7 +338,6 @@ class _DetalleClienteScreenState extends ConsumerState<DetalleClienteScreen> {
     );
   }
 
-  // ---------- Qué compra más ----------
 
   Widget _seccionProductosTop(ClienteHistorialData datos) {
     return _tarjeta(
@@ -384,7 +368,6 @@ class _DetalleClienteScreenState extends ConsumerState<DetalleClienteScreen> {
     return cantidad.toStringAsFixed(2);
   }
 
-  // ---------- Historial de códigos de color ----------
 
   Widget _seccionColores(ClienteHistorialData datos) {
     return _tarjeta(
@@ -420,7 +403,6 @@ class _DetalleClienteScreenState extends ConsumerState<DetalleClienteScreen> {
     );
   }
 
-  // ---------- Método de pago preferido ----------
 
   Widget _seccionMetodoPago(ClienteHistorialData datos) {
     return _tarjeta(

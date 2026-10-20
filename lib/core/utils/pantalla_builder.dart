@@ -39,25 +39,6 @@ import '../../features/compras_credito/providers/compras_credito_provider.dart';
 import '../../features/promociones/providers/promociones_provider.dart';
 import '../../features/usuarios/providers/usuarios_provider.dart';
 
-/// Encierra el contenido de una pestaña en su propio Navigator -pedido
-/// explícito del dueño: "ninguna ventana sea independiente sola... siempre
-/// dentro de la pestaña", para poder abrir Buscar Producto (o Ver Detalle de
-/// Venta, o lo que sea) en una pestaña y seguir trabajando en otra sin que
-/// nada tape toda la pantalla-. Todo `showDialog`/`Navigator.push` que se
-/// dispare desde dentro de esta pestaña, mientras use el context normal de
-/// esa pantalla, cae solo en ESTE Navigator (el más cercano) en vez del de
-/// toda la app: showDialog necesita el parámetro `useRootNavigator: false`
-/// a mano (su default es `true`, ver cada llamado en el resto del código);
-/// Navigator.push ya usa el más cercano por su cuenta, así que esos no
-/// hicieron falta tocarlos uno por uno.
-///
-/// Instancia única por pestaña (este widget se crea UNA vez, al abrir la
-/// pestaña, y ese mismo Widget/Navigator queda guardado en TabItem.contenido
-/// -ver TabsNotifier.abrirTab- mientras la pestaña siga abierta; el
-/// IndexedStack de AppShell nunca lo reconstruye de cero al cambiar de
-/// pestaña), así que la pila de rutas de cada pestaña -y lo que el usuario
-/// tenga escrito en un buscador abierto ahí- se mantiene intacta al ir y
-/// volver, exactamente igual que el resto del estado de la pestaña.
 class _NavegadorDePestana extends StatelessWidget {
   final Widget contenido;
 
@@ -91,17 +72,6 @@ Widget _construirContenidoPantalla(
 ) {
   switch (moduleKey) {
     case 'ventas_registrar':
-      // Cada pestaña de "Registrar Venta" necesita su propio carrito
-      // independiente (el usuario puede tener varias ventas abiertas a la
-      // vez); se logra dándole a esta subárbol su propia instancia del
-      // provider en vez de compartir la global. [tabId] es lo que le
-      // permite a la pantalla saber si es la pestaña que está activa ahora
-      // mismo, para que los atajos de teclado (F10/F12) solo respondan ahí
-      // y no en las demás pestañas de venta/compra que sigan abiertas de
-      // fondo. usuarioVentaOverrideProvider recibe el mismo aislamiento por
-      // pestaña: permite que "cambiar usuario de esta venta" (ver
-      // registrar_venta_screen) solo afecte a la pestaña donde se tocó el
-      // botón, sin tocar la sesión principal ni las demás pestañas.
       return ProviderScope(
         overrides: [
           carritoVentaProvider.overrideWith(() => CarritoVentaNotifier()),
@@ -110,9 +80,6 @@ Widget _construirContenidoPantalla(
         child: RegistrarVentaScreen(tabId: tabId),
       );
     case 'ventas_buscar_producto':
-      // Igual que 'ventas_registrar', pero con el diálogo de búsqueda
-      // abierto de entrada (ver HomeScreen: atajo "Buscar Producto", solo
-      // web móvil).
       return ProviderScope(
         overrides: [
           carritoVentaProvider.overrideWith(() => CarritoVentaNotifier()),
@@ -123,8 +90,6 @@ Widget _construirContenidoPantalla(
     case 'ventas_detalle':
       return const DetalleVentaScreen(esDialogo: false);
     case 'compras_registrar':
-      // Mismo aislamiento por pestaña que 'ventas_registrar': cada pestaña
-      // de "Registrar Compra" tiene su propio carrito independiente.
       return ProviderScope(
         overrides: [
           carritoCompraProvider.overrideWith(() => CarritoCompraNotifier()),
@@ -136,10 +101,6 @@ Widget _construirContenidoPantalla(
     case 'compras_pedido':
       return const HacerPedidoScreen();
     case 'categorias':
-      // Búsqueda propia por pestaña -si el usuario abre una segunda pestaña
-      // de este módulo (ver abrir_submodulo.dart), no debe compartir lo que
-      // se escribió en el buscador de la primera-. El resto de providers de
-      // este módulo (datos reales de Firestore) siguen compartidos.
       return ProviderScope(
         overrides: [categoriaBusquedaProvider],
         child: const CategoriasScreen(),

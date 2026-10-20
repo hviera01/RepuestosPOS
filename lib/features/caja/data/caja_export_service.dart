@@ -12,11 +12,6 @@ class CajaExportService {
   static const _colorGrisTexto = PdfColor.fromInt(0xFF4B4F58);
   static const _colorGrisClaro = PdfColor.fromInt(0xFFF2F3F7);
 
-  // Mismo criterio que venta_export_service._anchoValidoDesdeFormato: si el
-  // `format` que reporta la impresora seleccionada en Windows parece de
-  // rollo térmico (entre 40 y 120mm de ancho) se usa ese ancho real en vez
-  // del fijo de 80mm, para que el ticket no salga pegado a un lado en vez de
-  // centrado.
   double? _anchoValidoDesdeFormato(PdfPageFormat? formato) {
     if (formato == null) return null;
     final anchoMm = formato.width / PdfPageFormat.mm;
@@ -28,8 +23,6 @@ class CajaExportService {
     final doc = pw.Document();
     final logo = decodificarLogoPdf(negocio.logoBnBase64);
     final formatoFecha = DateFormat('dd/MM/yyyy HH:mm');
-    // Mismo tamaño que el ticket de venta (ver
-    // venta_export_service._construirPaginaTicket).
     const fSmall = 7.5;
     const fNormal = 8.0;
     final anchoMm = _anchoValidoDesdeFormato(formatoImpresora);
@@ -37,13 +30,6 @@ class CajaExportService {
     final anchoPaginaMm = anchoMm ?? 80.0;
 
     doc.addPage(
-      // pw.MultiPage (no pw.Page con altura infinita fija): con una altura
-      // fija en "infinito" el paquete arma la página mucho más alta que lo
-      // que realmente se imprime y el resultado sale con un bloque de
-      // espacio en blanco enorme arriba del contenido (mismo motivo que
-      // venta_export_service._construirPaginaTicket). Con una altura
-      // estimada según lo que de verdad va a imprimirse (ver
-      // _estimarAlturaTicketCierreMm) el ticket sale ajustado, sin ese hueco.
       pw.MultiPage(
         maxPages: 2000,
         pageFormat: PdfPageFormat(anchoPaginaMm * PdfPageFormat.mm, alturaMm * PdfPageFormat.mm, marginAll: 8 * PdfPageFormat.mm),
@@ -87,20 +73,12 @@ class CajaExportService {
     return doc.save();
   }
 
-  // Estima cuánto va a ocupar el ticket según lo que realmente se imprime
-  // (mismo criterio que _estimarAlturaTicketMm en venta_export_service):
-  // título, desde/hasta/usuario, los 11 renglones de montos, separadores
-  // entre cada bloque y el pie, más colchón de seguridad. MultiPage no
-  // recorta si la estimación se queda corta (a lo sumo pasa a una segunda
-  // página), así que no hace falta que sea exacta al milímetro.
   double _estimarAlturaTicketCierreMm(CierreCajaModel cierre, NegocioModel negocio, {required bool tieneLogo}) {
     double alto = 140.0;
     if (tieneLogo) alto += 20.0;
     if (negocio.nombre.isNotEmpty) alto += 7.0;
     if (cierre.observaciones.isNotEmpty) {
       alto += 14.0;
-      // Texto libre: a este tamaño de letra entra aprox. una línea nueva
-      // cada 45 caracteres dentro del ancho del ticket (80mm).
       alto += (cierre.observaciones.length / 45).ceil() * 4.0;
     }
     return alto;

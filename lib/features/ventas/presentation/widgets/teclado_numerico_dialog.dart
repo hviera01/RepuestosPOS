@@ -3,15 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Teclado numérico en pantalla para cambiar cantidad/precio/descuento a
-/// clics de mouse, pensado para escritorio (Windows y web en computadora).
-/// Funciona de las dos formas a la vez: a clics en los botones, o escribiendo
-/// con el teclado físico (números, punto, Backspace y Enter para confirmar,
-/// igual que escribir directo en el campo). El primer dígito que se toca o
-/// tipea después de abrir reemplaza el valor que ya traía (no escribe
-/// encima), como en cualquier calculadora. Devuelve el texto tal como quedó
-/// (o null si se cancela) para no perder precisión con conversiones de ida y
-/// vuelta a double.
 class TecladoNumericoDialog extends StatefulWidget {
   final String titulo;
   final String valorInicial;
@@ -26,10 +17,6 @@ class _TecladoNumericoDialogState extends State<TecladoNumericoDialog> {
   late String _texto;
   bool _recienAbierto = true;
   final _focusNode = FocusNode();
-  // Posición libre en pantalla (se puede arrastrar desde el título, ver
-  // _tecla del título más abajo): útil en tablet para dejarlo donde no tape
-  // ni la mano ni lo que se está viendo detrás. null hasta el primer build,
-  // que la centra según el tamaño de pantalla disponible ahí.
   Offset? _posicion;
   static const _ancho = 300.0;
   static const _altoEstimado = 480.0;
@@ -49,8 +36,6 @@ class _TecladoNumericoDialogState extends State<TecladoNumericoDialog> {
 
   void _tocarTecla(String tecla) {
     setState(() {
-      // El primer toque después de abrir empieza un número nuevo en vez de
-      // escribir pegado al valor que ya traía el campo.
       if (_recienAbierto) {
         _recienAbierto = false;
         _texto = tecla == '.' ? '0.' : tecla;
@@ -164,9 +149,6 @@ class _TecladoNumericoDialogState extends State<TecladoNumericoDialog> {
   @override
   Widget build(BuildContext context) {
     final tamano = MediaQuery.sizeOf(context);
-    // Se centra recién en el primer build (ahí ya se conoce el tamaño real
-    // de la pantalla); de ahí en adelante, arrastrar desde el título es lo
-    // único que la mueve.
     _posicion ??= Offset(
       ((tamano.width - _ancho) / 2).clamp(0, tamano.width - _ancho),
       ((tamano.height - _altoEstimado) / 2).clamp(0, tamano.height - _altoEstimado),

@@ -3,14 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/actualizacion_service.dart';
 import '../version_app.dart';
 
-/// Diálogo central que avisa que hay una versión nueva publicada. Se abre
-/// solo (al iniciar la app, ver AppShell) o a mano desde "Buscar
-/// actualizaciones" en el menú (ver SideMenu). "Después" solo cierra el
-/// diálogo: no queda nada guardado, así que la próxima vez que se abra la
-/// app (o se busque a mano) vuelve a preguntar si la instalada sigue sin
-/// ser la más nueva -a propósito, para no complicar el flujo con "no
-/// preguntar de nuevo" cuando en este negocio conviene que quede siempre al
-/// día-.
 Future<void> mostrarDialogoActualizacion(
   BuildContext context,
   ActualizacionDisponible actualizacion,
@@ -47,8 +39,6 @@ class _ActualizacionDialogState extends State<_ActualizacionDialog> {
       await ActualizacionService.descargarEInstalar(widget.actualizacion, (p) {
         if (mounted) setState(() => _progreso = p);
       });
-      // Si el await termina y seguimos acá, algo falló: descargarEInstalar
-      // cierra la app (exit) apenas el instalador queda lanzado.
     } catch (_) {
       if (!mounted) return;
       setState(() {

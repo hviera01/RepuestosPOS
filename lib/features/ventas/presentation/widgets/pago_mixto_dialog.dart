@@ -6,10 +6,6 @@ import '../../data/pago_detalle_model.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
 
-/// Diálogo para repartir el total de una venta entre varios métodos de pago
-/// (por ejemplo, parte en Efectivo y el resto en Transferencia). Devuelve la
-/// lista de renglones {método, monto} cuando la suma cuadra exacto con el
-/// total, o null si el cajero cancela.
 class PagoMixtoDialog extends StatefulWidget {
   final double total;
   final List<String> metodosDisponibles;

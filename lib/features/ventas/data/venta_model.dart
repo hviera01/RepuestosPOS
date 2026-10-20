@@ -8,10 +8,6 @@ class VentaModel {
   final String numeroDocumento;
   final String documentoCliente;
   final String nombreCliente;
-  // Vínculo real al registro de 'clientes' (a diferencia de
-  // documentoCliente/nombreCliente, que son solo texto suelto histórico).
-  // null en ventas viejas (de antes de este campo) o cuando el cajero dejó
-  // el nombre vacío (Consumidor Final) — ver VentaRepository.registrarVenta.
   final String? idCliente;
   final String metodoPago;
   final double montoPago;
@@ -31,58 +27,22 @@ class VentaModel {
   final double descuentoGlobal;
   final String observaciones;
   final List<ItemVentaModel> detalle;
-  // Desglose cuando metodoPago == 'Mixto' (una venta pagada con más de un
-  // método a la vez, ej. mitad Efectivo/mitad Tarjeta). Vacío en cualquier
-  // otro caso: ahí montoPago/montoCambio/metodoPago ya alcanzan solos.
   final List<PagoDetalle> pagosMixtos;
   final String usuarioAnulacion;
   final String motivoAnulacion;
   final DateTime? fechaAnulacion;
-  // true cuando la venta se guardó pero no se pudo imprimir (sin impresora
-  // configurada en ese dispositivo, o falló el intento) — típicamente una
-  // venta hecha en el celular sin la impresora de red a mano. Se resuelve
-  // reimprimiendo desde cualquier dispositivo (ver DetalleVentaScreen).
   final bool pendienteImpresion;
-  // true cuando esta venta (hecha desde el celular) le está pidiendo a la
-  // PC principal que la imprima automáticamente apenas la detecte, en vez
-  // de esperar a que alguien la resuelva a mano desde Pendientes de
-  // Impresión. Ver PresenciaImpresionRepository y el listener en AppShell.
   final bool solicitudImpresionEnVivo;
-  // Si la solicitud de impresión en vivo es para reimprimir como "copia"
-  // (true) u "original" (false): ver DetalleVentaScreen._reimprimir y
-  // ImpresionEnVivoService. null (default) significa que no es un
-  // reimprimir con elección explícita, sino una venta recién confirmada:
-  // ahí se imprime ORIGINAL y, además, COPIA si el negocio tiene esa
-  // opción activada (ver VentaExportService.generarPdfFactura) — muy
-  // distinto de "false", que fuerza una sola hoja ORIGINAL sin importar esa
-  // configuración.
   final bool? solicitudImpresionEsCopia;
-  // Datos de envío -pedido explícito del dueño: poder marcar una venta como
-  // envío, con nombre/dirección/teléfono propios (prellenados del cliente
-  // pero editables, para envíos a otra persona/dirección), e imprimir una
-  // guía aparte del recibo (ver VentaTicketEscPosService.generarGuiaEnvio).
-  // Vacíos/false en cualquier venta que no sea envío.
   final bool esEnvio;
   final String envioNombre;
   final String envioDireccion;
   final String envioTelefono;
-  // Mismo mecanismo/criterio que solicitudImpresionEnVivo, pero para la
-  // guía -pedido explícito del dueño: "que también funcione la impresión y
-  // reimpresión de estas guías en remoto, así como toda impresión"-: si
-  // este dispositivo no tiene la impresora a mano, le pide a la PC
-  // principal que imprima la guía sola apenas la detecte (ver AppShell).
   final bool solicitudImpresionGuiaEnvio;
   final bool solicitudImpresionGuiaGrande;
 
   bool get estaAnulada => estado == 'Anulada';
 
-  /// Cuánto se rebajó en total (por descuento de línea y/o descuento
-  /// general), sin ISV. Ver mismo getter/comentario en CarritoVentaState:
-  /// compara cada línea contra SU PROPIO precio de lista ya redondeado a
-  /// centavos -no una suma sin redondear contra el subtotal final, que sí
-  /// viene redondeado-, para que una venta sin ningún descuento dé 0.00
-  /// exacto en vez de un residuo tipo -0.01 -bug real reportado por el
-  /// dueño: salía en TODAS las facturas, con o sin descuento-.
   double get descuentosYRebajas {
     final listaSinDescuento = detalle.fold<double>(
       0,
@@ -91,11 +51,6 @@ class VentaModel {
     return redondearMoneda(listaSinDescuento - subtotal);
   }
 
-  // Usado para completar con el detalle (items) una VentaModel que ya se
-  // tenía con todo lo demás (por ejemplo, la que llega de un stream sin
-  // detalle, ver VentaRepository.obtenerVentasConSolicitudImpresionEnVivo)
-  // sin tener que releer el documento completo de nuevo — para que la
-  // impresión remota en vivo tarde lo menos posible, ver AppShell.
   VentaModel copyWith({
     List<ItemVentaModel>? detalle,
     bool? esEnvio,

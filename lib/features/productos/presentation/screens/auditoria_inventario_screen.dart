@@ -15,14 +15,6 @@ import '../../../../core/utils/texto_utils.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
 
-/// Auditoría de Inventario: el usuario elige una categoría, va anotando el
-/// conteo físico real de cada producto (sin que eso toque Firestore para
-/// nada -es solo un borrador en pantalla, mientras camina el negocio con la
-/// lista en mano) y acá mismo ve si cuadra contra lo que dice el sistema. Si
-/// no cuadra, tiene a la mano el historial de existencia del producto (para
-/// entender de dónde pudo venir el descuadre) y puede ajustar el stock ahí
-/// mismo -reutilizando el mismo AjusteStockDialog de Inventario, ya
-/// precargado con la cantidad/motivo del reajuste- sin salir de la pantalla.
 class AuditoriaInventarioScreen extends ConsumerStatefulWidget {
   const AuditoriaInventarioScreen({super.key});
 
@@ -34,19 +26,9 @@ class AuditoriaInventarioScreen extends ConsumerStatefulWidget {
 class _AuditoriaInventarioScreenState
     extends ConsumerState<AuditoriaInventarioScreen> {
   String? _idCategoria;
-  // Un controller por producto, vivo mientras dure la sesión de auditoría
-  // (se limpia solo al cambiar de categoría o al salir de la pantalla): así
-  // el conteo que el usuario va tecleando no se pierde si la lista se
-  // reordena o se filtra ("Solo descuadres") mientras sigue auditando.
   final Map<String, TextEditingController> _controladores = {};
   final _busquedaController = TextEditingController();
   String _busqueda = '';
-  // true justo después de resolver un código escaneado (ver _escanear): ahí
-  // el filtro busca coincidencia EXACTA de código/código de barras, no
-  // difusa -mismo motivo que en Inventario (ver InventarioScreen._escanear):
-  // un código de barras completo no debe fallar por casualidades del
-  // filtro de texto libre, tiene que encontrar exactamente ese producto o
-  // ninguno-. Se apaga apenas el usuario vuelve a escribir a mano.
   bool _busquedaPorCodigoBarras = false;
   bool _soloDescuadres = false;
   bool _ajustandoTodo = false;
@@ -67,10 +49,6 @@ class _AuditoriaInventarioScreenState
     );
   }
 
-  // [busquedaInicial] lo usa _escanear: cuando el código escaneado
-  // pertenece a una categoría distinta a la que no había ninguna elegida
-  // todavía, cambia a esa categoría y deja el código ya cargado en el
-  // buscador, para no tener que escribirlo de nuevo.
   void _cambiarCategoria(
     String? id, {
     String? busquedaInicial,
@@ -99,15 +77,6 @@ class _AuditoriaInventarioScreenState
     return null;
   }
 
-  // Mismo patrón que Inventario (ver inventario_screen.dart _escanear):
-  // prueba coincidencia exacta y, si no encuentra nada, otras variantes
-  // válidas del mismo código (invertido, con/sin el "0" que agrega iPhone).
-  // A diferencia de Inventario, acá SÍ importa la categoría: si el producto
-  // escaneado es de otra categoría a la que ya se está auditando, no la
-  // cambia sola -haría perder el conteo físico que el usuario ya lleva
-  // tecleado ahí-, solo avisa. Si todavía no hay categoría elegida, no hay
-  // nada que perder, así que ahí sí selecciona la categoría del producto
-  // automáticamente.
   Future<void> _escanear() async {
     final codigo = await escanearCodigoBarras(context);
     if (codigo == null || codigo.isEmpty || !mounted) return;
@@ -201,13 +170,6 @@ class _AuditoriaInventarioScreenState
     );
   }
 
-  /// Ajusta de una sola vez todos los productos de [lista] cuyo conteo
-  /// físico no cuadra con el sistema, en vez de tener que abrir el diálogo
-  /// de ajuste uno por uno. Usa el mismo motivo que el ajuste individual
-  /// ("Reajuste por auditoría") y el precio de compra vigente como costo del
-  /// ingreso -si algún producto sube existencia y ese costo no es el
-  /// correcto para ese caso puntual, se puede corregir después a mano desde
-  /// Inventario-.
   Future<void> _ajustarTodosLosDescuadres(List<ProductoModel> lista) async {
     final aAjustar = [
       for (final p in lista)
@@ -264,10 +226,6 @@ class _AuditoriaInventarioScreenState
               motivo: motivo,
             );
           } else {
-            // Sin lote específico: es un ajuste global sobre varios productos
-            // a la vez, no tiene sentido pararse a elegir un lote por cada uno
-            // -igual que la opción "sin lote" ya disponible en el ajuste
-            // individual (ver AjusteStockDialog)-.
             await repo.registrarSalida(
               id: par.producto.id,
               cantidad: par.diferencia.abs(),
@@ -622,14 +580,6 @@ class _AuditoriaInventarioScreenState
   }
 
   Widget _contenidoCategoria(List<ProductoModel> productos, bool esMovil) {
-    // Los combos no se auditan directo acá: su "existencia" es virtual
-    // (depende del stock real de sus componentes, ver
-    // ProductoModel.stockDisponibleCombo), así que un conteo físico del
-    // combo en sí no tendría con qué compararse de forma confiable.
-    // Los que sí tienen existencia según el sistema van primero -son los que
-    // de verdad hay que ir a contar físicamente al estante-; los que ya
-    // están en 0 quedan al final, ordenados alfabéticamente dentro de cada
-    // grupo.
     var lista =
         productos
             .where((p) => p.idCategoria == _idCategoria && !p.esCombo)
@@ -645,11 +595,6 @@ class _AuditoriaInventarioScreenState
         .length;
 
     if (_busqueda.isNotEmpty) {
-      // Mismo criterio que Inventario: un código escaneado exige
-      // coincidencia EXACTA (ver _escanear), texto tecleado a mano usa
-      // búsqueda difusa -sin tildes, por palabras en cualquier orden y con
-      // tolerancia a errores de tipeo- en vez del simple "contains" de
-      // antes, que fallaba con acentos o con el orden de las palabras.
       lista = _busquedaPorCodigoBarras
           ? lista.where((p) => _coincideExacto(p, _busqueda)).toList()
           : lista
@@ -827,7 +772,6 @@ class _AuditoriaInventarioScreenState
     );
   }
 
-  // ---------- Tabla de escritorio ----------
 
   Widget _tabla(List<ProductoModel> lista) {
     return Column(
@@ -1039,7 +983,6 @@ class _AuditoriaInventarioScreenState
     );
   }
 
-  // ---------- Tarjetas móvil ----------
 
   Widget _tarjetas(List<ProductoModel> lista) {
     return ListView.separated(

@@ -1,8 +1,5 @@
 import 'compatibilidad_model.dart';
 
-/// Un componente de la receta de un producto tipo combo/kit: apunta a un
-/// producto individual real (con su propio stock/lotes) y cuántas unidades
-/// de ese producto lleva cada unidad del combo.
 class ComponenteProductoModel {
   final String idProducto;
   final double cantidad;
@@ -91,9 +88,6 @@ class ProductoModel {
 
   String get textoVehiculos => compatibilidad.map((c) => c.textoCompleto).join(' ');
 
-  /// Existencia estimada del combo según lo que hay disponible de cada
-  /// componente (mínimo entre todos, dividido por la cantidad que lleva cada
-  /// uno). Es solo informativo: nunca bloquea una venta si da 0 o negativo.
   double stockDisponibleCombo(Map<String, ProductoModel> mapaProductos) {
     if (componentes.isEmpty) return 0;
     double? minimo;
