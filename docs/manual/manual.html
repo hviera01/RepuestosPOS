@@ -1,0 +1,677 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Manual de usuario - Repuestos POS</title><style>@page {
+  size: A4;
+  margin: 18mm 16mm 20mm 16mm;
+  @bottom-center {
+    content: counter(page);
+    font: 9pt 'Segoe UI', Arial, sans-serif;
+    color: #6b7280;
+  }
+}
+@page :first {
+  margin: 0;
+  @bottom-center { content: none; }
+}
+
+:root {
+  --pri: #303846;
+  --pri-claro: #eef0f3;
+  --texto: #1a1a1a;
+  --borde: #b6bcc7;
+  --suave: #e8eaf0;
+  --fondo: #f2f3f7;
+  --ok: #16a34a;
+  --alerta: #b45309;
+  --rojo: #b91c1c;
+}
+
+* { box-sizing: border-box; }
+html { font-family: 'Segoe UI', Arial, sans-serif; color: var(--texto); font-size: 10.5pt; line-height: 1.5; }
+body { margin: 0; }
+
+.portada {
+  height: 297mm;
+  background: var(--pri);
+  color: #fff;
+  padding: 28mm 22mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  page-break-after: always;
+}
+.portada .marca { display: flex; align-items: center; gap: 14px; font-size: 13pt; letter-spacing: 3px; text-transform: uppercase; opacity: .85; }
+.portada h1 { font-size: 40pt; line-height: 1.05; margin: 0 0 14px; font-weight: 700; letter-spacing: -1px; }
+.portada .sub { font-size: 15pt; max-width: 120mm; opacity: .85; }
+.portada .pie { font-size: 10pt; opacity: .7; display: flex; justify-content: space-between; }
+.engranaje { width: 54px; height: 54px; }
+
+h2.capitulo {
+  font-size: 22pt;
+  margin: 0 0 4mm;
+  padding-bottom: 3mm;
+  border-bottom: 3px solid var(--pri);
+  page-break-before: always;
+  letter-spacing: -.3px;
+}
+h2.capitulo .num { color: #fff; background: var(--pri); border-radius: 6px; padding: 0 9px; margin-right: 10px; font-size: 18pt; }
+h3 { font-size: 13.5pt; margin: 7mm 0 2mm; color: var(--pri); }
+h4 { font-size: 11pt; margin: 5mm 0 1mm; }
+p { margin: 0 0 3mm; }
+ul, ol { margin: 0 0 3mm; padding-left: 6mm; }
+li { margin-bottom: 1mm; }
+
+.toc { page-break-after: always; padding-top: 8mm; }
+.toc h2 { font-size: 22pt; margin: 0 0 6mm; border-bottom: 3px solid var(--pri); padding-bottom: 3mm; }
+.toc ol { list-style: none; padding: 0; counter-reset: cap; }
+.toc li { display: flex; gap: 10px; padding: 2.2mm 0; border-bottom: 1px dotted var(--borde); font-size: 11.5pt; }
+.toc li b { color: var(--pri); min-width: 9mm; }
+.toc a { color: inherit; text-decoration: none; }
+
+.aviso, .consejo, .cuidado {
+  border-left: 4px solid var(--pri);
+  background: var(--pri-claro);
+  padding: 3mm 4mm;
+  margin: 3mm 0 4mm;
+  border-radius: 0 6px 6px 0;
+  break-inside: avoid;
+}
+.consejo { border-color: var(--ok); background: #ecf8f0; }
+.cuidado { border-color: var(--alerta); background: #fdf3e6; }
+.aviso b:first-child, .consejo b:first-child, .cuidado b:first-child { display: block; margin-bottom: 1mm; }
+
+table.datos { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size: 9.5pt; break-inside: avoid; }
+table.datos th { background: var(--pri); color: #fff; text-align: left; padding: 2mm 3mm; font-weight: 600; }
+table.datos td { padding: 2mm 3mm; border-bottom: 1px solid var(--suave); vertical-align: top; }
+table.datos tr:nth-child(even) td { background: #fafafb; }
+
+.figura { margin: 4mm 0 5mm; break-inside: avoid; }
+.figura .pie { font-size: 9pt; color: #6b7280; margin-top: 1.5mm; text-align: center; }
+
+.leyenda { margin: 2mm 0 4mm; padding: 0; list-style: none; counter-reset: ley; }
+.leyenda li { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 1.2mm; }
+.leyenda li::before {
+  counter-increment: ley;
+  content: counter(ley);
+  flex: 0 0 auto;
+  width: 5.2mm; height: 5.2mm;
+  border-radius: 50%;
+  background: var(--rojo);
+  color: #fff;
+  font-size: 8.5pt;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: .3mm;
+}
+
+.pantalla { border: 1px solid var(--borde); border-radius: 8px; overflow: hidden; background: var(--fondo); font-size: 7.6pt; position: relative; }
+.pantalla .barra { background: var(--pri); color: #fff; padding: 1.6mm 3mm; display: flex; justify-content: space-between; align-items: center; font-size: 7.4pt; }
+.pantalla .cuerpo { display: flex; min-height: 62mm; }
+.pantalla .menu { width: 31mm; background: #fff; border-right: 1px solid var(--suave); padding: 2mm 0; flex: 0 0 auto; }
+.pantalla .menu div { padding: 1.4mm 3mm; color: #4b4f58; }
+.pantalla .menu div.act { background: var(--pri-claro); color: var(--pri); font-weight: 700; border-left: 3px solid var(--pri); padding-left: 2mm; }
+.pantalla .menu div.sub { padding-left: 6mm; font-size: 7pt; color: #666a72; }
+.pantalla .menu div.sub.act { padding-left: 4.4mm; }
+.pantalla .contenido { flex: 1; padding: 3mm; min-width: 0; }
+.pantalla h5 { margin: 0 0 2mm; font-size: 10.5pt; color: var(--texto); }
+.fila { display: flex; gap: 2mm; flex-wrap: wrap; align-items: center; margin-bottom: 2mm; }
+.campo { background: #fff; border: 1px solid var(--borde); border-radius: 5px; padding: 1.3mm 2.4mm; color: #6b7280; min-width: 22mm; }
+.campo.lleno { color: var(--texto); }
+.campo b { color: #8a8f99; font-weight: 500; margin-right: 1.5mm; }
+.btn { background: var(--pri); color: #fff; border-radius: 5px; padding: 1.4mm 3mm; font-weight: 600; white-space: nowrap; }
+.btn.sec { background: #fff; color: var(--texto); border: 1px solid var(--borde); }
+.btn.ok { background: var(--ok); }
+.btn.rojo { background: #fff; color: var(--rojo); border: 1px solid #e3a3a3; }
+.chip { background: var(--pri-claro); color: var(--pri); border-radius: 10px; padding: .6mm 2.2mm; font-weight: 600; }
+.chip.ok { background: #e1f5e8; color: var(--ok); }
+.chip.mal { background: #fbe4e4; color: var(--rojo); }
+.chip.aviso { background: #fdecd2; color: var(--alerta); }
+.tarjeta { background: #fff; border: 1px solid var(--suave); border-radius: 6px; padding: 2.4mm; }
+.rejilla { display: grid; gap: 2mm; }
+.g2 { grid-template-columns: 1fr 1fr; }
+.g3 { grid-template-columns: 1fr 1fr 1fr; }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+.kpi { background: #fff; border: 1px solid var(--suave); border-radius: 6px; padding: 2.4mm; }
+.kpi small { color: #6b7280; display: block; }
+.kpi b { font-size: 11pt; }
+
+table.mini { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--suave); border-radius: 6px; font-size: 7.2pt; }
+table.mini th { background: var(--pri-claro); color: var(--pri); text-align: left; padding: 1.3mm 2mm; font-weight: 700; }
+table.mini td { padding: 1.2mm 2mm; border-top: 1px solid var(--suave); }
+table.mini td.num, table.mini th.num { text-align: right; }
+
+.marca-num {
+  position: absolute;
+  width: 5mm; height: 5mm;
+  border-radius: 50%;
+  background: var(--rojo);
+  color: #fff;
+  font-weight: 700;
+  font-size: 8pt;
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid #fff;
+  box-shadow: 0 0 0 1px var(--rojo);
+}
+
+.paso { display: flex; gap: 4mm; margin: 2mm 0 3mm; break-inside: avoid; }
+.paso .n { flex: 0 0 8mm; height: 8mm; border-radius: 50%; background: var(--pri); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: .5mm; }
+.paso .t { flex: 1; }
+.paso .t b { display: block; }
+
+.dos-col { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+.sin-corte { break-inside: avoid; }
+code { background: var(--pri-claro); border-radius: 3px; padding: 0 1.5mm; font-family: Consolas, monospace; font-size: 9.5pt; }
+.pt { display: block; page-break-after: always; }
+</style></head><body>
+<section class="portada">
+  <div class="marca"><svg class="engranaje" viewBox="-50 -50 100 100"><g fill="#fff"><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(0)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(36)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(72)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(108)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(144)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(180)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(216)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(252)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(288)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(324)"/><circle r="31"/></g><circle r="14" fill="#303846"/></svg><span>Repuestos POS</span></div>
+  <div><h1>Manual<br>de usuario</h1><div class="sub">Ventas, compras, inventario por vehículo, créditos, traslados y reportes.</div></div>
+  <div class="pie"><span>Versión del manual: octubre de 2026</span><span>Para administradores y personal de mostrador</span></div>
+</section>
+<div class="toc"><h2>Contenido</h2><ol><li><b>1</b><a href="#cap1">Bienvenida</a></li><li><b>2</b><a href="#cap2">Primeros pasos</a></li><li><b>3</b><a href="#cap3">Configuración del negocio</a></li><li><b>4</b><a href="#cap4">Usuarios, roles y permisos</a></li><li><b>5</b><a href="#cap5">Inventario y vehículos compatibles</a></li><li><b>6</b><a href="#cap6">Clientes y proveedores</a></li><li><b>7</b><a href="#cap7">Ventas</a></li><li><b>8</b><a href="#cap8">Compras</a></li><li><b>9</b><a href="#cap9">Créditos y cobros</a></li><li><b>10</b><a href="#cap10">Sucursales y traslados</a></li><li><b>11</b><a href="#cap11">Caja, ingresos y egresos</a></li><li><b>12</b><a href="#cap12">Reportes</a></li><li><b>13</b><a href="#cap13">Impresión</a></li><li><b>14</b><a href="#cap14">Varios equipos, internet y actualizaciones</a></li><li><b>15</b><a href="#cap15">Problemas frecuentes y buenas prácticas</a></li></ol></div>
+<h2 class="capitulo" id="cap1"><span class="num">1</span>Bienvenida</h2>
+<p><b>Repuestos POS</b> es el sistema con el que su negocio registra ventas, compras, inventario, créditos, traslados entre sucursales y cierres de caja. Funciona en computadoras con Windows, en celulares y tabletas Android y desde el navegador web. Todos los equipos trabajan sobre la misma información: lo que se registra en uno aparece en los demás en pocos segundos.</p>
+
+<h3>Qué puede hacer con el sistema</h3>
+<ul>
+  <li>Vender con <b>factura</b> o con <b>venta simple</b>, hacer cotizaciones, ventas a crédito y pagos mixtos (parte en efectivo y parte con tarjeta o transferencia).</li>
+  <li>Controlar el inventario con existencias, costos por lote, historial de movimientos y fotos de cada repuesto.</li>
+  <li>Indicar para qué <b>vehículos y años</b> sirve cada repuesto, y encontrar rápido el repuesto correcto buscando por marca, modelo y año.</li>
+  <li>Mover mercadería entre <b>sucursales</b> con traslados que descuentan existencias y se pueden anular.</li>
+  <li>Dar seguimiento a las cuentas por cobrar (clientes) y por pagar (proveedores).</li>
+  <li>Cerrar la caja, registrar egresos y consultar reportes de ventas, compras, traslados y finanzas.</li>
+  <li>Cambiar los colores del sistema y elegir si la venta empieza como factura o como venta simple.</li>
+</ul>
+
+<h3>Equipos y requisitos</h3>
+<table class="datos"><thead><tr><th>Equipo</th><th>Cómo se usa</th><th>Notas</th></tr></thead><tbody><tr><td>Computadora con Windows 10 u 11</td><td>Programa instalado desde el archivo <code>RepuestosPOS.exe</code></td><td>Recomendado para la caja principal; es el que conecta la impresora de tickets.</td></tr><tr><td>Celular o tableta Android</td><td>Aplicación instalada desde <code>RepuestosPOS.apk</code></td><td>Sirve para vender, consultar inventario y escanear códigos de barras con la cámara.</td></tr><tr><td>Navegador web</td><td>Dirección web del sistema (la entrega quien le instaló el sistema)</td><td>Chrome o Edge actualizados. No necesita instalar nada.</td></tr></tbody></table>
+<p>Todos los equipos necesitan internet. Si la conexión se interrumpe un momento, el sistema vuelve a intentar solo y avisa cuando una operación quedó pendiente (ver capítulo 14).</p>
+
+<h3>Cómo está organizado este manual</h3>
+<p>Los capítulos siguen el orden en que normalmente se empieza a trabajar: ingresar, configurar el negocio, crear usuarios, cargar inventario, vender y comprar, y finalmente los reportes. Dentro del sistema, cada pantalla importante tiene un botón de ayuda con el ícono de un birrete: al tocarlo se abre una guía paso a paso sobre esa pantalla.</p>
+<div class="consejo"><b>Consejo</b>Si es la primera vez que usa el sistema, lea los capítulos 2, 3 y 4 antes de registrar la primera venta. Con eso queda listo el negocio, los usuarios y los permisos.</div>
+
+<h2 class="capitulo" id="cap2"><span class="num">2</span>Primeros pasos</h2>
+<h3>Ingresar al sistema</h3>
+<p>Al abrir el programa se muestra una breve pantalla de bienvenida y luego la pantalla de ingreso. Cada persona entra con su <b>documento</b> (el código que le asignó el administrador) y su <b>clave</b>.</p>
+<div class="figura">
+  <div class="pantalla">
+    <div class="barra"><span>Repuestos POS</span><span>Ingreso</span><span></span></div>
+    <div class="cuerpo" style="min-height:70mm"><div class="contenido"><div style="display:flex;justify-content:center;padding:6mm 0"><div class="tarjeta" style="width:62mm;text-align:center;padding:6mm">
+      <div style="width:14mm;height:14mm;border-radius:50%;background:#303846;margin:0 auto 3mm"></div>
+      <h5 style="margin:0 0 3mm">Repuestos</h5>
+      <div class="campo" style="margin-bottom:2mm;text-align:left"><b>Documento</b>0801199012345</div>
+      <div class="campo" style="margin-bottom:3mm;text-align:left"><b>Clave</b>••••••••</div>
+      <div class="btn" style="display:block;text-align:center">Ingresar</div>
+      <div style="margin-top:3mm;color:#6b7280">Entrar con huella o Face ID</div></div></div></div></div>
+    <span class="marca-num" style="left:40%;top:38%">1</span><span class="marca-num" style="left:40%;top:52%">2</span><span class="marca-num" style="left:62%;top:64%">3</span><span class="marca-num" style="left:47%;top:76%">4</span>
+  </div><div class="pie">Pantalla de ingreso. El color de fondo es el color principal que se elige en Negocio.</div></div><ol class="leyenda"><li><span>Escriba su documento.</span></li><li><span>Escriba su clave. Si se equivoca varias veces seguidas, la cuenta se bloquea unos minutos por seguridad.</span></li><li><span>Presione Ingresar.</span></li><li><span>En equipos compatibles puede activar la huella o Face ID para entrar sin escribir la clave.</span></li></ol>
+<div class="aviso"><b>Importante</b>Cada persona debe usar su propio usuario. Así los reportes muestran quién hizo cada venta, compra o ajuste de inventario.</div>
+
+<h3>La pantalla principal</h3>
+<p>Después de ingresar se muestra el <b>Inicio</b>. A la izquierda está el menú con todos los módulos; arriba, las pestañas abiertas; y en el centro, el resumen del negocio.</p>
+<div class="figura">
+  <div class="pantalla">
+    <div class="barra"><span>Repuestos POS</span><span>Inicio</span><span>Administrador ▾</span></div>
+    <div class="cuerpo" style="min-height:78mm">
+      <div class="menu"><div class="">Usuarios</div><div class="">Mantenedor</div><div class="">Ventas</div><div class="sub act">Registrar Venta</div><div class="sub ">Ver Detalle</div><div class="">Compras</div><div class="">Clientes</div><div class="">Proveedores</div><div class="">Sucursales</div><div class="">Traslados</div><div class="">Créditos</div><div class="">Reportes</div></div>
+      <div class="contenido"><h5>Inicio</h5>
+    <div class="fila"><span class="chip ">Inicio</span><span class="chip ok">Registrar Venta</span><span class="chip ">Inventario</span></div>
+    <div class="rejilla g3" style="margin-bottom:2mm"><div class="kpi"><small>Venta de hoy</small><b>L 18,450.00</b></div><div class="kpi"><small>Venta del mes</small><b>L 412,980.00</b></div><div class="kpi"><small>Ticket promedio</small><b>L 615.00</b></div></div>
+    <div class="tarjeta"><b>Ventas de los últimos 7 días</b>
+      <div style="display:flex;align-items:flex-end;gap:3mm;height:20mm;margin-top:2mm">
+        <div style="flex:1;background:#303846;height:40%;border-radius:2px 2px 0 0"></div><div style="flex:1;background:#303846;height:62%;border-radius:2px 2px 0 0"></div><div style="flex:1;background:#303846;height:35%;border-radius:2px 2px 0 0"></div><div style="flex:1;background:#303846;height:80%;border-radius:2px 2px 0 0"></div><div style="flex:1;background:#303846;height:55%;border-radius:2px 2px 0 0"></div><div style="flex:1;background:#303846;height:90%;border-radius:2px 2px 0 0"></div><div style="flex:1;background:#303846;height:48%;border-radius:2px 2px 0 0"></div>
+      </div></div></div>
+    </div>
+    <span class="marca-num" style="left:8%;top:30%">1</span><span class="marca-num" style="left:40%;top:28%">2</span><span class="marca-num" style="left:40%;top:45%">3</span><span class="marca-num" style="left:82%;top:6%">4</span>
+  </div><div class="pie">Pantalla de inicio con el menú, las pestañas y los totales de ventas.</div></div><ol class="leyenda"><li><span><b>Menú lateral.</b> Los módulos que no aparecen son los que su usuario no tiene permitidos.</span></li><li><span><b>Pestañas.</b> Cada pantalla se abre en una pestaña propia; puede tener varias a la vez.</span></li><li><span><b>Resumen.</b> Venta del día, del mes y de la semana (visible para administradores).</span></li><li><span><b>Usuario.</b> Desde aquí se cierra la sesión.</span></li></ol>
+
+<h3>Trabajar con varias pestañas</h3>
+<p>Cada pestaña es independiente: puede dejar una venta a medias en una pestaña, abrir el inventario en otra para consultar una existencia y volver a la venta sin perder nada. Un cuadro de búsqueda abierto en una pestaña no afecta a las demás.</p>
+<ul>
+  <li>Para abrir una pantalla, toque su nombre en el menú.</li>
+  <li>Para cerrar una pestaña, use la <b>x</b> de su etiqueta.</li>
+  <li>En el celular el menú se muestra con el botón de las tres rayas.</li>
+</ul>
+
+<h3>Cerrar sesión</h3>
+<p>Abra el menú de su usuario, arriba a la derecha, y elija <b>Cerrar sesión</b>. Hágalo siempre que otra persona vaya a usar el equipo.</p>
+
+<h2 class="capitulo" id="cap3"><span class="num">3</span>Configuración del negocio</h2>
+<p>Antes de vender, el administrador debe completar los datos del negocio. Todo se hace en <b>Mantenedor ▸ Negocio</b>. Los cambios se guardan al instante y se aplican a todos los equipos.</p>
+
+<div class="figura">
+  <div class="pantalla">
+    <div class="barra"><span>Repuestos POS</span><span>Negocio</span><span>Administrador ▾</span></div>
+    <div class="cuerpo" style="min-height:92mm">
+      <div class="menu"><div class="">Usuarios</div><div class="">Mantenedor</div><div class="sub ">Categorías</div><div class="sub ">Inventario</div><div class="sub ">Auditoría de Inventario</div><div class="sub ">Pendientes de Reposición</div><div class="sub act">Negocio</div><div class="sub ">Dispositivos</div><div class="sub ">Descuentos y Promociones</div><div class="">Ventas</div><div class="">Compras</div><div class="">Clientes</div><div class="">Proveedores</div><div class="">Sucursales</div><div class="">Traslados</div><div class="">Créditos</div><div class="">Reportes</div></div>
+      <div class="contenido"><h5>Negocio</h5>
+    <div class="tarjeta" style="margin-bottom:2mm"><b>Datos del negocio</b>
+      <div class="fila" style="margin-top:1.5mm"><div class="campo lleno"><b>Nombre</b>REPUESTOS EL BUEN FRENO</div><div class="campo lleno"><b>RTN</b>08011990123456</div><div class="campo lleno"><b>Teléfono</b>2222-3344</div></div>
+      <div class="fila"><div class="campo lleno"><b>Dirección</b>Col. Centro, Av. Principal</div><div class="campo lleno"><b>Correo</b>ventas@negocio.hn</div></div>
+      <div class="fila"><div class="campo lleno"><b>CAI</b>A1B2C3-D4E5F6-…</div><div class="campo lleno"><b>Rango autorizado</b>000-001-01-00000001 a …00005000</div><div class="campo lleno"><b>Fecha límite</b>31/12/2026</div></div>
+    </div>
+    <div class="tarjeta"><b>Apariencia y documento por defecto</b>
+      <div class="fila" style="margin-top:1.5mm">
+        <span style="width:7mm;height:7mm;border-radius:50%;background:#303846;display:inline-block;outline:2px solid #1a1a1a;outline-offset:1px"></span><span style="width:7mm;height:7mm;border-radius:50%;background:#475569;display:inline-block;"></span><span style="width:7mm;height:7mm;border-radius:50%;background:#1E3A5F;display:inline-block;"></span><span style="width:7mm;height:7mm;border-radius:50%;background:#1F5F46;display:inline-block;"></span><span style="width:7mm;height:7mm;border-radius:50%;background:#7A1F2B;display:inline-block;"></span><span style="width:7mm;height:7mm;border-radius:50%;background:#A23E1E;display:inline-block;"></span><span style="width:7mm;height:7mm;border-radius:50%;background:#8A6414;display:inline-block;"></span><span style="width:7mm;height:7mm;border-radius:50%;background:#5B2A63;display:inline-block;"></span><span style="width:7mm;height:7mm;border-radius:50%;background:#0E6E78;display:inline-block;"></span>
+      </div>
+      <div class="fila"><div class="campo lleno"><b>Color propio</b>#RRGGBB</div><span class="btn sec">Aplicar</span><span class="btn sec">Restablecer</span></div>
+      <div class="fila"><span class="chip ok">Factura</span><span class="chip ">Venta</span><span style="color:#6b7280">Documento que aparece primero al vender</span></div>
+    </div></div>
+    </div>
+    <span class="marca-num" style="left:24%;top:24%">1</span><span class="marca-num" style="left:24%;top:46%">2</span><span class="marca-num" style="left:24%;top:70%">3</span><span class="marca-num" style="left:54%;top:88%">4</span>
+  </div><div class="pie">Pantalla de Negocio: datos generales, apariencia y documento por defecto.</div></div><ol class="leyenda"><li><span><b>Datos generales:</b> nombre, RTN, teléfono, dirección, correo y eslogan. Salen impresos en los tickets y facturas.</span></li><li><span><b>Autorización fiscal:</b> CAI, rango de numeración autorizado y fecha límite de emisión.</span></li><li><span><b>Color principal:</b> toque una muestra o escriba un color propio. Cambia todo el sistema en todos los equipos.</span></li><li><span><b>Documento por defecto:</b> elija si al abrir una venta aparece primero Factura o Venta.</span></li></ol>
+
+<h3>Datos del negocio y autorización fiscal</h3>
+<p>Llene los campos y presione <b>Guardar</b>. Si el negocio emite facturas con CAI, complete el rango autorizado y la fecha límite; el sistema numera las facturas en orden y respeta ese rango.</p>
+<p>Al registrar la primera factura puede indicar con qué número debe continuar la numeración (por ejemplo, para seguir un talonario que ya venía usando) en la tarjeta <b>Factura ▸ Numeración de facturas</b>.</p>
+
+<h3>Logo</h3>
+<p>Puede subir el logo a color y el logo en blanco y negro. El de blanco y negro se usa en los tickets térmicos.</p>
+
+<h3>Color del sistema</h3>
+<p>El sistema viene en un gris grafito neutro. Para ajustarlo a los colores de su negocio, entre a <b>Negocio ▸ Apariencia y documento por defecto</b> y elija una de las nueve muestras o escriba un código de color propio, por ejemplo <code>#1F5F46</code>. Al cambiarlo, las ventanas abiertas se refrescan en todos los equipos.</p>
+<div class="cuidado"><b>Cuidado</b>Elija un color medio u oscuro. Con colores muy claros el texto blanco de los botones se lee mal.</div>
+
+<h3>Documento por defecto: Factura o Venta</h3>
+<p>Al abrir <b>Registrar Venta</b>, el sistema propone un tipo de documento. En <b>Negocio</b> usted decide cuál aparece primero:</p>
+<table class="datos"><thead><tr><th>Tipo</th><th>Qué hace</th></tr></thead><tbody><tr><td><b>Factura</b></td><td>Cobra el ISV (15%) desglosado y usa la numeración con CAI. Se imprime como factura.</td></tr><tr><td><b>Venta</b></td><td>Venta simple, sin factura. Se imprime como ticket de venta y tiene su propia numeración.</td></tr><tr><td>Boleta</td><td>Documento formal con ISV, igual que la factura en cuanto a impuestos.</td></tr><tr><td>Cotización</td><td>No descuenta existencias ni suma a las ventas; sirve para dar un precio al cliente.</td></tr></tbody></table>
+<p>Aunque haya elegido uno por defecto, en cada venta puede cambiar el tipo antes de registrarla.</p>
+
+<h3>Impresión de tickets y facturas</h3>
+<p>En la tarjeta <b>Impresoras</b> y en <b>Factura</b> se configura todo lo relacionado con la impresión:</p>
+<table class="datos"><thead><tr><th>Opción</th><th>Para qué sirve</th></tr></thead><tbody><tr><td>Imprimir facturas automáticamente</td><td>Interruptor general. Apáguelo si todavía no tiene impresora.</td></tr><tr><td>Imprimir copia además del original</td><td>Si lo apaga, solo sale la hoja ORIGINAL y se ahorra papel.</td></tr><tr><td>Mostrar precios con ISV incluido</td><td>El precio de cada línea del ticket se muestra con el impuesto incluido.</td></tr><tr><td>Ancho del rollo (58 o 80 mm)</td><td>Elija el ancho de su impresora térmica.</td></tr><tr><td>Modo de impresión</td><td>«Preguntar» muestra una vista previa; «Directo» imprime sin preguntar.</td></tr><tr><td>Impresora térmica de Windows</td><td>Elija la impresora instalada en el equipo.</td></tr><tr><td>Impresora de red (IP y puerto)</td><td>Para impresoras con cable de red; el puerto habitual es 9100.</td></tr><tr><td>Impresora Bluetooth (Android)</td><td>Empareje la impresora en el celular y elíjala aquí.</td></tr><tr><td>Usar driver de Windows</td><td>Actívelo si su impresora no acepta impresión directa (algunas Star, por ejemplo).</td></tr><tr><td>PC principal</td><td>Marque el equipo que tiene la impresora conectada para que imprima los tickets pedidos desde otros equipos.</td></tr></tbody></table>
+<p>El botón <b>Imprimir ticket de prueba</b> genera un ticket de prueba sin registrar ninguna venta real.</p>
+
+<h3>Clave especial</h3>
+<p>La clave especial es una segunda clave, conocida solo por el administrador, que el sistema pide antes de acciones delicadas (ver capítulo 4). Se crea y se cambia en <b>Negocio ▸ Seguridad</b>. Allí mismo se marca cuáles acciones la piden.</p>
+
+<h3>Otros ajustes</h3>
+<ul>
+  <li><b>Teclado compacto en tableta:</b> usa un teclado propio más pequeño para que no tape la pantalla.</li>
+  <li><b>Face ID / huella:</b> permite que cada persona entre sin escribir su clave en su dispositivo.</li>
+  <li><b>Dispositivos:</b> lista los equipos que usan el sistema, su versión y su última conexión. Sirve para detectar equipos desactualizados y para marcar la PC principal.</li>
+</ul>
+
+<h2 class="capitulo" id="cap4"><span class="num">4</span>Usuarios, roles y permisos</h2>
+<p>Los usuarios se crean y se editan en <b>Usuarios</b>. Esta pantalla solo la ve el administrador.</p>
+
+<div class="figura">
+  <div class="pantalla">
+    <div class="barra"><span>Repuestos POS</span><span>Usuarios</span><span>Administrador ▾</span></div>
+    <div class="cuerpo" style="min-height:80mm">
+      <div class="menu"><div class="act">Usuarios</div><div class="">Mantenedor</div><div class="">Ventas</div><div class="">Compras</div><div class="">Clientes</div><div class="">Proveedores</div><div class="">Sucursales</div><div class="">Traslados</div><div class="">Créditos</div><div class="">Reportes</div></div>
+      <div class="contenido"><h5>Usuarios</h5>
+    <div class="fila"><div class="campo "><b>Buscar usuario…</b></div><span class="btn ">Nuevo Usuario</span></div>
+    <table class="mini"><thead><tr><th class="">Documento</th><th class="">Nombre</th><th class="">Rol</th><th class="">Estado</th></tr></thead><tbody><tr><td class="">0801199012345</td><td class="">MARÍA LÓPEZ</td><td class="">Administrador</td><td class=""><span class="chip ok">Activo</span></td></tr><tr><td class="">0801198811111</td><td class="">JOSÉ PÉREZ</td><td class="">Encargado</td><td class=""><span class="chip ok">Activo</span></td></tr><tr><td class="">0801200122222</td><td class="">ANA RIVERA</td><td class="">Empleado</td><td class=""><span class="chip ok">Activo</span></td></tr><tr><td class="">0801199533333</td><td class="">LUIS MEJÍA</td><td class="">Empleado</td><td class=""><span class="chip mal">Inactivo</span></td></tr></tbody></table>
+    <div class="tarjeta" style="margin-top:2mm"><b>Nuevo usuario</b>
+      <div class="fila" style="margin-top:1.5mm"><div class="campo "><b>Documento</b></div><div class="campo "><b>Nombre completo</b></div><div class="campo lleno"><b>Rol</b>Encargado ▾</div></div>
+      <div class="fila"><span class="chip ">Pantallas permitidas</span><span class="chip ">Acciones permitidas</span></div></div></div>
+    </div>
+    <span class="marca-num" style="left:82%;top:22%">1</span><span class="marca-num" style="left:62%;top:70%">2</span><span class="marca-num" style="left:42%;top:84%">3</span>
+  </div><div class="pie">Lista de usuarios y formulario para crear uno nuevo.</div></div><ol class="leyenda"><li><span>Botón para crear un usuario nuevo.</span></li><li><span>El <b>rol</b> define qué puede hacer la persona.</span></li><li><span>Para el rol Encargado (y opcionalmente Empleado) se eligen las pantallas y acciones permitidas.</span></li></ol>
+
+<h3>Roles</h3>
+<table class="datos"><thead><tr><th>Rol</th><th>Qué puede hacer</th></tr></thead><tbody><tr><td><b>Administrador</b></td><td>Todo: configuración, usuarios, inventario, reportes financieros, anulaciones. Nunca se le piden permisos adicionales.</td></tr><tr><td><b>Semi Administrador</b></td><td>Casi todo lo operativo. No entra a las pantallas reservadas al administrador (por ejemplo Usuarios o Negocio).</td></tr><tr><td><b>Empleado</b></td><td>Por defecto: Registrar Venta, Ver Detalle de ventas, Clientes, Proveedores y Créditos. Se puede ajustar pantalla por pantalla.</td></tr><tr><td><b>Encargado</b></td><td>Rol a la medida: el administrador marca exactamente qué pantallas ve y qué acciones puede hacer.</td></tr></tbody></table>
+
+<h3>Pantallas permitidas y acciones permitidas</h3>
+<p>Al crear o editar un usuario con rol Encargado aparecen dos listas de casillas:</p>
+<ul>
+  <li><b>Pantallas permitidas:</b> los módulos que verá en el menú.</li>
+  <li><b>Acciones permitidas:</b> botones que podrá usar dentro de esas pantallas.</li>
+</ul>
+<table class="datos"><thead><tr><th>Acción</th><th>Qué controla</th></tr></thead><tbody><tr><td>Crear clientes / Editar clientes / Eliminar clientes</td><td>Botones «Nuevo Cliente», «Editar» y «Eliminar» en Clientes.</td></tr><tr><td>Registrar compras</td><td>Botón «Registrar Compra».</td></tr><tr><td>Anular compras</td><td>Botón «Anular Compra» en el detalle de una compra.</td></tr><tr><td>Crear productos en Inventario</td><td>Botón «Nuevo Producto».</td></tr><tr><td>Eliminar productos en Inventario</td><td>Eliminar un producto desde su ficha.</td></tr><tr><td>Anular ventas</td><td>Botón «Anular Venta» en el detalle de una venta.</td></tr><tr><td>Anular traslados</td><td>Botón «Anular» en el detalle de un traslado.</td></tr></tbody></table>
+<div class="consejo"><b>Consejo</b>Cree un usuario Encargado para quien atiende el mostrador: marque «Registrar Venta», «Clientes» y «Ver Detalle», y deje sin marcar las anulaciones. Así vende sin riesgo de anular documentos.</div>
+
+<h3>La clave especial</h3>
+<p>Algunas acciones delicadas piden la <b>clave especial</b> del negocio aunque el usuario ya haya ingresado. Se activan o desactivan una por una en <b>Negocio ▸ Seguridad</b>:</p>
+<table class="datos"><thead><tr><th>Acción protegida</th><th>Cuándo se pide la clave</th></tr></thead><tbody><tr><td>Editar productos en Inventario</td><td>Solo si cambia un precio (de compra o de venta). Cambiar el nombre o la ubicación no la pide.</td></tr><tr><td>Cambiar existencias en Inventario</td><td>Al confirmar un ajuste de existencia.</td></tr><tr><td>Eliminar créditos</td><td>Antes de eliminar un crédito.</td></tr><tr><td>Cambiar el precio de un producto en Ventas</td><td>Al modificar el precio unitario dentro de una venta.</td></tr><tr><td>Editar la descripción de un producto en Ventas</td><td>Al cambiar el texto de una línea de venta.</td></tr><tr><td>Vender un producto sin existencia</td><td>Al agregar a una venta un producto que no tiene existencias.</td></tr></tbody></table>
+<div class="cuidado"><b>Cuidado</b>La clave especial no debe compartirse con empleados. Si alguien la conoce y no debería, cámbiela en Negocio.</div>
+<p>Un usuario Encargado al que el administrador le marcó una acción protegida como permitida puede realizarla sin escribir la clave especial.</p>
+
+<h3>Desactivar un usuario</h3>
+<p>Cuando alguien deja de trabajar en el negocio no se elimina su usuario (para conservar el historial): se edita y se cambia su estado a <b>Inactivo</b>. Ya no podrá ingresar.</p>
+
+<h2 class="capitulo" id="cap5"><span class="num">5</span>Inventario y vehículos compatibles</h2>
+<p>El inventario está en <b>Mantenedor ▸ Inventario</b>. Allí se ven todos los repuestos con su código, nombre, categoría, existencia y precios. La lista se guarda en el equipo, por lo que abre al instante aunque haya miles de repuestos; los cambios hechos desde otros equipos llegan solos en segundos.</p>
+
+<div class="figura">
+  <div class="pantalla">
+    <div class="barra"><span>Repuestos POS</span><span>Inventario</span><span>Administrador ▾</span></div>
+    <div class="cuerpo" style="min-height:88mm">
+      <div class="menu"><div class="">Usuarios</div><div class="">Mantenedor</div><div class="sub ">Categorías</div><div class="sub act">Inventario</div><div class="sub ">Auditoría de Inventario</div><div class="sub ">Pendientes de Reposición</div><div class="sub ">Negocio</div><div class="sub ">Dispositivos</div><div class="sub ">Descuentos y Promociones</div><div class="">Ventas</div><div class="">Compras</div><div class="">Clientes</div><div class="">Proveedores</div><div class="">Sucursales</div><div class="">Traslados</div><div class="">Créditos</div><div class="">Reportes</div></div>
+      <div class="contenido"><h5>Inventario</h5>
+    <div class="fila"><div class="campo lleno"><b>Vista</b>Productos filtrados ▾</div><div class="campo lleno"><b>Buscar en</b>Todo ▾</div><div class="campo lleno"><b>Buscar</b>disco freno</div></div>
+    <div class="fila"><div class="campo lleno"><b>Vehículo</b>toyota hilux</div><div class="campo lleno"><b>Año</b>2012</div><span class="btn sec">Refrescar</span><span class="btn sec">Importar</span><span class="btn sec">Excel</span><span class="btn sec">PDF</span><span class="btn ">Nuevo Producto</span></div>
+    <table class="mini"><thead><tr><th class="">Código</th><th class="">Nombre</th><th class="">Categoría</th><th class="num">Existencia</th><th class="num">Precio</th></tr></thead><tbody><tr><td class="">DF-1042</td><td class="">DISCO FRENO DEL. TOYOTA HILUX 05-15, FORTUNER 09-UP</td><td class="">Frenos</td><td class="num">12</td><td class="num">L 1,450.00</td></tr><tr><td class="">PF-2210</td><td class="">PASTILLAS FRENO DEL. TOYOTA HILUX 05-15</td><td class="">Frenos</td><td class="num">3 <span class="chip aviso">Bajo</span></td><td class="num">L 680.00</td></tr><tr><td class="">FA-0087</td><td class="">FILTRO ACEITE TOYOTA HILUX 2.5 05-UP</td><td class="">Filtros</td><td class="num">40</td><td class="num">L 145.00</td></tr><tr><td class="">AM-3301</td><td class="">AMORTIGUADOR TRAS. TOYOTA HILUX 06-15</td><td class="">Suspensión</td><td class="num">0 <span class="chip mal">Agotado</span></td><td class="num">L 1,980.00</td></tr></tbody></table></div>
+    </div>
+    <span class="marca-num" style="left:40%;top:26%">1</span><span class="marca-num" style="left:33%;top:41%">2</span><span class="marca-num" style="left:90%;top:41%">3</span><span class="marca-num" style="left:88%;top:58%">4</span>
+  </div><div class="pie">Inventario con búsqueda por texto y filtro por vehículo y año.</div></div><ol class="leyenda"><li><span>Vista: <b>Productos filtrados</b>, <b>Mostrar todos</b> o <b>Bajo existencia</b>.</span></li><li><span>Filtro de <b>vehículo y año</b>: se aplica junto con el texto al presionar Enter.</span></li><li><span>Botones de importar desde Excel y de exportar a Excel, PDF, ticket o etiquetas.</span></li><li><span>Doble clic (o toque prolongado en el celular) sobre un repuesto abre su ficha completa.</span></li></ol>
+
+<h3>Buscar un repuesto</h3>
+<p>El buscador es <b>estricto</b>: cada palabra que escribe debe aparecer en el código, el nombre, la descripción o los vehículos del repuesto. Si escribe <code>disco civic</code>, solo salen repuestos que tengan las dos palabras. El código se puede escribir sin guiones ni espacios, y el código exacto aparece primero.</p>
+<h4>Buscar por vehículo y año</h4>
+<p>Junto al buscador hay dos campos: <b>Vehículo</b> (marca y/o modelo, por ejemplo <code>toyota hilux</code>) y <b>Año</b> (por ejemplo <code>2012</code> o <code>12</code>). Presione Enter para aplicarlos. El resultado muestra los repuestos compatibles con ese vehículo en ese año; los que sirven para el vehículo pero no tienen años registrados salen al final, para no esconder un repuesto que quizá sirva.</p>
+<div class="consejo"><b>Consejo</b>Puede usar solo el vehículo, solo el año, o combinarlos con el texto: «pastillas» + «hilux» + «2012» deja únicamente las pastillas que sirven para una Hilux 2012.</div>
+<p>El mismo filtro está en la ventana <b>Buscar Producto</b> de ventas, compras, pedidos y traslados.</p>
+
+<h3>Crear un repuesto nuevo</h3>
+<p>Presione <b>Nuevo Producto</b> (si su usuario tiene permiso). Se abre la ficha del repuesto:</p>
+<table class="datos"><thead><tr><th>Campo</th><th>Qué escribir</th></tr></thead><tbody><tr><td>Código</td><td>Código interno o del fabricante. Si lo deja vacío, el sistema genera uno. No puede repetirse.</td></tr><tr><td>Código de barras</td><td>Escanéelo con la cámara o con lector. Si lo deja vacío, se genera uno interno.</td></tr><tr><td>Nombre</td><td>Nombre del repuesto. Puede escribirse a mano o armarse solo (ver abajo).</td></tr><tr><td>Descripción</td><td>Ubicación en bodega, marca del fabricante u otra nota (opcional).</td></tr><tr><td>Categoría</td><td>Obligatoria. Las categorías se crean en Mantenedor ▸ Categorías.</td></tr><tr><td>Existencia inicial</td><td>Cuántas unidades hay hoy. Se crea el primer lote de costo con el precio de compra.</td></tr><tr><td>Precio de compra</td><td>Lo que le cuesta cada unidad.</td></tr><tr><td>Precio de venta (hasta 3 niveles)</td><td>Precio normal y, si lo necesita, dos precios alternativos (mayorista, taller).</td></tr><tr><td>Foto</td><td>Opcional. Se sube a internet y se ve en las búsquedas.</td></tr><tr><td>Estado</td><td>Activo o inactivo. Los inactivos no aparecen para vender.</td></tr></tbody></table>
+
+<h3>Vehículos compatibles y nombre automático</h3>
+<p>Dentro de la ficha hay una tarjeta <b>Vehículos compatibles (opcional)</b>. Con ella se registra para qué vehículos sirve el repuesto y el sistema puede armar el nombre solo.</p>
+<div class="figura">
+  <div class="pantalla">
+    <div class="barra"><span>Repuestos POS</span><span>Nuevo producto</span><span></span></div>
+    <div class="cuerpo" style="min-height:96mm"><div class="contenido"><h5>Nuevo producto</h5>
+    <div class="fila"><div class="campo lleno"><b>Código</b>PF-2210</div><div class="campo lleno"><b>Código de barras</b>2012345678901</div></div>
+    <div class="campo lleno" style="margin-bottom:2mm"><b>Nombre</b>PASTILLAS FRENO DEL. TOYOTA HILUX 05-15, FORTUNER 09-UP, NISSAN FRONTIER +1</div>
+    <div class="tarjeta" style="margin-bottom:2mm;background:#f6f7f9"><b>Vehículos compatibles (opcional) &nbsp; <span class="chip ok">Activado</span></b>
+      <div class="campo lleno" style="margin:1.5mm 0"><b>Nombre del repuesto</b>PASTILLAS FRENO DEL.</div>
+      <table class="mini"><thead><tr><th class="">Marca</th><th class="">Modelo</th><th class="">Año desde</th><th class="">Año hasta</th><th class=""></th></tr></thead><tbody><tr><td class="">TOYOTA</td><td class="">HILUX</td><td class="">2005</td><td class="">2015</td><td class="">✕</td></tr><tr><td class="">TOYOTA</td><td class="">FORTUNER</td><td class="">2009</td><td class=""></td><td class="">✕</td></tr><tr><td class="">NISSAN</td><td class="">FRONTIER</td><td class=""></td><td class=""></td><td class="">✕</td></tr><tr><td class="">FORD</td><td class="">RANGER</td><td class="">2012</td><td class="">2018</td><td class="">✕</td></tr></tbody></table>
+      <div class="fila" style="margin-top:1.5mm"><span class="btn sec">+ Agregar vehículo</span><span class="chip ok">Armar el nombre automáticamente</span></div>
+    </div>
+    <div class="fila"><div class="campo lleno"><b>Categoría</b>Frenos ▾</div><div class="campo lleno"><b>Existencia</b>12</div><div class="campo lleno"><b>P. compra</b>420.00</div><div class="campo lleno"><b>P. venta</b>680.00</div></div></div></div>
+    <span class="marca-num" style="left:6%;top:25%">1</span><span class="marca-num" style="left:6%;top:38%">2</span><span class="marca-num" style="left:50%;top:50%">3</span><span class="marca-num" style="left:50%;top:82%">4</span>
+  </div><div class="pie">Ficha de un repuesto con vehículos compatibles y nombre armado automáticamente.</div></div><ol class="leyenda"><li><span>El <b>nombre</b> se completa solo al agregar vehículos; puede corregirlo a mano.</span></li><li><span>Escriba el <b>nombre del repuesto</b> sin vehículos.</span></li><li><span>Una fila por vehículo: marca, modelo y rango de años. Año hasta vacío significa «en adelante».</span></li><li><span>Con <b>Armar el nombre automáticamente</b> activado, el nombre se actualiza cada vez que cambia la lista.</span></li></ol>
+<div class="paso"><div class="n">1</div><div class="t"><b>Active «Vehículos compatibles».</b>Aparece el cuadro para escribir el nombre del repuesto y la lista de vehículos.</div></div><div class="paso"><div class="n">2</div><div class="t"><b>Escriba el nombre del repuesto.</b>Por ejemplo <code>PASTILLAS FRENO DEL.</code>.</div></div><div class="paso"><div class="n">3</div><div class="t"><b>Agregue cada vehículo.</b>Marca y modelo tienen sugerencias: al escribir las primeras letras aparecen las marcas y modelos que ya usó antes, así no se escriben distinto.</div></div><div class="paso"><div class="n">4</div><div class="t"><b>Indique los años.</b>Desde y hasta, con cuatro cifras (2005 y 2015). Si el repuesto sirve de 2009 en adelante, deje «hasta» vacío.</div></div><div class="paso"><div class="n">5</div><div class="t"><b>Revise el nombre.</b>El sistema lo arma corto: nombre del repuesto + primeros tres vehículos + «+N» si hay más. Los años se abrevian a dos cifras.</div></div>
+<h4>Reglas del nombre automático</h4>
+<ul>
+  <li>La marca solo se repite cuando cambia: <code>TOYOTA HILUX 05-15, FORTUNER 09-UP, NISSAN FRONTIER</code>.</li>
+  <li>Los años se muestran como <code>05-15</code>, <code>09-UP</code> (en adelante) o <code>12</code> (un solo año).</li>
+  <li>Si hay más de tres vehículos se agrega <code>+N</code> al final; la lista completa queda guardada y la búsqueda por vehículo la usa completa.</li>
+  <li><b>Es opcional y editable.</b> Si prefiere escribir el nombre a mano, simplemente edítelo: la opción de armado automático se desactiva sola para ese repuesto. Para volver al nombre automático, active de nuevo la casilla.</li>
+  <li>Los repuestos que ya existían sin vehículos siguen funcionando: el filtro por vehículo intenta leer las marcas y años que estén escritos en su nombre.</li>
+</ul>
+
+<h3>Ajustar existencias</h3>
+<p>Desde la ficha o el menú de cada fila se abre <b>Ajustar existencias</b>. Hay dos movimientos:</p>
+<ul>
+  <li><b>Ingreso:</b> suma unidades indicando el costo unitario. Se crea un lote de costo nuevo.</li>
+  <li><b>Salida:</b> resta unidades. Puede elegir de qué lote salen o dejar que el sistema use el más antiguo primero (FIFO).</li>
+</ul>
+<p>Todo ajuste queda en el <b>historial de existencias</b> con fecha, usuario y motivo. Si la clave especial está activada para esta acción, se la pedirá antes de confirmar.</p>
+
+<h3>Lotes de costo e historiales</h3>
+<p>Cada compra o ingreso crea un <b>lote</b> con su costo. Al vender, el sistema descuenta de los lotes más antiguos y calcula el costo real de la venta, así la utilidad de los reportes es exacta. En la ficha del repuesto puede ver:</p>
+<ul>
+  <li>Los lotes con su cantidad restante (y reordenarlos si necesita que salga primero uno distinto).</li>
+  <li>El historial de existencias, de precios de compra, de ventas y de traslados del repuesto.</li>
+</ul>
+
+<h3>Importar y exportar</h3>
+<ul>
+  <li><b>Importar:</b> carga o actualiza muchos repuestos desde un archivo de Excel. El sistema crea las categorías que falten y actualiza los repuestos cuyo código ya existe.</li>
+  <li><b>Excel / PDF:</b> exporta la lista que está viendo.</li>
+  <li><b>Ticket / Etiquetas:</b> imprime la lista en rollo o etiquetas con código de barras.</li>
+</ul>
+
+<h3>Auditoría y pendientes de reposición</h3>
+<p><b>Auditoría de Inventario</b> permite comparar las existencias del sistema contra un conteo físico y ver las diferencias. <b>Pendientes de Reposición</b> muestra los repuestos que se vendieron sin existencia (venta anticipada) y que están esperando que llegue la compra para completarse.</p>
+
+<h3>Categorías</h3>
+<p>En <b>Mantenedor ▸ Categorías</b> se crean las categorías (Frenos, Filtros, Suspensión…). Cada categoría puede <b>controlar existencias</b> o no: las que no controlan existencias (por ejemplo, servicios o mano de obra) se pueden vender siempre.</p>
+
+<h3>Descuentos y promociones</h3>
+<p>En <b>Mantenedor ▸ Descuentos y Promociones</b> se crean ofertas: porcentaje de descuento, precio fijo, combo por cantidad, combo de varios productos o regalo. Cada una tiene fechas, forma de pago y condición (contado o crédito). En Registrar Venta el botón <b>Ver promociones vigentes</b> muestra las que aplican.</p>
+
+<h2 class="capitulo" id="cap6"><span class="num">6</span>Clientes y proveedores</h2>
+<h3>Clientes</h3>
+<p>En <b>Clientes</b> se registran las personas y empresas a quienes se vende. No es obligatorio registrar al cliente antes de vender: puede escribir su nombre en la venta y el sistema lo crea solo.</p>
+<div class="figura">
+  <div class="pantalla">
+    <div class="barra"><span>Repuestos POS</span><span>Clientes</span><span>Administrador ▾</span></div>
+    <div class="cuerpo" style="min-height:62mm">
+      <div class="menu"><div class="">Usuarios</div><div class="">Mantenedor</div><div class="">Ventas</div><div class="">Compras</div><div class="act">Clientes</div><div class="">Proveedores</div><div class="">Sucursales</div><div class="">Traslados</div><div class="">Créditos</div><div class="">Reportes</div></div>
+      <div class="contenido"><h5>Clientes</h5>
+    <div class="fila"><div class="campo "><b>Buscar cliente…</b></div><span class="btn ">Nuevo Cliente</span></div>
+    <table class="mini"><thead><tr><th class="">RTN / DNI</th><th class="">Nombre</th><th class="">Teléfono</th><th class="">Última compra</th></tr></thead><tbody><tr><td class="">08011985123456</td><td class="">TALLER MECÁNICO LÓPEZ</td><td class="">9988-7766</td><td class="">12/10/2026</td></tr><tr><td class="">0801199012311</td><td class="">CARLOS MEJÍA</td><td class="">3322-1100</td><td class="">05/10/2026</td></tr><tr><td class="">—</td><td class="">CONSUMIDOR FINAL</td><td class="">—</td><td class="">—</td></tr></tbody></table></div>
+    </div>
+    <span class="marca-num" style="left:82%;top:24%">1</span><span class="marca-num" style="left:8%;top:44%">2</span>
+  </div><div class="pie">Lista de clientes.</div></div><ol class="leyenda"><li><span>Crea un cliente nuevo (si su usuario tiene permiso).</span></li><li><span>Tocar un cliente abre su detalle: ventas, créditos y abonos.</span></li></ol>
+<p>El <b>detalle del cliente</b> reúne todo su historial: compras realizadas, créditos pendientes, abonos el resumen de compras (total comprado, cantidad de compras, cliente desde y última compra). Un cliente activo que lleva muchos días sin comprar aparece como inactivo en el reporte financiero.</p>
+<p>No se pueden repetir los números de RTN o DNI; si intenta registrar uno repetido el sistema avisa.</p>
+
+<h3>Proveedores</h3>
+<p>En <b>Proveedores</b> se registran las empresas a quienes se compra: RTN, razón social, correo y teléfono. Se usan al registrar compras y créditos con proveedores.</p>
+
+<h2 class="capitulo" id="cap7"><span class="num">7</span>Ventas</h2>
+<p>La venta se registra en <b>Ventas ▸ Registrar Venta</b>. La pantalla se adapta al tamaño: en computadora muestra el buscador y el carrito lado a lado, y en celular los muestra en dos mitades.</p>
+
+<div class="figura">
+  <div class="pantalla">
+    <div class="barra"><span>Repuestos POS</span><span>Registrar Venta</span><span>Administrador ▾</span></div>
+    <div class="cuerpo" style="min-height:100mm">
+      <div class="menu"><div class="">Usuarios</div><div class="">Mantenedor</div><div class="">Ventas</div><div class="sub act">Registrar Venta</div><div class="sub ">Ver Detalle</div><div class="">Compras</div><div class="">Clientes</div><div class="">Proveedores</div><div class="">Sucursales</div><div class="">Traslados</div><div class="">Créditos</div><div class="">Reportes</div></div>
+      <div class="contenido"><div class="fila"><span class="chip ok">Factura</span><span class="chip ">Boleta</span><span class="chip ">Cotización</span><span class="chip ">Venta</span><div class="campo lleno"><b>Condición</b>Contado ▾</div><div class="campo lleno"><b>Método de pago</b>Efectivo ▾</div></div>
+    <div class="fila"><div class="campo lleno"><b>Cliente</b>TALLER MECÁNICO LÓPEZ</div><div class="campo lleno"><b>RTN / Documento</b>08011985123456</div><span class="btn sec">Más datos</span></div>
+    <div class="fila"><span class="btn ">Agregar Producto</span><span class="btn sec">Escanear con celular</span><span class="btn sec">Ver promociones vigentes</span></div>
+    <table class="mini"><thead><tr><th class="">Producto</th><th class="num">Cant.</th><th class="num">Precio</th><th class="num">Desc.</th><th class="num">Subtotal</th></tr></thead><tbody><tr><td class="">DISCO FRENO DEL. TOYOTA HILUX 05-15</td><td class="num">2</td><td class="num">1,450.00</td><td class="num">0%</td><td class="num">2,900.00</td></tr><tr><td class="">PASTILLAS FRENO DEL. TOYOTA HILUX 05-15</td><td class="num">1</td><td class="num">680.00</td><td class="num">5%</td><td class="num">646.00</td></tr><tr><td class="">LÍQUIDO DE FRENOS DOT4 500ML</td><td class="num">2</td><td class="num">95.00</td><td class="num">0%</td><td class="num">190.00</td></tr></tbody></table>
+    <div class="fila" style="justify-content:space-between;margin-top:2mm"><div class="rejilla g3" style="flex:1"><div class="kpi"><small>Subtotal</small><b>L 3,736.00</b></div><div class="kpi"><small>ISV 15%</small><b>L 560.40</b></div><div class="kpi"><small>TOTAL A PAGAR</small><b>L 4,296.40</b></div></div><div class="campo lleno"><b>Paga con</b>4,300.00</div></div>
+    <div class="fila"><span class="btn sec">Guardar en Espera</span><span class="btn rojo">Limpiar Venta</span><span class="btn ok">Registrar Venta</span></div></div>
+    </div>
+    <span class="marca-num" style="left:36%;top:12%">1</span><span class="marca-num" style="left:36%;top:26%">2</span><span class="marca-num" style="left:36%;top:38%">3</span><span class="marca-num" style="left:36%;top:57%">4</span><span class="marca-num" style="left:60%;top:76%">5</span><span class="marca-num" style="left:76%;top:91%">6</span>
+  </div><div class="pie">Pantalla de Registrar Venta.</div></div><ol class="leyenda"><li><span><b>Tipo de documento</b> (el que usted eligió como predeterminado aparece marcado), <b>condición</b> (contado o crédito) y <b>método de pago</b>.</span></li><li><span><b>Cliente</b> y RTN. Si no escribe nada, la venta sale a nombre de Consumidor final.</span></li><li><span><b>Agregar Producto</b> abre el buscador de repuestos; también puede escanear el código con la cámara o con el celular.</span></li><li><span>Tabla de <b>productos en la venta</b>: cambie cantidad, descuento o quite líneas.</span></li><li><span>Totales y monto con el que paga el cliente (el sistema calcula el cambio).</span></li><li><span>Botones para guardar la venta en espera, limpiar o <b>registrarla</b>.</span></li></ol>
+
+<h3>Registrar una venta paso a paso</h3>
+<div class="paso"><div class="n">1</div><div class="t"><b>Elija el tipo de documento.</b>Factura y Boleta cobran ISV; Venta es un ticket simple; Cotización no descuenta existencias.</div></div><div class="paso"><div class="n">2</div><div class="t"><b>Busque los repuestos.</b>Presione <b>Agregar Producto</b> y escriba lo que busca. Para un vehículo concreto, llene los campos <b>Vehículo</b> y <b>Año</b> y presione Enter. Doble clic (o Enter sobre la fila resaltada) agrega el repuesto.</div></div><div class="paso"><div class="n">3</div><div class="t"><b>Ajuste cantidades y descuentos.</b>Puede aplicar un descuento a una línea o un descuento general a toda la venta.</div></div><div class="paso"><div class="n">4</div><div class="t"><b>Indique el cliente (opcional).</b>Escriba el nombre o use la lupa para buscarlo. Para facturas conviene registrar el RTN.</div></div><div class="paso"><div class="n">5</div><div class="t"><b>Elija cómo paga.</b>Efectivo, tarjeta, transferencia o mixto. En efectivo escriba con cuánto paga y el sistema muestra el cambio.</div></div><div class="paso"><div class="n">6</div><div class="t"><b>Presione Registrar Venta.</b>La venta recibe su número, descuenta las existencias y se imprime el ticket o la factura según la configuración.</div></div>
+
+<h3>Buscar repuestos al vender</h3>
+<div class="figura">
+  <div class="pantalla">
+    <div class="barra"><span>Repuestos POS</span><span>Buscar Producto</span><span></span></div>
+    <div class="cuerpo" style="min-height:70mm"><div class="contenido"><h5>Buscar Producto</h5>
+    <div class="fila"><div class="campo lleno"><b>Buscar</b>pastillas</div><div class="campo lleno"><b>Vehículo</b>toyota hilux</div><div class="campo lleno"><b>Año</b>2012</div><div class="campo lleno"><b>Precio</b>Nivel 1 ▾</div></div>
+    <table class="mini"><thead><tr><th class="">Foto</th><th class="">Código</th><th class="">Nombre</th><th class="num">Existencia</th><th class="num">Precio</th></tr></thead><tbody><tr><td class="">▢</td><td class="">PF-2210</td><td class="">PASTILLAS FRENO DEL. TOYOTA HILUX 05-15</td><td class="num">3</td><td class="num">L 680.00</td></tr><tr><td class="">▢</td><td class="">PF-2215</td><td class="">PASTILLAS FRENO TRAS. TOYOTA HILUX 05-15</td><td class="num">8</td><td class="num">L 540.00</td></tr><tr><td class="">▢</td><td class="">PF-0090</td><td class="">PASTILLAS FRENO DEL. TOYOTA HILUX (SIN AÑO)</td><td class="num">5</td><td class="num">L 610.00</td></tr></tbody></table>
+    <p style="color:#6b7280;margin-top:2mm">Los repuestos para ese vehículo que no tienen años registrados aparecen al final.</p></div></div>
+    <span class="marca-num" style="left:10%;top:22%">1</span><span class="marca-num" style="left:38%;top:22%">2</span><span class="marca-num" style="left:80%;top:40%">3</span>
+  </div><div class="pie">Buscador de repuestos dentro de una venta.</div></div><ol class="leyenda"><li><span>Texto de búsqueda (todas las palabras deben aparecer).</span></li><li><span>Filtro por vehículo y año.</span></li><li><span>Doble clic o Enter para agregar el repuesto a la venta.</span></li></ol>
+<p>Si el repuesto no existe puede crearlo desde el mismo buscador con <b>Nuevo producto</b>. Si no tiene existencias, el sistema avisa y, si la clave especial está activa para esta acción, la pide antes de dejarlo agregar.</p>
+
+<h3>Formas de pago</h3>
+<table class="datos"><thead><tr><th>Forma</th><th>Cómo se usa</th></tr></thead><tbody><tr><td>Efectivo</td><td>Escriba «Paga con» y el sistema calcula el cambio.</td></tr><tr><td>Tarjeta / Transferencia</td><td>Se registra el total completo con ese método.</td></tr><tr><td>Mixto</td><td>Divide el total entre varios métodos (por ejemplo, L 2,000 en efectivo y el resto con tarjeta). El cierre de caja reparte cada parte en su método.</td></tr><tr><td>Crédito</td><td>Cambie la condición a Crédito: no se cobra nada ahora, se pide fecha de vencimiento y un teléfono para avisos, y la venta queda en Ventas Crédito.</td></tr></tbody></table>
+
+<h3>Datos adicionales y envío</h3>
+<p>El botón <b>Más datos</b> permite anotar número de orden de compra exenta, registro de exonerado, registro SAG, observaciones y, si la mercadería se envía, los datos del envío (nombre, dirección y teléfono) para imprimir la guía.</p>
+
+<h3>Ventas en espera</h3>
+<ul>
+  <li><b>Guardar en Espera:</b> aparta la venta (y reserva las existencias) para continuar después. Útil cuando el cliente va a buscar el dinero o decidir.</li>
+  <li><b>Ver en Espera:</b> lista de ventas guardadas; elija una para retomarla o eliminarla (se liberan las existencias).</li>
+  <li><b>Ver Perdidas:</b> el sistema guarda solo cada venta en curso; si se cerró la pestaña o se fue la luz, aquí se recuperan.</li>
+</ul>
+
+<h3>Cotizaciones</h3>
+<p>Elija el tipo <b>Cotización</b> para dar un precio. No descuenta existencias ni suma a las ventas. Más tarde, desde <b>Ver Detalle</b>, el botón <b>Convertir a venta</b> la transforma en venta real.</p>
+
+<h3>Ver detalle, reimprimir y anular</h3>
+<p>En <b>Ventas ▸ Ver Detalle</b> (o <b>Ver Facturas</b>) busque la venta por número de documento, cliente o fecha. El detalle abre al instante y muestra las líneas, los costos y el método de pago. Desde ahí puede:</p>
+<ul>
+  <li><b>Reimprimir</b> el ticket o la factura (como copia o como original).</li>
+  <li><b>Duplicar</b> la venta para repetirla.</li>
+  <li><b>Convertir a venta</b> si es una cotización.</li>
+  <li><b>Anular</b> la venta (según permisos): devuelve las existencias al lote del que salieron, cancela el crédito si no tiene abonos y deja constancia del motivo.</li>
+</ul>
+<div class="cuidado"><b>Cuidado</b>Una venta anulada no se puede reactivar. Si anuló por error, registre una venta nueva.</div>
+
+<h3>Imprimir</h3>
+<p>Según la configuración, al registrar la venta se muestra la vista previa o se imprime directo. Si el equipo no tiene impresora (por ejemplo el celular o el navegador), el sistema puede pedirle a la <b>PC principal</b> que imprima: el ticket sale en la caja sin que nadie haga nada. En <b>Pendientes de Impresión</b> quedan los tickets que no se pudieron imprimir para reintentar.</p>
+
+<h2 class="capitulo" id="cap8"><span class="num">8</span>Compras</h2>
+<p>Las compras se registran en <b>Compras ▸ Registrar Compra</b>. Sirven para aumentar existencias, actualizar costos y llevar las cuentas por pagar a proveedores.</p>
+<div class="figura">
+  <div class="pantalla">
+    <div class="barra"><span>Repuestos POS</span><span>Registrar Compra</span><span>Administrador ▾</span></div>
+    <div class="cuerpo" style="min-height:82mm">
+      <div class="menu"><div class="">Usuarios</div><div class="">Mantenedor</div><div class="">Ventas</div><div class="">Compras</div><div class="sub act">Registrar Compra</div><div class="sub ">Ver Detalle</div><div class="sub ">Hacer Pedido</div><div class="">Clientes</div><div class="">Proveedores</div><div class="">Sucursales</div><div class="">Traslados</div><div class="">Créditos</div><div class="">Reportes</div></div>
+      <div class="contenido"><div class="fila"><div class="campo lleno"><b>Proveedor</b>AUTOPARTES DEL NORTE</div><div class="campo lleno"><b>No. de factura</b>001-001-01-00045821</div><div class="campo lleno"><b>Condición</b>Crédito ▾</div><div class="campo lleno"><b>Vence</b>18/11/2026</div></div>
+    <div class="fila"><span class="btn ">Agregar Producto</span><span class="btn sec">Compras en espera</span></div>
+    <table class="mini"><thead><tr><th class="">Producto</th><th class="num">Cant.</th><th class="num">Costo</th><th class="num">Desc.</th><th class="num">Nuevo P. venta</th><th class="num">Subtotal</th></tr></thead><tbody><tr><td class="">DISCO FRENO DEL. TOYOTA HILUX 05-15</td><td class="num">10</td><td class="num">980.00</td><td class="num">0%</td><td class="num">1,450.00</td><td class="num">9,800.00</td></tr><tr><td class="">PASTILLAS FRENO DEL. TOYOTA HILUX 05-15</td><td class="num">20</td><td class="num">420.00</td><td class="num">5%</td><td class="num">680.00</td><td class="num">7,980.00</td></tr></tbody></table>
+    <div class="rejilla g3" style="margin-top:2mm"><div class="kpi"><small>Subtotal</small><b>L 17,780.00</b></div><div class="kpi"><small>ISV</small><b>L 2,667.00</b></div><div class="kpi"><small>Total a pagar</small><b>L 20,447.00</b></div></div>
+    <div class="fila" style="margin-top:2mm"><span class="btn ok">Registrar Compra</span></div></div>
+    </div>
+    <span class="marca-num" style="left:36%;top:13%">1</span><span class="marca-num" style="left:20%;top:25%">2</span><span class="marca-num" style="left:74%;top:48%">3</span><span class="marca-num" style="left:38%;top:86%">4</span>
+  </div><div class="pie">Pantalla de Registrar Compra.</div></div><ol class="leyenda"><li><span>Proveedor, número de factura del proveedor, condición (contado o crédito) y fecha de vencimiento.</span></li><li><span>Agregar repuestos; puede crear uno nuevo desde el mismo buscador.</span></li><li><span>Opcionalmente un <b>nuevo precio de venta</b> que se aplica al repuesto al registrar la compra.</span></li><li><span>Registrar la compra: suma existencias, crea el lote de costo y, si es a crédito, la cuenta por pagar.</span></li></ol>
+<h3>Registrar una compra</h3>
+<div class="paso"><div class="n">1</div><div class="t"><b>Elija el proveedor y escriba el número de factura del proveedor.</b>La condición Crédito pide fecha de vencimiento y crea la cuenta por pagar.</div></div><div class="paso"><div class="n">2</div><div class="t"><b>Agregue los repuestos.</b>Cantidad, costo unitario y descuento. El buscador tiene el mismo filtro por vehículo y año.</div></div><div class="paso"><div class="n">3</div><div class="t"><b>Revise el precio de venta nuevo (opcional).</b>Si el costo cambió, puede ajustar el precio de venta ahí mismo.</div></div><div class="paso"><div class="n">4</div><div class="t"><b>Presione Registrar Compra.</b>Las existencias suben y cada línea queda como un lote con su costo para el cálculo de utilidades.</div></div>
+<ul>
+  <li><b>Compras en espera:</b> el borrador se guarda solo; puede retomarlo si se interrumpe.</li>
+  <li><b>Hacer Pedido:</b> arma una lista de repuestos para pedir al proveedor y la exporta a PDF; no registra una compra.</li>
+  <li><b>Ver Detalle:</b> consulta, reimprime o anula una compra (según permisos). Al anular, el sistema resta las existencias que había sumado.</li>
+</ul>
+<div class="aviso"><b>Pendientes de reposición</b>Si vendió un repuesto sin existencias («venta anticipada»), al registrar la compra del mismo repuesto el sistema le ofrece completar ese pendiente y corrige el costo real de aquella venta.</div>
+
+<h2 class="capitulo" id="cap9"><span class="num">9</span>Créditos y cobros</h2>
+<p>Los créditos se manejan en <b>Créditos ▸ Ventas Crédito</b> (lo que los clientes le deben) y <b>Créditos ▸ Compras Crédito</b> (lo que usted le debe a sus proveedores).</p>
+<div class="figura">
+  <div class="pantalla">
+    <div class="barra"><span>Repuestos POS</span><span>Ventas Crédito</span><span>Administrador ▾</span></div>
+    <div class="cuerpo" style="min-height:80mm">
+      <div class="menu"><div class="">Usuarios</div><div class="">Mantenedor</div><div class="">Ventas</div><div class="">Compras</div><div class="">Clientes</div><div class="">Proveedores</div><div class="">Sucursales</div><div class="">Traslados</div><div class="">Créditos</div><div class="sub act">Ventas Crédito</div><div class="sub ">Compras Crédito</div><div class="">Reportes</div></div>
+      <div class="contenido"><h5>Ventas Crédito</h5>
+    <div class="fila"><div class="campo "><b>Buscar cliente o documento…</b></div><span class="chip ">Todos</span><span class="chip ok">Pendientes</span><span class="chip mal">Vencidos</span><span class="btn sec">Unir facturas</span><span class="btn ">Crédito manual</span></div>
+    <table class="mini"><thead><tr><th class="">Documento</th><th class="">Cliente</th><th class="">Vence</th><th class="num">Total</th><th class="num">Saldo</th><th class="">Estado</th></tr></thead><tbody><tr><td class="">00004512</td><td class="">TALLER MECÁNICO LÓPEZ</td><td class="">15/11/2026</td><td class="num">L 8,400.00</td><td class="num">L 5,200.00</td><td class=""><span class="chip ok">Al día</span></td></tr><tr><td class="">00004390</td><td class="">TRANSPORTES DEL VALLE</td><td class="">02/10/2026</td><td class="num">L 12,950.00</td><td class="num">L 12,950.00</td><td class=""><span class="chip mal">Vencido</span></td></tr><tr><td class="">00004288</td><td class="">CARLOS MEJÍA</td><td class="">28/10/2026</td><td class="num">L 1,980.00</td><td class="num">L 0.00</td><td class=""><span class="chip ">Pagado</span></td></tr></tbody></table>
+    <div class="tarjeta" style="margin-top:2mm"><b>Registrar abono</b>
+      <div class="fila" style="margin-top:1.5mm"><div class="campo lleno"><b>Monto</b>2,000.00</div><div class="campo lleno"><b>Método</b>Efectivo ▾</div><div class="campo lleno"><b>Fecha</b>19/10/2026</div><span class="btn ok">Guardar abono</span></div></div></div>
+    </div>
+    <span class="marca-num" style="left:60%;top:14%">1</span><span class="marca-num" style="left:85%;top:14%">2</span><span class="marca-num" style="left:80%;top:34%">3</span><span class="marca-num" style="left:14%;top:80%">4</span>
+  </div><div class="pie">Cuentas por cobrar con el registro de un abono.</div></div><ol class="leyenda"><li><span>Filtros por estado: pendientes o vencidos.</span></li><li><span>Unir varias facturas de un cliente en un solo crédito, o crear un crédito manual (por ejemplo, saldos de antes del sistema).</span></li><li><span>Estado: <b>Vencido</b> cuando pasó la fecha de vencimiento y aún hay saldo.</span></li><li><span>Cada abono guarda monto, método de pago, fecha, número de recibo y quién lo cobró.</span></li></ol>
+<h3>Cobrar un abono</h3>
+<div class="paso"><div class="n">1</div><div class="t"><b>Busque el crédito del cliente.</b>Por nombre, RTN o número de documento.</div></div><div class="paso"><div class="n">2</div><div class="t"><b>Presione Abonar y escriba el monto.</b>Elija el método de pago (efectivo, tarjeta o transferencia) y la fecha.</div></div><div class="paso"><div class="n">3</div><div class="t"><b>Guarde.</b>El saldo baja, se genera el número de recibo y puede imprimir el recibo para el cliente.</div></div>
+<ul>
+  <li>Puede <b>editar</b> o <b>eliminar</b> un abono ya registrado; el sistema recalcula los saldos de los abonos siguientes. Eliminar un crédito completo pide la clave especial si así está configurado.</li>
+  <li>Con el teléfono del crédito se pueden enviar avisos de pago al cliente.</li>
+  <li>Una venta registrada a crédito aparece aquí automáticamente; no hay que volver a escribirla.</li>
+</ul>
+<h3>Compras Crédito</h3>
+<p>Funciona igual, pero para las facturas que usted debe a los proveedores. Además del abono a una factura puede hacer un <b>abono general</b> a un proveedor: el sistema reparte el monto entre sus facturas más antiguas primero.</p>
+<div class="consejo"><b>Consejo</b>Revise «Vencidos» al empezar el día. En el Reporte Financiero también verá cuánto tiene por cobrar y por pagar en total.</div>
+
+<h2 class="capitulo" id="cap10"><span class="num">10</span>Sucursales y traslados</h2>
+<p>Si el negocio tiene más de un local, <b>Sucursales</b> y <b>Traslados</b> permiten mover mercadería entre ellos con control. En este sistema las existencias son una sola bolsa: al registrar un traslado, las unidades salen del inventario (igual que una venta) y quedan anotadas hacia la sucursal destino.</p>
+
+<h3>Sucursales</h3>
+<p>En <b>Sucursales</b> (solo administrador) cree cada local con su nombre y dirección. Las sucursales inactivas no aparecen al registrar traslados.</p>
+
+<h3>Registrar un traslado</h3>
+<div class="figura">
+  <div class="pantalla">
+    <div class="barra"><span>Repuestos POS</span><span>Registrar Traslado</span><span>Administrador ▾</span></div>
+    <div class="cuerpo" style="min-height:78mm">
+      <div class="menu"><div class="">Usuarios</div><div class="">Mantenedor</div><div class="">Ventas</div><div class="">Compras</div><div class="">Clientes</div><div class="">Proveedores</div><div class="">Sucursales</div><div class="">Traslados</div><div class="sub act">Registrar Traslado</div><div class="sub ">Ver Detalle</div><div class="">Créditos</div><div class="">Reportes</div></div>
+      <div class="contenido"><div class="fila"><div class="campo lleno"><b>Sucursal origen</b>PRINCIPAL ▾</div><div class="campo lleno"><b>Sucursal destino</b>SUCURSAL 2 ▾</div><div class="campo lleno"><b>Estado</b>Entregado ▾</div></div>
+    <div class="fila"><div class="campo lleno"><b>Observaciones</b>Reposición semanal</div><span class="btn ">Agregar Producto</span></div>
+    <table class="mini"><thead><tr><th class="">Código</th><th class="">Producto</th><th class="">Ubicación</th><th class="num">Cantidad</th><th class=""></th></tr></thead><tbody><tr><td class="">PF-2210</td><td class="">PASTILLAS FRENO DEL. TOYOTA HILUX 05-15</td><td class="">(1N)</td><td class="num">4</td><td class="">✕</td></tr><tr><td class="">FA-0087</td><td class="">FILTRO ACEITE TOYOTA HILUX 2.5 05-UP</td><td class="">(3B)</td><td class="num">10</td><td class="">✕</td></tr></tbody></table>
+    <div class="fila" style="margin-top:2mm"><div class="kpi"><small>Total de unidades</small><b>14</b></div><span class="btn ok">Registrar Traslado</span></div></div>
+    </div>
+    <span class="marca-num" style="left:36%;top:13%">1</span><span class="marca-num" style="left:22%;top:26%">2</span><span class="marca-num" style="left:38%;top:55%">3</span><span class="marca-num" style="left:52%;top:86%">4</span>
+  </div><div class="pie">Registro de un traslado entre sucursales.</div></div><ol class="leyenda"><li><span>Sucursal de origen y de destino (no pueden ser la misma) y el estado con el que se crea.</span></li><li><span>Agregar repuestos con su cantidad; la ubicación en bodega es opcional y sale en el comprobante.</span></li><li><span>Cantidad de cada repuesto.</span></li><li><span>Al registrar se descuentan las existencias y se imprime el comprobante con espacios para firmas.</span></li></ol>
+<table class="datos"><thead><tr><th>Estado</th><th>Significado</th></tr></thead><tbody><tr><td>Pendiente</td><td>Creado pero todavía no salió.</td></tr><tr><td>Enviado</td><td>Salió de la sucursal origen.</td></tr><tr><td>Entregado</td><td>La sucursal destino confirmó que lo recibió (se registra quién y cuándo).</td></tr><tr><td>Anulado</td><td>Se canceló; las unidades vuelven al inventario.</td></tr></tbody></table>
+<p>Cuando la mercadería sale y llega en el mismo momento puede crear el traslado ya como <b>Entregado</b>. Si no, créelo como Pendiente o Enviado y use los botones <b>Enviar</b> y <b>Confirmar Recepción</b> en el detalle.</p>
+<p>Si hay un repuesto repetido en varias líneas, el sistema suma las cantidades y nunca deja el inventario en negativo.</p>
+
+<h3>Ver detalle y reimprimir</h3>
+<p>En <b>Traslados ▸ Ver Detalle</b> busque por número (puede escribir solo <code>123</code> en lugar de <code>TRAS-000123</code>). Desde el detalle se imprime el comprobante como original o copia y, si su usuario tiene permiso, se <b>anula</b> (en cualquier estado excepto si ya está anulado). Al anular, las unidades regresan al inventario y queda anotado en el historial de cada repuesto.</p>
+
+<h3>Reporte de traslados</h3>
+<p>En <b>Reportes ▸ Traslados</b> filtre por rango de fechas, estado y sucursal, y exporte a PDF o Excel. También se puede ver en la ficha de cada repuesto su historial de traslados.</p>
+
+<h2 class="capitulo" id="cap11"><span class="num">11</span>Caja, ingresos y egresos</h2>
+<h3>Cierre de caja</h3>
+<p>En <b>Reportes ▸ Cierre de Caja</b> se cuenta el dinero al final del turno o del día.</p>
+<div class="figura">
+  <div class="pantalla">
+    <div class="barra"><span>Repuestos POS</span><span>Cierre de Caja</span><span>Administrador ▾</span></div>
+    <div class="cuerpo" style="min-height:80mm">
+      <div class="menu"><div class="">Usuarios</div><div class="">Mantenedor</div><div class="">Ventas</div><div class="">Compras</div><div class="">Clientes</div><div class="">Proveedores</div><div class="">Sucursales</div><div class="">Traslados</div><div class="">Créditos</div><div class="">Reportes</div><div class="sub ">Reporte de Ventas</div><div class="sub ">Reporte de Compras</div><div class="sub ">Traslados</div><div class="sub ">Reporte Financiero</div><div class="sub act">Cierre de Caja</div><div class="sub ">Ingresos-Egresos</div></div>
+      <div class="contenido"><h5>Cierre de Caja</h5>
+    <div class="rejilla g4" style="margin-bottom:2mm"><div class="kpi"><small>Monto inicial</small><b>L 1,000.00</b></div><div class="kpi"><small>Ingresos efectivo</small><b>L 9,820.00</b></div><div class="kpi"><small>Egresos efectivo</small><b>L 1,150.00</b></div><div class="kpi"><small>Efectivo esperado</small><b>L 9,670.00</b></div></div>
+    <div class="rejilla g3" style="margin-bottom:2mm"><div class="kpi"><small>Ingresos tarjeta</small><b>L 4,310.00</b></div><div class="kpi"><small>Transferencias</small><b>L 2,300.00</b></div><div class="kpi"><small>Gran total</small><b>L 16,280.00</b></div></div>
+    <div class="fila"><div class="campo lleno"><b>Efectivo contado</b>9,650.00</div><div class="campo lleno"><b>Diferencia</b>-20.00</div><div class="campo lleno"><b>Observaciones</b>Falta cambio de L20</div><span class="btn ok">Registrar cierre</span></div></div>
+    </div>
+    <span class="marca-num" style="left:36%;top:22%">1</span><span class="marca-num" style="left:36%;top:44%">2</span><span class="marca-num" style="left:36%;top:66%">3</span><span class="marca-num" style="left:82%;top:66%">4</span>
+  </div><div class="pie">Cierre de caja con el efectivo esperado y la diferencia.</div></div><ol class="leyenda"><li><span>El monto inicial del turno (es el efectivo con el que se quedó en el cierre anterior).</span></li><li><span>Los ingresos y egresos del turno se calculan solos desde las ventas, abonos, compras y egresos.</span></li><li><span>Total de tarjeta, transferencias y gran total.</span></li><li><span>Usted cuenta el efectivo real, el sistema calcula la diferencia y se guarda el cierre.</span></li></ol>
+<p>Las ventas con <b>pago mixto</b> se reparten entre efectivo, tarjeta y transferencia según cada parte. El historial de cierres se conserva y se puede consultar e imprimir.</p>
+
+<h3>Ingresos y egresos</h3>
+<p>En <b>Reportes ▸ Ingresos-Egresos</b> está el libro de movimientos: ventas de contado, abonos a créditos, compras de contado, abonos a proveedores y egresos manuales, todo en una sola lista por fecha.</p>
+<p>Para registrar un gasto (luz, agua, sueldos, fletes) use <b>Nuevo egreso</b>: monto, descripción, categoría, método de pago y si ya está pagado o queda pendiente con su fecha de pago.</p>
+<div class="aviso"><b>Importante</b>Registre los egresos en caja el mismo día. Si un gasto no se anota, el cierre de caja y la utilidad del reporte financiero quedan más altos de lo real.</div>
+
+<h2 class="capitulo" id="cap12"><span class="num">12</span>Reportes</h2>
+<p>Los reportes están en el módulo <b>Reportes</b>. Se calculan en el servidor y se actualizan solos cuando se registra una venta, aunque la pantalla ya esté abierta. Todos se pueden exportar a PDF o Excel.</p>
+<div class="figura">
+  <div class="pantalla">
+    <div class="barra"><span>Repuestos POS</span><span>Reporte Financiero</span><span>Administrador ▾</span></div>
+    <div class="cuerpo" style="min-height:84mm">
+      <div class="menu"><div class="">Usuarios</div><div class="">Mantenedor</div><div class="">Ventas</div><div class="">Compras</div><div class="">Clientes</div><div class="">Proveedores</div><div class="">Sucursales</div><div class="">Traslados</div><div class="">Créditos</div><div class="">Reportes</div><div class="sub ">Reporte de Ventas</div><div class="sub ">Reporte de Compras</div><div class="sub ">Traslados</div><div class="sub act">Reporte Financiero</div><div class="sub ">Cierre de Caja</div><div class="sub ">Ingresos-Egresos</div></div>
+      <div class="contenido"><h5>Reporte Financiero</h5>
+    <div class="fila"><div class="campo lleno"><b>Desde</b>01/10/2026</div><div class="campo lleno"><b>Hasta</b>19/10/2026</div><span class="btn ">Buscar</span><span class="btn sec">PDF</span><span class="btn sec">Excel</span></div>
+    <div class="rejilla g4" style="margin-bottom:2mm"><div class="kpi"><small>Ventas</small><b>L 412,980</b></div><div class="kpi"><small>Utilidad bruta</small><b>L 128,400</b></div><div class="kpi"><small>Gastos</small><b>L 41,200</b></div><div class="kpi"><small>Utilidad neta</small><b>L 87,200</b></div></div>
+    <div class="rejilla g2">
+      <div class="tarjeta"><b>Flujo de efectivo</b>
+        <table class="mini"><thead><tr><th class="">Concepto</th><th class="num">Monto</th></tr></thead><tbody><tr><td class="">Ingresos efectivo</td><td class="num">L 288,400</td></tr><tr><td class="">Egresos efectivo</td><td class="num">L 96,100</td></tr><tr><td class="">Efectivo estimado</td><td class="num">L 192,300</td></tr></tbody></table></div>
+      <div class="tarjeta"><b>Cuentas</b>
+        <table class="mini"><thead><tr><th class="">Concepto</th><th class="num">Monto</th></tr></thead><tbody><tr><td class="">Por cobrar</td><td class="num">L 64,800</td></tr><tr><td class="">Por pagar</td><td class="num">L 38,150</td></tr><tr><td class="">Valor del inventario</td><td class="num">L 1,204,000</td></tr></tbody></table></div>
+    </div></div>
+    </div>
+    <span class="marca-num" style="left:36%;top:15%">1</span><span class="marca-num" style="left:36%;top:35%">2</span><span class="marca-num" style="left:36%;top:56%">3</span><span class="marca-num" style="left:74%;top:56%">4</span>
+  </div><div class="pie">Reporte financiero de un periodo.</div></div><ol class="leyenda"><li><span>Rango de fechas del reporte.</span></li><li><span>Ventas, utilidad bruta (ventas menos costo real de lo vendido), gastos y utilidad neta.</span></li><li><span>Flujo de efectivo: cuánto entró y salió en efectivo.</span></li><li><span>Cuentas por cobrar y por pagar y valor del inventario.</span></li></ol>
+<table class="datos"><thead><tr><th>Reporte</th><th>Qué muestra</th></tr></thead><tbody><tr><td>Reporte de Ventas</td><td>Todas las ventas del rango con tipo de documento, cliente, método de pago y total; filtros por tipo, estado y usuario. Cotizaciones y anuladas se distinguen.</td></tr><tr><td>Reporte de Compras</td><td>Compras del rango por proveedor, con condición y total.</td></tr><tr><td>Traslados</td><td>Traslados por estado y sucursal.</td></tr><tr><td>Reporte Financiero</td><td>Utilidad, gastos, flujo de efectivo, cuentas por cobrar y pagar, repuestos y clientes con más movimiento, clientes inactivos, serie mensual y sugerencia de cuánto destinar a proveedores.</td></tr><tr><td>Cierre de Caja</td><td>Historial de cierres con diferencias.</td></tr><tr><td>Ingresos-Egresos</td><td>Libro de todos los movimientos de dinero.</td></tr></tbody></table>
+<h3>Cómo leer la utilidad</h3>
+<p>La <b>utilidad bruta</b> usa el costo real de cada repuesto vendido, tomado del lote del que salió (primero que entra, primero que sale). La <b>utilidad neta</b> resta además los egresos registrados. Por eso es importante registrar todas las compras con su costo correcto.</p>
+<div class="consejo"><b>Consejo</b>En ventas con muchos meses de datos, elija rangos de un mes o menos: el reporte carga más rápido y es más fácil de revisar.</div>
+
+<h2 class="capitulo" id="cap13"><span class="num">13</span>Impresión</h2>
+<p>El sistema imprime tickets en impresoras térmicas de 58 o 80 mm y también genera PDF. La configuración está en <b>Negocio</b> (capítulo 3).</p>
+<table class="datos"><thead><tr><th>Situación</th><th>Qué hace el sistema</th></tr></thead><tbody><tr><td>Computadora de la caja con impresora conectada</td><td>Imprime directo (o muestra vista previa, según el modo elegido).</td></tr><tr><td>Celular, tableta o navegador sin impresora</td><td>Pide a la PC principal que imprima el ticket. Sale en la caja automáticamente.</td></tr><tr><td>Impresora de red</td><td>Se configura con la IP y el puerto (normalmente 9100).</td></tr><tr><td>Impresora Bluetooth en Android</td><td>Se empareja en el celular y se elige en Negocio.</td></tr><tr><td>Impresora que no acepta impresión directa</td><td>Active «Usar driver de Windows» para imprimir por el controlador de la impresora.</td></tr></tbody></table>
+<h3>Si un ticket no sale</h3>
+<ol>
+  <li>Revise que la impresora esté encendida, con papel y bien conectada.</li>
+  <li>Entre a <b>Ventas ▸ Registrar Venta ▸ Pendientes de Impresión</b>: allí queda el ticket para reintentar.</li>
+  <li>Use el botón <b>Imprimir ticket de prueba</b> en Negocio para comprobar la impresora sin registrar una venta.</li>
+  <li>Si la impresora gasta papel en blanco sin cortar, pruebe «Usar driver de Windows».</li>
+  <li>Revise que la <b>PC principal</b> esté marcada y encendida si imprime desde otros equipos.</li>
+</ol>
+<h3>Facturas con CAI</h3>
+<p>Las facturas llevan el RTN, el CAI, el rango autorizado y la fecha límite del negocio, y la numeración correlativa. Configure estos datos antes de la primera factura y revise la fecha límite cada cierto tiempo: cuando se acerca el vencimiento o el final del rango, solicite el nuevo.</p>
+
+<h2 class="capitulo" id="cap14"><span class="num">14</span>Varios equipos, internet y actualizaciones</h2>
+<h3>Varios equipos trabajando a la vez</h3>
+<p>Puede haber varias cajas, el administrador consultando reportes desde su celular y un encargado en otra sucursal, todos al mismo tiempo. El sistema está preparado para eso:</p>
+<ul>
+  <li>Dos personas pueden vender el mismo repuesto a la vez sin que se descuente mal: el servidor procesa cada venta de forma ordenada y protege las existencias.</li>
+  <li>La numeración de documentos nunca se repite, aunque dos cajas registren en el mismo segundo.</li>
+  <li>Los cambios (precios, clientes, existencias) aparecen en los demás equipos en pocos segundos, sin refrescar.</li>
+</ul>
+
+<h3>Rapidez</h3>
+<ul>
+  <li>El inventario, los clientes, los proveedores y las categorías se guardan en cada equipo. Al abrir el sistema se muestran de inmediato y solo se descargan los cambios nuevos.</li>
+  <li>Los reportes se calculan en el servidor y se piden por partes, para que abran rápido aunque haya muchos años de ventas.</li>
+  <li>El detalle de una venta se pide en una sola consulta y se recuerda unos segundos, por lo que volver a abrirlo es instantáneo.</li>
+</ul>
+
+<h3>Si se corta el internet</h3>
+<p>Cuando una operación (una venta, una compra, un abono, un ajuste) no logra llegar al servidor por un corte de conexión, el sistema <b>la reintenta automáticamente con el mismo identificador</b>. Eso evita el peor problema posible: que se registre dos veces. Aunque el primer intento sí hubiera llegado, el segundo no duplica nada.</p>
+<table class="datos"><thead><tr><th>Situación</th><th>Qué verá y qué hacer</th></tr></thead><tbody><tr><td>La conexión se cae un momento</td><td>El sistema reintenta solo unos segundos. Si llega, todo sigue normal.</td></tr><tr><td>La conexión tarda mucho en volver</td><td>Aparece el aviso de reintentar. Presione «Reintentar»; no vuelva a escribir la venta.</td></tr><tr><td>La operación se rechaza por una regla (por ejemplo, no hay existencias)</td><td>Se muestra el motivo exacto; corrija y vuelva a intentar.</td></tr><tr><td>Una operación guardada quedó pendiente</td><td>Se envía sola cuando vuelve el internet. Un indicador muestra cuántas están pendientes.</td></tr></tbody></table>
+<div class="cuidado"><b>Cuidado</b>Nunca registre dos veces una venta «por si acaso» sin verificar antes en Ver Detalle si ya existe. El sistema evita duplicados, pero dos ventas escritas a mano sí son dos ventas.</div>
+
+<h3>Actualizaciones automáticas</h3>
+<p>Cuando hay una versión nueva, el sistema lo avisa. Las actualizaciones están <b>firmadas</b>: el programa comprueba la firma digital del instalador antes de instalarlo y rechaza cualquier archivo alterado.</p>
+<table class="datos"><thead><tr><th>Equipo</th><th>Cómo se actualiza</th></tr></thead><tbody><tr><td>Windows</td><td>Presione «Actualizar». Se descarga, se verifica la firma, se instala sin preguntas y el programa vuelve a abrirse solo con la versión nueva. No necesita permisos de administrador.</td></tr><tr><td>Android</td><td>Se descarga y abre el instalador de Android; confirme «Instalar». Como todas las versiones se firman con la misma llave, se instala encima de la anterior sin perder nada.</td></tr><tr><td>Navegador web</td><td>Se actualiza solo al recargar la página.</td></tr></tbody></table>
+<p>En <b>Mantenedor ▸ Dispositivos</b> el administrador ve la versión de cada equipo y cuáles están desactualizados.</p>
+<div class="consejo"><b>Consejo</b>Si un equipo no actualiza, descargue el instalador más reciente de la página de versiones del sistema e instálelo encima: se conservan todos los datos, que están en la nube.</div>
+
+<h2 class="capitulo" id="cap15"><span class="num">15</span>Problemas frecuentes y buenas prácticas</h2>
+<table class="datos"><thead><tr><th>Problema</th><th>Causa probable</th><th>Qué hacer</th></tr></thead><tbody><tr><td>No puedo ingresar</td><td>Documento o clave incorrectos, o cuenta bloqueada por intentos fallidos</td><td>Espere unos minutos y reintente. Si olvidó la clave, el administrador puede cambiarla en Usuarios.</td></tr><tr><td>No veo un módulo del menú</td><td>Su usuario no tiene esa pantalla permitida</td><td>Pídale al administrador que la marque en su usuario.</td></tr><tr><td>Un botón (anular, crear…) no aparece</td><td>Esa acción no está permitida para su usuario</td><td>Pídale al administrador que la active en «Acciones permitidas».</td></tr><tr><td>El sistema pide una clave especial</td><td>La acción está protegida</td><td>Pida la clave al administrador. No se comparte.</td></tr><tr><td>No encuentro un repuesto</td><td>La búsqueda exige todas las palabras escritas</td><td>Escriba menos palabras o use solo el código; revise que el repuesto esté activo.</td></tr><tr><td>El repuesto no sale al filtrar por vehículo</td><td>No tiene ese vehículo registrado</td><td>Abra su ficha y agregue el vehículo y los años en «Vehículos compatibles».</td></tr><tr><td>Dice «Ya existe un producto con ese código»</td><td>Otro repuesto usa ese código</td><td>Use otro código o busque el repuesto existente.</td></tr><tr><td>No me deja vender: sin existencia</td><td>La categoría controla existencias y no hay unidades</td><td>Registre la compra o el ajuste de ingreso; o pida la autorización si el negocio la permite.</td></tr><tr><td>Falta una venta en el reporte</td><td>Otro rango de fechas, o la venta se guardó en espera / es una cotización</td><td>Revise «Ver en Espera» y el tipo de documento. Las cotizaciones y anuladas no suman.</td></tr><tr><td>El ticket sale muy largo o en blanco</td><td>Ancho de rollo mal configurado o impresora que no acepta impresión directa</td><td>Revise 58/80 mm y pruebe «Usar driver de Windows».</td></tr><tr><td>Los colores se ven mal</td><td>Color principal demasiado claro</td><td>Elija otro en Negocio ▸ Apariencia, o use «Restablecer».</td></tr><tr><td>El sistema se ve lento</td><td>Conexión a internet débil</td><td>Compruebe la señal del equipo; las listas guardadas se muestran igual, y las operaciones se reintentan solas.</td></tr><tr><td>La versión de un equipo no cambia</td><td>Instalador viejo guardado en Descargas</td><td>Use «Buscar actualización» dentro del programa o descargue el instalador más reciente.</td></tr></tbody></table>
+<h3>Buenas prácticas</h3>
+<ul>
+  <li>Un usuario por persona, y desactive a quien ya no trabaja en el negocio.</li>
+  <li>Registre las compras el mismo día, con el costo real: de eso depende la utilidad.</li>
+  <li>Haga el cierre de caja todos los días y anote los egresos.</li>
+  <li>Use siempre <b>Ver Detalle</b> antes de repetir una operación que pareció no completarse.</li>
+  <li>Registre los vehículos compatibles al crear cada repuesto: ahorra mucho tiempo al buscar.</li>
+  <li>Cambie la clave especial si sospecha que alguien la conoce.</li>
+</ul>
+
+</body></html>

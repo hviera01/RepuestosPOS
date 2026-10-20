@@ -68,6 +68,14 @@ class TablaSincronizada<T> {
     _meta = await AlmacenLocal.abrir('meta_sync');
     _cursor = _meta?.get('cursor_$tabla') ?? '';
     _cursorEliminados = _meta?.get('cursor_elim_$tabla') ?? '';
+    final ultima = DateTime.tryParse(_meta?.get('ultima_$tabla') ?? '');
+    if (ultima != null && DateTime.now().difference(ultima) > const Duration(days: 60)) {
+      await _caja?.clear();
+      _cursor = '';
+      _cursorEliminados = '';
+      await _meta?.delete('cursor_$tabla');
+      await _meta?.delete('cursor_elim_$tabla');
+    }
     final caja = _caja;
     if (caja != null && caja.isNotEmpty) {
       final textos = caja.values.toList();
@@ -145,7 +153,7 @@ class TablaSincronizada<T> {
       var mayor = _cursor;
       while (true) {
         var consulta = _db.from(tabla).select(columnas);
-        if (_cursor.isNotEmpty) consulta = consulta.gte('updated_at', _cursor);
+        if (_cursor.isNotEmpty) consulta = consulta.gte('updated_at', _desdeConSolape());
         final pagina = await consulta
             .order('updated_at', ascending: true)
             .order('id', ascending: true)
@@ -170,12 +178,19 @@ class TablaSincronizada<T> {
       await _sincronizarEliminados();
       _sincronizadoAlgunaVez = true;
       ultimoError = null;
+      await _meta?.put('ultima_$tabla', DateTime.now().toIso8601String());
       _emitir();
     } catch (e) {
       ultimoError = e;
       debugPrint('TablaSincronizada($tabla): $e');
       if (!_sincronizadoAlgunaVez && _cargadoLocal) _emitir();
     }
+  }
+
+  String _desdeConSolape() {
+    final base = DateTime.tryParse(_cursor);
+    if (base == null) return _cursor;
+    return base.subtract(const Duration(minutes: 2)).toUtc().toIso8601String();
   }
 
   Future<void> _sincronizarEliminados() async {
