@@ -6,6 +6,7 @@ const A = require('./capitulos_a');
 const B = require('./capitulos_b');
 const C = require('./capitulos_c');
 const D = require('./capitulos_d');
+const E = require('./capitulos_e');
 
 const capitulos = [
   ['Bienvenida', A.cap1],
@@ -25,6 +26,7 @@ const capitulos = [
   ['Varios equipos, internet y actualizaciones', C.cap14],
   ['Instalación, seguridad y respaldo', D.capInstalacion],
   ['Problemas frecuentes y buenas prácticas', C.cap15],
+  ['Glosario', E.capGlosario],
 ];
 
 const css = fs.readFileSync(path.join(__dirname, 'estilos.css'), 'utf8');

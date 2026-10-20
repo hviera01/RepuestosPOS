@@ -6,12 +6,12 @@ const cap1 = `
 
 <h3>Qué puede hacer con el sistema</h3>
 <ul>
-  <li>Vender con <b>factura</b> o con <b>venta simple</b>, hacer cotizaciones, ventas a crédito y pagos mixtos (parte en efectivo y parte con tarjeta o transferencia).</li>
+  <li>Vender con <b>factura</b> o con <b>venta simple</b>, hacer cotizaciones (con o sin ISV, como usted decida), ventas a crédito y pagos mixtos (parte en efectivo y parte con tarjeta o transferencia).</li>
   <li>Controlar el inventario con existencias, costos por lote, historial de movimientos y fotos de cada repuesto.</li>
   <li>Indicar para qué <b>vehículos y años</b> sirve cada repuesto, y encontrar rápido el repuesto correcto buscando por marca, modelo y año.</li>
   <li>Mover mercadería entre <b>sucursales</b> con traslados que descuentan existencias y se pueden anular.</li>
   <li>Dar seguimiento a las cuentas por cobrar (clientes) y por pagar (proveedores).</li>
-  <li>Cerrar la caja, registrar egresos y consultar reportes de ventas, compras, traslados y finanzas.</li>
+  <li>Abrir y cerrar su caja cada día (con corte X, corte Z y conteo de billetes), registrar egresos y consultar reportes de ventas, compras, traslados y finanzas.</li>
   <li>Cambiar los colores del sistema y elegir si la venta empieza como factura o como venta simple.</li>
 </ul>
 
@@ -24,7 +24,7 @@ ${datos(['Equipo', 'Cómo se usa', 'Notas'], [
 <p>Todos los equipos necesitan internet. Si la conexión se interrumpe un momento, el sistema vuelve a intentar solo y avisa cuando una operación quedó pendiente (ver capítulo 15).</p>
 
 <h3>Cómo está organizado este manual</h3>
-<p>Los capítulos siguen el orden en que normalmente se empieza a trabajar: ingresar, configurar el negocio, crear usuarios, cargar inventario, vender y comprar, y finalmente los reportes. Dentro del sistema, cada pantalla importante tiene un botón de ayuda con el ícono de un birrete: al tocarlo se abre una guía paso a paso sobre esa pantalla.</p>
+<p>Los capítulos siguen el orden en que normalmente se empieza a trabajar: ingresar, configurar el negocio, crear usuarios, cargar inventario, vender y comprar, y finalmente los reportes. Al final hay una tabla de problemas frecuentes y un glosario con las palabras que usa el sistema.</p>
 ${consejo('Si es la primera vez que usa el sistema, lea los capítulos 2, 3 y 4 antes de registrar la primera venta. Con eso queda listo el negocio, los usuarios y los permisos.')}
 `;
 
@@ -44,7 +44,7 @@ ${figura(
       <div style="margin-top:3mm;color:#6b7280">Entrar con huella o Face ID</div></div></div>`,
     marcas: [{ n: 1, x: 40, y: 38 }, { n: 2, x: 40, y: 52 }, { n: 3, x: 62, y: 64 }, { n: 4, x: 47, y: 76 }],
   }),
-  'Pantalla de ingreso. El color de fondo es el color principal que se elige en Negocio.',
+  'Pantalla de ingreso. El color de fondo es el color principal que se elige en Configuración.',
   ['Escriba su documento.', 'Escriba su clave. Si se equivoca varias veces seguidas, la cuenta se bloquea unos minutos por seguridad.', 'Presione Ingresar.', 'En equipos compatibles puede activar la huella o Face ID para entrar sin escribir la clave.']
 )}
 ${aviso('Cada persona debe usar su propio usuario. Así los reportes muestran quién hizo cada venta, compra o ajuste de inventario.')}
@@ -81,12 +81,12 @@ ${figura(
 `;
 
 const cap3 = `
-<p>Antes de vender, el administrador debe completar los datos del negocio. Todo se hace en <b>Mantenedor ▸ Negocio</b>. Los cambios se guardan al instante y se aplican a todos los equipos.</p>
+<p>Antes de vender, el administrador debe completar los datos del negocio. Todo se hace en <b>Mantenedor ▸ Configuración</b>. Los cambios se guardan al instante y se aplican a todos los equipos.</p>
 
 ${figura(
   pantalla({
-    modulo: 'Mantenedor', sub: 'Negocio', titulo: 'Negocio', alto: 92,
-    html: `<h5>Negocio</h5>
+    modulo: 'Mantenedor', sub: 'Configuración', titulo: 'Configuración', alto: 92,
+    html: `<h5>Configuración</h5>
     <div class="tarjeta" style="margin-bottom:2mm"><b>Datos del negocio</b>
       <div class="fila" style="margin-top:1.5mm">${campo('Nombre', 'REPUESTOS EL BUEN FRENO')}${campo('RTN', '08011990123456')}${campo('Teléfono', '2222-3344')}</div>
       <div class="fila">${campo('Dirección', 'Col. Centro, Av. Principal')}${campo('Correo', 'ventas@negocio.hn')}</div>
@@ -96,13 +96,13 @@ ${figura(
       <div class="fila" style="margin-top:1.5mm">
         ${['#303846', '#475569', '#1E3A5F', '#1F5F46', '#7A1F2B', '#A23E1E', '#8A6414', '#5B2A63', '#0E6E78'].map((c, i) => `<span style="width:7mm;height:7mm;border-radius:50%;background:${c};display:inline-block;${i === 0 ? 'outline:2px solid #1a1a1a;outline-offset:1px' : ''}"></span>`).join('')}
       </div>
-      <div class="fila">${campo('Color propio', '#RRGGBB')}${btn('Aplicar', 'sec')}${btn('Restablecer', 'sec')}</div>
+      <div class="fila">${btn('Elegir otro color (RGB)', 'sec')}${btn('Restablecer', 'sec')}</div>
       <div class="fila">${chip('Factura', 'ok')}${chip('Venta')}<span style="color:#6b7280">Documento que aparece primero al vender</span></div>
     </div>`,
     marcas: [{ n: 1, x: 24, y: 24 }, { n: 2, x: 24, y: 46 }, { n: 3, x: 24, y: 70 }, { n: 4, x: 54, y: 88 }],
   }),
-  'Pantalla de Negocio: datos generales, apariencia y documento por defecto.',
-  ['<b>Datos generales:</b> nombre, RTN, teléfono, dirección, correo y eslogan. Salen impresos en los tickets y facturas.', '<b>Autorización fiscal:</b> CAI, rango de numeración autorizado y fecha límite de emisión.', '<b>Color principal:</b> toque una muestra o escriba un color propio. Cambia todo el sistema en todos los equipos.', '<b>Documento por defecto:</b> elija si al abrir una venta aparece primero Factura o Venta.']
+  'Pantalla de Configuración: datos generales, apariencia y documento por defecto.',
+  ['<b>Datos generales:</b> nombre, RTN, teléfono, dirección, correo y eslogan. Salen impresos en los tickets y facturas.', '<b>Autorización fiscal:</b> CAI, rango de numeración autorizado y fecha límite de emisión.', '<b>Color principal:</b> toque una muestra o presione «Elegir otro color (RGB)». Cambia todo el sistema en todos los equipos.', '<b>Documento por defecto:</b> elija si al abrir una venta aparece primero Factura o Venta.']
 )}
 
 <h3>Datos del negocio y autorización fiscal</h3>
@@ -113,16 +113,16 @@ ${figura(
 <p>Puede subir el logo a color y el logo en blanco y negro. El de blanco y negro se usa en los tickets térmicos.</p>
 
 <h3>Color del sistema</h3>
-<p>El sistema viene en un gris grafito neutro. Para ajustarlo a los colores de su negocio, entre a <b>Negocio ▸ Apariencia y documento por defecto</b> y elija una de las nueve muestras o escriba un código de color propio, por ejemplo <code>#1F5F46</code>. Al cambiarlo, las ventanas abiertas se refrescan en todos los equipos.</p>
+<p>El sistema viene en un gris grafito neutro. Para ajustarlo a los colores de su negocio, entre a <b>Configuración ▸ Apariencia y documento por defecto</b> y elija una de las nueve muestras o presione <b>Elegir otro color (RGB)</b>. Se abre una ventana con un cuadro de muestras de colores para tocar, tres barras (rojo, verde y azul) para ajustar el tono exacto y un campo donde también puede escribir el código, por ejemplo <code>#1F5F46</code>. Al presionar <b>Aplicar</b>, el color cambia en todo el sistema. Al cambiarlo, las ventanas abiertas se refrescan en todos los equipos.</p>
 ${cuidado('Elija un color medio u oscuro. Con colores muy claros el texto blanco de los botones se lee mal.')}
 
 <h3>Documento por defecto: Factura o Venta</h3>
-<p>Al abrir <b>Registrar Venta</b>, el sistema propone un tipo de documento. En <b>Negocio</b> usted decide cuál aparece primero:</p>
+<p>Al abrir <b>Registrar Venta</b>, el sistema propone un tipo de documento. En <b>Configuración</b> usted decide cuál aparece primero:</p>
 ${datos(['Tipo', 'Qué hace'], [
-  ['<b>Factura</b>', 'Cobra el ISV (15%) desglosado y usa la numeración con CAI. Se imprime como factura.'],
-  ['<b>Venta</b>', 'Venta simple, sin factura. Se imprime como ticket de venta y tiene su propia numeración.'],
-  ['Boleta', 'Documento formal con ISV, igual que la factura en cuanto a impuestos.'],
-  ['Cotización', 'No descuenta existencias ni suma a las ventas; sirve para dar un precio al cliente.'],
+  ['<b>Factura</b>', 'Muestra el ISV (15%) desglosado y usa la numeración con CAI. Se imprime como factura. El precio del inventario ya es el precio final: en la factura el sistema separa el ISV de ese precio, no se lo suma encima.'],
+  ['<b>Venta</b>', 'Venta simple, sin factura y sin ISV. Se imprime como ticket de venta y tiene su propia numeración.'],
+  ['<b>Cotización sin ISV</b>', 'Da un precio al cliente sin desglosar impuesto. No descuenta existencias ni suma a las ventas.'],
+  ['<b>Cotización con ISV</b>', 'Igual que la anterior, pero el precio se muestra desglosado con ISV, como una factura. Usted elige cuál usar en cada cotización.'],
 ])}
 <p>Aunque haya elegido uno por defecto, en cada venta puede cambiar el tipo antes de registrarla.</p>
 
@@ -143,7 +143,7 @@ ${datos(['Opción', 'Para qué sirve'], [
 <p>El botón <b>Imprimir ticket de prueba</b> genera un ticket de prueba sin registrar ninguna venta real.</p>
 
 <h3>Clave especial</h3>
-<p>La clave especial es una segunda clave, conocida solo por el administrador, que el sistema pide antes de acciones delicadas (ver capítulo 4). Se crea y se cambia en <b>Negocio ▸ Seguridad</b>. Allí mismo se marca cuáles acciones la piden.</p>
+<p>La clave especial es una segunda clave, conocida solo por el administrador, que el sistema pide antes de acciones delicadas (ver capítulo 4). Se crea y se cambia en <b>Configuración ▸ Seguridad</b>. Allí mismo se marca cuáles acciones la piden.</p>
 
 <h3>Otros ajustes</h3>
 <ul>
@@ -179,7 +179,7 @@ ${figura(
 <h3>Roles</h3>
 ${datos(['Rol', 'Qué puede hacer'], [
   ['<b>Administrador</b>', 'Todo: configuración, usuarios, inventario, reportes financieros, anulaciones. Nunca se le piden permisos adicionales.'],
-  ['<b>Semi Administrador</b>', 'Casi todo lo operativo. No entra a las pantallas reservadas al administrador (por ejemplo Usuarios o Negocio).'],
+  ['<b>Semi Administrador</b>', 'Casi todo lo operativo. No entra a las pantallas reservadas al administrador (por ejemplo Usuarios o Configuración).'],
   ['<b>Empleado</b>', 'Por defecto: Registrar Venta, Ver Detalle de ventas, Clientes, Proveedores y Créditos. Se puede ajustar pantalla por pantalla.'],
   ['<b>Encargado</b>', 'Rol a la medida: el administrador marca exactamente qué pantallas ve y qué acciones puede hacer.'],
 ])}
@@ -202,16 +202,16 @@ ${datos(['Acción', 'Qué controla'], [
 ${consejo('Cree un usuario Encargado para quien atiende el mostrador: marque «Registrar Venta», «Clientes» y «Ver Detalle», y deje sin marcar las anulaciones. Así vende sin riesgo de anular documentos.')}
 
 <h3>La clave especial</h3>
-<p>Algunas acciones delicadas piden la <b>clave especial</b> del negocio aunque el usuario ya haya ingresado. Se activan o desactivan una por una en <b>Negocio ▸ Seguridad</b>:</p>
+<p>Algunas acciones delicadas piden la <b>clave especial</b> del negocio aunque el usuario ya haya ingresado. Se activan o desactivan una por una en <b>Configuración ▸ Seguridad</b>:</p>
 ${datos(['Acción protegida', 'Cuándo se pide la clave'], [
   ['Editar productos en Inventario', 'Solo si cambia un precio (de compra o de venta). Cambiar el nombre o la ubicación no la pide.'],
   ['Cambiar existencias en Inventario', 'Al confirmar un ajuste de existencia.'],
   ['Eliminar créditos', 'Antes de eliminar un crédito.'],
   ['Cambiar el precio de un producto en Ventas', 'Al modificar el precio unitario dentro de una venta.'],
   ['Editar la descripción de un producto en Ventas', 'Al cambiar el texto de una línea de venta.'],
-  ['Vender un producto sin existencia', 'Al agregar a una venta un producto que no tiene existencias.'],
+  ['Vender un producto sin existencia', 'Por defecto el sistema NO deja vender un repuesto sin existencia: muestra un aviso y no lo agrega. Solo si el administrador activa esta opción y existe una clave especial, se podrá agregar pidiendo la clave.'],
 ])}
-${cuidado('La clave especial no debe compartirse con empleados. Si alguien la conoce y no debería, cámbiela en Negocio.')}
+${cuidado('La clave especial no debe compartirse con empleados. Si alguien la conoce y no debería, cámbiela en Configuración.')}
 <p>Un usuario Encargado al que el administrador le marcó una acción protegida como permitida puede realizarla sin escribir la clave especial.</p>
 
 <h3>Desactivar un usuario</h3>

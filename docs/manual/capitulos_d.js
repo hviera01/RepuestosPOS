@@ -16,7 +16,7 @@ ${datos(['Equipo desde el que se vende', 'Qué hace el sistema al registrar'], [
   ['<b>Navegador en una PC</b>', 'Abre el diálogo de impresión del navegador con el ticket en PDF, para elegir cualquier impresora instalada en esa PC.'],
   ['<b>iPhone o iPad</b>', 'Imprime en la impresora de red configurada.'],
 ])}
-<p>Si el interruptor <b>Imprimir facturas automáticamente</b> está apagado en Negocio, no se imprime nada al vender; la venta se guarda igual.</p>
+<p>Si el interruptor <b>Imprimir facturas automáticamente</b> está apagado en Configuración, no se imprime nada al vender; la venta se guarda igual.</p>
 
 <h3>La impresión remota: cómo funciona</h3>
 ${figura(
@@ -53,7 +53,7 @@ ${figura(
 <h3>Configurar la impresora de la PC principal</h3>
 ${pasos([
   ['Instale la impresora en Windows.', 'Con su controlador y papel del ancho correcto. Imprima una página de prueba de Windows para confirmar.'],
-  ['Abra Mantenedor ▸ Negocio ▸ Impresoras.', 'En «Impresora térmica» elija la impresora instalada.'],
+  ['Abra Mantenedor ▸ Configuración ▸ Impresoras.', 'En «Impresora térmica» elija la impresora instalada.'],
   ['Elija el ancho del rollo.', '58 mm o 80 mm, según su rollo.'],
   ['Elija el modo de impresión.', '«Directo» imprime al instante; «Preguntar» muestra primero la vista previa.'],
   ['Presione «Imprimir ticket de prueba».', 'Sale un ticket marcado como prueba. No se registra ninguna venta ni se gasta numeración.'],
@@ -90,9 +90,9 @@ ${figura(
     marcas: [{ n: 1, x: 36, y: 63 }, { n: 2, x: 60, y: 63 }, { n: 3, x: 86, y: 63 }],
   }),
   'Pregunta de impresión en Android.',
-  ['Guarda la venta como pendiente de impresión para sacarla después.', 'Abre el diálogo de impresión de Android, para PDF o impresoras instaladas en el celular.', 'Imprime directo en la impresora térmica Bluetooth o de red que se configuró en Negocio.']
+  ['Guarda la venta como pendiente de impresión para sacarla después.', 'Abre el diálogo de impresión de Android, para PDF o impresoras instaladas en el celular.', 'Imprime directo en la impresora térmica Bluetooth o de red que se configuró en Configuración.']
 )}
-<p>Para usar una impresora Bluetooth: empareje la impresora desde los ajustes Bluetooth del celular y luego elíjala en <b>Negocio ▸ Impresoras ▸ Impresora Bluetooth</b>. Para una impresora de red escriba su IP y el puerto (normalmente 9100).</p>
+<p>Para usar una impresora Bluetooth: empareje la impresora desde los ajustes Bluetooth del celular y luego elíjala en <b>Configuración ▸ Impresoras ▸ Impresora Bluetooth</b>. Para una impresora de red escriba su IP y el puerto (normalmente 9100).</p>
 
 <h3>Guía de envío</h3>
 <p>Cuando una venta se envía a domicilio (botón <b>Más datos</b> ▸ datos de envío), el sistema puede imprimir además una <b>guía de envío</b> con el nombre, dirección y teléfono del destinatario, en tamaño ticket o en tamaño grande. La guía sigue las mismas reglas: se imprime en el equipo si puede, y si no, se pide a la PC principal.</p>
@@ -107,7 +107,7 @@ ${figura(
 <h3>Tipos de impresora y cuál elegir</h3>
 ${datos(['Tipo', 'Cuándo usarla', 'Observación'], [
   ['Térmica USB en Windows (impresión directa)', 'La caja principal', 'La más rápida: manda el ticket sin pasar por el controlador.'],
-  ['Térmica USB en Windows con controlador', 'Impresoras que no aceptan impresión directa', 'Active «Usar driver de Windows» en Negocio. Es el caso de algunas Star y de impresoras con protocolo propio.'],
+  ['Térmica USB en Windows con controlador', 'Impresoras que no aceptan impresión directa', 'Active «Usar driver de Windows» en Configuración. Es el caso de algunas Star y de impresoras con protocolo propio.'],
   ['Térmica de red (IP)', 'Impresora con cable de red compartida entre equipos', 'Funciona también desde iPhone, iPad y Android.'],
   ['Térmica Bluetooth', 'Vender desde el celular en el mostrador o en ruta', 'Solo Android. Emparejar primero.'],
   ['Impresora común o PDF', 'Respaldo, o cotizaciones en hoja carta', 'Se usa el diálogo de impresión de Windows, Android o del navegador.'],
@@ -116,7 +116,7 @@ ${datos(['Tipo', 'Cuándo usarla', 'Observación'], [
 <h3>Si algo falla</h3>
 ${datos(['Síntoma', 'Qué revisar'], [
   ['«La venta quedó pendiente de impresión»', 'La PC principal está apagada, sin el sistema abierto o sin internet. Ábralo y use Pendientes de Impresión.'],
-  ['Envía la orden pero no sale el ticket', 'Revise que la PC principal tenga la impresora encendida, con papel y elegida en Negocio. Haga el ticket de prueba.'],
+  ['Envía la orden pero no sale el ticket', 'Revise que la PC principal tenga la impresora encendida, con papel y elegida en Configuración. Haga el ticket de prueba.'],
   ['Sale papel en blanco sin cortar', 'La impresora no entiende la impresión directa. Active «Usar driver de Windows».'],
   ['Sale el ticket cortado o desalineado', 'Ancho de rollo equivocado: cambie entre 58 y 80 mm.'],
   ['Se imprimen dos hojas', 'Es el original y la copia. Apague «Imprimir copia además del original» si no la necesita.'],
@@ -173,7 +173,7 @@ ${pasos([
 <p>Quien instaló el sistema le entrega un usuario administrador inicial. Al entrar por primera vez:</p>
 <ol>
   <li>Cambie la clave del administrador en <b>Usuarios</b>.</li>
-  <li>Complete los datos del negocio en <b>Negocio</b> (capítulo 3).</li>
+  <li>Complete los datos del negocio en <b>Configuración</b> (capítulo 3).</li>
   <li>Cree las sucursales si las usa y los usuarios de su personal.</li>
   <li>Cargue las categorías y los repuestos (a mano o con <b>Importar</b>).</li>
   <li>Haga una venta de prueba y un ticket de prueba para confirmar la impresión.</li>

@@ -1,6 +1,6 @@
 const MODULOS = [
   ['Usuarios', []],
-  ['Mantenedor', ['Categorías', 'Inventario', 'Auditoría de Inventario', 'Pendientes de Reposición', 'Negocio', 'Dispositivos', 'Descuentos y Promociones']],
+  ['Mantenedor', ['Categorías', 'Inventario', 'Auditoría de Inventario', 'Pendientes de Reposición', 'Configuración', 'Dispositivos', 'Descuentos y Promociones']],
   ['Ventas', ['Registrar Venta', 'Ver Detalle']],
   ['Compras', ['Registrar Compra', 'Ver Detalle', 'Hacer Pedido']],
   ['Clientes', []],
@@ -8,7 +8,7 @@ const MODULOS = [
   ['Sucursales', []],
   ['Traslados', ['Registrar Traslado', 'Ver Detalle']],
   ['Créditos', ['Ventas Crédito', 'Compras Crédito']],
-  ['Reportes', ['Reporte de Ventas', 'Reporte de Compras', 'Traslados', 'Reporte Financiero', 'Cierre de Caja', 'Ingresos-Egresos']],
+  ['Reportes', ['Reporte de Ventas', 'Reporte de Compras', 'Traslados', 'Reporte Financiero', 'Caja', 'Ingresos-Egresos']],
 ];
 
 function menuLateral(modulo, sub) {

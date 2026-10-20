@@ -28,7 +28,7 @@ ${pasos([
 ])}
 <ul>
   <li>Puede <b>editar</b> o <b>eliminar</b> un abono ya registrado; el sistema recalcula los saldos de los abonos siguientes. Eliminar un crédito completo pide la clave especial si así está configurado.</li>
-  <li>Con el teléfono del crédito se pueden enviar avisos de pago al cliente.</li>
+  <li>El teléfono del crédito queda guardado; úselo para llamar o escribir al cliente cuando tenga un saldo vencido. Puede agregarlo o corregirlo desde el menú del crédito.</li>
   <li>Una venta registrada a crédito aparece aquí automáticamente; no hay que volver a escribirla.</li>
 </ul>
 <h3>Compras Crédito</h3>
@@ -75,21 +75,85 @@ ${datos(['Estado', 'Significado'], [
 `;
 
 const cap11 = `
-<h3>Cierre de caja</h3>
-<p>En <b>Reportes ▸ Cierre de Caja</b> se cuenta el dinero al final del turno o del día.</p>
+<h3>Su caja del día</h3>
+<p>En <b>Reportes ▸ Caja</b> cada cajero maneja <b>su propia caja</b>. Se abre al empezar el turno con el efectivo con el que arranca y se cierra al terminar, contando el dinero. Lo que usted vende, cobra, paga y gasta mientras su caja está abierta se suma a <b>su</b> caja; lo de otro compañero se suma a la de él. La pantalla tiene dos pestañas: <b>Mi caja</b> e <b>Historial de cajas</b>.</p>
+
+<h3>Abrir la caja</h3>
 ${figura(
   pantalla({
-    modulo: 'Reportes', sub: 'Cierre de Caja', titulo: 'Cierre de Caja', alto: 80,
-    html: `<h5>Cierre de Caja</h5>
-    <div class="rejilla g4" style="margin-bottom:2mm">${kpi('Monto inicial', 'L 1,000.00')}${kpi('Ingresos efectivo', 'L 9,820.00')}${kpi('Egresos efectivo', 'L 1,150.00')}${kpi('Efectivo esperado', 'L 9,670.00')}</div>
-    <div class="rejilla g3" style="margin-bottom:2mm">${kpi('Ingresos tarjeta', 'L 4,310.00')}${kpi('Transferencias', 'L 2,300.00')}${kpi('Gran total', 'L 16,280.00')}</div>
-    <div class="fila">${campo('Efectivo contado', '9,650.00')}${campo('Diferencia', '-20.00')}${campo('Observaciones', 'Falta cambio de L20')}${btn('Registrar cierre', 'ok')}</div>`,
-    marcas: [{ n: 1, x: 36, y: 22 }, { n: 2, x: 36, y: 44 }, { n: 3, x: 36, y: 66 }, { n: 4, x: 82, y: 66 }],
+    modulo: 'Reportes', sub: 'Caja', titulo: 'Caja', alto: 84,
+    html: `<h5>Caja</h5>
+    <div class="fila">${chip('Mi caja', 'ok')}${chip('Historial de cajas')}</div>
+    <div class="tarjeta"><b>Abrir caja</b>
+      <p style="color:#6b7280;margin:1mm 0 2mm">No tiene una caja abierta. Indique con cuánto efectivo empieza y desde cuándo se cuentan sus ventas.</p>
+      <div class="fila">${campo('Fondo inicial en efectivo (L)', '1,000.00')}</div>
+      <div class="fila"><b>Contar mis ventas desde</b>${chip('Ahora', 'ok')}${chip('Último cierre')}${chip('Otra fecha')}</div>
+      <div class="fila">${campo('Notas (opcional)', 'Turno de la mañana')}</div>
+      <div class="fila">${btn('Abrir caja', 'ok')}</div>
+    </div>`,
+    marcas: [{ n: 1, x: 40, y: 46 }, { n: 2, x: 56, y: 56 }, { n: 3, x: 70, y: 78 }],
   }),
-  'Cierre de caja con el efectivo esperado y la diferencia.',
-  ['El monto inicial del turno (es el efectivo con el que se quedó en el cierre anterior).', 'Los ingresos y egresos del turno se calculan solos desde las ventas, abonos, compras y egresos.', 'Total de tarjeta, transferencias y gran total.', 'Usted cuenta el efectivo real, el sistema calcula la diferencia y se guarda el cierre.']
+  'Apertura de la caja.',
+  ['<b>Fondo inicial:</b> el efectivo con el que empieza (el cambio que deja en la gaveta). Puede ser 0.', '<b>Desde cuándo se cuenta:</b> «Ahora» (lo normal), «Último cierre» (continúa justo donde terminó su caja anterior) u «Otra fecha» (para empezar a contar desde una fecha y hora que usted elija).', 'Presione <b>Abrir caja</b>. Solo puede tener una caja abierta a la vez.']
 )}
-<p>Las ventas con <b>pago mixto</b> se reparten entre efectivo, tarjeta y transferencia según cada parte. El historial de cierres se conserva y se puede consultar e imprimir.</p>
+${consejo('Abra la caja antes de la primera venta del día. Si la abre después, las ventas anteriores no se cuentan, a menos que elija «Otra fecha» con la hora en que empezó.')}
+
+<h3>Con la caja abierta</h3>
+${figura(
+  pantalla({
+    modulo: 'Reportes', sub: 'Caja', titulo: 'Caja', alto: 98,
+    html: `<h5>Caja</h5>
+    <div class="fila">${btn('Actualizar', 'sec')}${btn('Corte X', 'sec')}${btn('Cerrar caja (Corte Z)')}</div>
+    <div class="tarjeta"><small style="color:#6b7280">Abierta 19/10/2026 07:55</small>
+      <div class="rejilla g2" style="margin-top:1.5mm">
+        <div>${tabla(['Efectivo en caja', 'Monto'], [['Fondo inicial', 'L 1,000.00'], ['Ventas en efectivo', 'L 6,820.00'], ['Abonos en efectivo', 'L 1,500.00'], ['Gastos en efectivo', '-L 420.00'], ['Pagos a proveedores', '-L 0.00'], ['Compras en efectivo', '-L 0.00'], ['<b>Efectivo esperado</b>', '<b>L 8,900.00</b>']], [1])}</div>
+        <div>${tabla(['Ventas (14)', 'Monto'], [['Efectivo', 'L 6,820.00'], ['Tarjeta', 'L 3,240.00'], ['Transferencia', 'L 1,100.00'], ['Cheque', 'L 0.00'], ['Crédito', 'L 2,300.00'], ['<b>Total ventas</b>', '<b>L 13,460.00</b>']], [1])}</div>
+      </div></div>`,
+    marcas: [{ n: 1, x: 60, y: 15 }, { n: 2, x: 28, y: 52 }, { n: 3, x: 74, y: 52 }],
+  }),
+  'Caja abierta con el resumen en vivo.',
+  ['<b>Actualizar</b> vuelve a calcular el resumen con lo último que se vendió. <b>Corte X</b> imprime o muestra el resumen sin cerrar la caja. <b>Cerrar caja (Corte Z)</b> cuenta el dinero y cierra el turno.', 'A la izquierda, el <b>efectivo que debería haber</b> en la gaveta.', 'A la derecha, las ventas por forma de pago (las ventas a crédito se muestran aparte porque no entra dinero).']
+)}
+${datos(['Línea', 'Qué incluye'], [
+  ['Fondo inicial', 'El efectivo con el que abrió la caja.'],
+  ['Ventas en efectivo', 'Ventas de contado pagadas en efectivo, más la parte en efectivo de los pagos mixtos. No incluye cotizaciones ni ventas anuladas.'],
+  ['Abonos en efectivo', 'Abonos que los clientes pagaron en efectivo a sus créditos.'],
+  ['Gastos en efectivo', 'Egresos pagados en efectivo que usted registró.'],
+  ['Pagos a proveedores', 'Abonos en efectivo a facturas de compras a crédito.'],
+  ['Compras en efectivo', 'Compras de contado pagadas en efectivo.'],
+  ['<b>Efectivo esperado</b>', 'Fondo + ventas en efectivo + abonos en efectivo − gastos − pagos a proveedores − compras en efectivo. Es lo que debería haber en la gaveta.'],
+])}
+<p>Las ventas con tarjeta, transferencia o cheque no suman al efectivo; aparecen en su propia línea para que el cierre de ese día cuadre contra el banco o el datáfono.</p>
+
+<h3>Corte X: ver cómo va la caja</h3>
+<p>El <b>Corte X</b> es un vistazo a mitad del turno: imprime (ticket de 58 u 80 mm) o muestra en PDF el mismo resumen, <b>sin cerrar</b> la caja. Úselo cuando el dueño pregunte cuánto hay o antes de sacar dinero de la gaveta.</p>
+
+<h3>Cerrar la caja (Corte Z)</h3>
+${figura(
+  pantallaSola({
+    titulo: 'Cerrar caja (Corte Z)', alto: 88,
+    html: `<h5>Cerrar caja (Corte Z)</h5>
+    <p><b>Efectivo esperado: L 8,900.00</b></p>
+    <div class="fila">${chip('Contar billetes', 'ok')}${chip('Escribir total')}</div>
+    ${tabla(['Billete o moneda', 'Cantidad', 'Subtotal'], [['L 500', '10', 'L 5,000.00'], ['L 200', '9', 'L 1,800.00'], ['L 100', '19', 'L 1,900.00'], ['L 50', '3', 'L 150.00'], ['L 20', '2', 'L 40.00'], ['…', '…', '…']], [1, 2])}
+    <div class="fila"><b>Efectivo contado: L 8,880.00</b><b style="color:#c62828">Diferencia: -L 20.00</b></div>
+    <div class="fila">${campo('Notas (obligatorias por la diferencia)', 'Faltante por cambio mal dado')}</div>
+    <div class="fila">${btn('Cancelar', 'sec')}${btn('Cerrar caja', 'ok')}</div>`,
+    marcas: [{ n: 1, x: 12, y: 24 }, { n: 2, x: 42, y: 52 }, { n: 3, x: 40, y: 72 }, { n: 4, x: 74, y: 86 }],
+  }),
+  'Ventana de cierre con el conteo de billetes.',
+  ['Elija <b>Contar billetes</b> (escriba cuántos billetes y monedas de cada tipo tiene) o <b>Escribir total</b> si ya sabe el monto.', 'El sistema suma por usted lo que contó.', 'Compara contra lo esperado y muestra la <b>diferencia</b> (en verde si cuadra, en rojo si hay faltante o sobrante).', 'Si hay diferencia, las <b>notas son obligatorias</b>: explique qué pasó. Luego presione <b>Cerrar caja</b>.']
+)}
+<p>Al cerrar, el sistema guarda el cierre con todos los números (nadie puede cambiarlos después) y le ofrece imprimir el <b>Corte Z</b>, en ticket o en PDF. A partir de ese momento la caja queda cerrada y puede abrir una nueva cuando empiece el siguiente turno.</p>
+${cuidado('Cuente el dinero con calma y escriba lo que realmente hay, aunque no coincida. Una diferencia anotada con su motivo es normal; una caja «cuadrada» a la fuerza esconde errores.')}
+
+<h3>Historial de cajas</h3>
+<p>La pestaña <b>Historial de cajas</b> lista las cajas de un rango de fechas (por defecto, los últimos 30 días). El administrador ve las cajas de todos los cajeros; cada cajero ve las suyas. Cada renglón muestra quién, desde cuándo hasta cuándo, el total vendido y la diferencia (o «Abierta»). Al tocar una caja se abre el detalle completo, y desde ahí puede:</p>
+<ul>
+  <li><b>Imprimir</b> otra vez el corte (ticket o PDF).</li>
+  <li><b>Reabrir</b> la caja, si se cerró por error. Solo se puede reabrir la <b>última</b> caja cerrada de ese cajero y siempre que no tenga otra abierta. Al reabrirla se borra el conteo del cierre y la caja vuelve a quedar abierta.</li>
+</ul>
+${aviso('El efectivo estimado que muestra el Reporte Financiero se calcula con las cajas que están abiertas en este momento. Por eso conviene cerrar la caja todos los días.', 'Reporte financiero')}
 
 <h3>Ingresos y egresos</h3>
 <p>En <b>Reportes ▸ Ingresos-Egresos</b> está el libro de movimientos: ventas de contado, abonos a créditos, compras de contado, abonos a proveedores y egresos manuales, todo en una sola lista por fecha.</p>
@@ -121,7 +185,7 @@ ${datos(['Reporte', 'Qué muestra'], [
   ['Reporte de Compras', 'Compras del rango por proveedor, con condición y total.'],
   ['Traslados', 'Traslados por estado y sucursal.'],
   ['Reporte Financiero', 'Utilidad, gastos, flujo de efectivo, cuentas por cobrar y pagar, repuestos y clientes con más movimiento, clientes inactivos, serie mensual y sugerencia de cuánto destinar a proveedores.'],
-  ['Cierre de Caja', 'Historial de cierres con diferencias.'],
+  ['Caja', 'Su caja del día y el historial de cajas con apertura, cierre, cortes y diferencias (capítulo 11).'],
   ['Ingresos-Egresos', 'Libro de todos los movimientos de dinero.'],
 ])}
 <h3>Cómo leer la utilidad</h3>
@@ -130,19 +194,19 @@ ${consejo('En ventas con muchos meses de datos, elija rangos de un mes o menos: 
 `;
 
 const cap13 = `
-<p>El sistema imprime tickets en impresoras térmicas de 58 o 80 mm y también genera PDF. La configuración está en <b>Negocio</b> (capítulo 3).</p>
+<p>El sistema imprime tickets en impresoras térmicas de 58 o 80 mm y también genera PDF. La configuración está en <b>Configuración</b> (capítulo 3).</p>
 ${datos(['Situación', 'Qué hace el sistema'], [
   ['Computadora de la caja con impresora conectada', 'Imprime directo (o muestra vista previa, según el modo elegido).'],
   ['Celular, tableta o navegador sin impresora', 'Pide a la PC principal que imprima el ticket. Sale en la caja automáticamente.'],
   ['Impresora de red', 'Se configura con la IP y el puerto (normalmente 9100).'],
-  ['Impresora Bluetooth en Android', 'Se empareja en el celular y se elige en Negocio.'],
+  ['Impresora Bluetooth en Android', 'Se empareja en el celular y se elige en Configuración.'],
   ['Impresora que no acepta impresión directa', 'Active «Usar driver de Windows» para imprimir por el controlador de la impresora.'],
 ])}
 <h3>Si un ticket no sale</h3>
 <ol>
   <li>Revise que la impresora esté encendida, con papel y bien conectada.</li>
   <li>Entre a <b>Ventas ▸ Registrar Venta ▸ Pendientes de Impresión</b>: allí queda el ticket para reintentar.</li>
-  <li>Use el botón <b>Imprimir ticket de prueba</b> en Negocio para comprobar la impresora sin registrar una venta.</li>
+  <li>Use el botón <b>Imprimir ticket de prueba</b> en Configuración para comprobar la impresora sin registrar una venta.</li>
   <li>Si la impresora gasta papel en blanco sin cortar, pruebe «Usar driver de Windows».</li>
   <li>Revise que la <b>PC principal</b> esté marcada y encendida si imprime desde otros equipos.</li>
 </ol>
@@ -196,10 +260,12 @@ ${datos(['Problema', 'Causa probable', 'Qué hacer'], [
   ['No encuentro un repuesto', 'La búsqueda exige todas las palabras escritas', 'Escriba menos palabras o use solo el código; revise que el repuesto esté activo.'],
   ['El repuesto no sale al filtrar por vehículo', 'No tiene ese vehículo registrado', 'Abra su ficha y agregue el vehículo y los años en «Vehículos compatibles».'],
   ['Dice «Ya existe un producto con ese código»', 'Otro repuesto usa ese código', 'Use otro código o busque el repuesto existente.'],
-  ['No me deja vender: sin existencia', 'La categoría controla existencias y no hay unidades', 'Registre la compra o el ajuste de ingreso; o pida la autorización si el negocio la permite.'],
+  ['No me deja agregar un repuesto a la venta: «no tiene existencia disponible»', 'Por defecto el sistema no vende lo que no tiene en existencia', 'Registre la compra o un ajuste de ingreso. Si necesita venderlo igual, el administrador debe activar «Vender un producto sin existencia» y la clave especial.'],
+  ['No puedo abrir mi caja: «Ya tenés una caja abierta»', 'Quedó una caja abierta de un día anterior', 'Entre a Caja ▸ Mi caja, ciérrela con su conteo y luego abra la nueva.'],
+  ['Al cerrar la caja pide una nota', 'Hay diferencia entre lo esperado y lo contado', 'Escriba el motivo de la diferencia; es obligatorio para dejar constancia.'],
   ['Falta una venta en el reporte', 'Otro rango de fechas, o la venta se guardó en espera / es una cotización', 'Revise «Ver en Espera» y el tipo de documento. Las cotizaciones y anuladas no suman.'],
   ['El ticket sale muy largo o en blanco', 'Ancho de rollo mal configurado o impresora que no acepta impresión directa', 'Revise 58/80 mm y pruebe «Usar driver de Windows».'],
-  ['Los colores se ven mal', 'Color principal demasiado claro', 'Elija otro en Negocio ▸ Apariencia, o use «Restablecer».'],
+  ['Los colores se ven mal', 'Color principal demasiado claro', 'Elija otro en Configuración ▸ Apariencia, o use «Restablecer».'],
   ['El sistema se ve lento', 'Conexión a internet débil', 'Compruebe la señal del equipo; las listas guardadas se muestran igual, y las operaciones se reintentan solas.'],
   ['La versión de un equipo no cambia', 'Instalador viejo guardado en Descargas', 'Use «Buscar actualización» dentro del programa o descargue el instalador más reciente.'],
 ])}

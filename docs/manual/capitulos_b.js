@@ -24,6 +24,8 @@ ${figura(
 
 <h3>Buscar un repuesto</h3>
 <p>El buscador es <b>estricto</b>: cada palabra que escribe debe aparecer en el código, el nombre, la descripción o los vehículos del repuesto. Si escribe <code>disco civic</code>, solo salen repuestos que tengan las dos palabras. El código se puede escribir sin guiones ni espacios, y el código exacto aparece primero.</p>
+<h4>Buscar con lector o con la cámara</h4>
+<p>Al escanear un código de barras, con una pistola lector o con la cámara del celular, el sistema siempre debe encontrar el repuesto aunque el código llegue con espacios, ceros de más o de menos, guiones o el dígito verificador distinto. Si el código está en la ficha como <code>0012345</code> y el lector manda <code>12345</code>, igual lo encuentra. Funciona igual en Inventario, Registrar Venta, Registrar Compra y Auditoría de Inventario.</p>
 <h4>Buscar por vehículo y año</h4>
 <p>Junto al buscador hay dos campos: <b>Vehículo</b> (marca y/o modelo, por ejemplo <code>toyota hilux</code>) y <b>Año</b> (por ejemplo <code>2012</code> o <code>12</code>). Presione Enter para aplicarlos. El resultado muestra los repuestos compatibles con ese vehículo en ese año; los que sirven para el vehículo pero no tienen años registrados salen al final, para no esconder un repuesto que quizá sirva.</p>
 ${consejo('Puede usar solo el vehículo, solo el año, o combinarlos con el texto: «pastillas» + «hilux» + «2012» deja únicamente las pastillas que sirven para una Hilux 2012.')}
@@ -53,7 +55,6 @@ ${figura(
     <div class="fila">${campo('Código', 'PF-2210')}${campo('Código de barras', '2012345678901')}</div>
     <div class="campo lleno" style="margin-bottom:2mm"><b>Nombre</b>PASTILLAS FRENO DEL. TOYOTA HILUX 05-15, FORTUNER 09-UP, NISSAN FRONTIER +1</div>
     <div class="tarjeta" style="margin-bottom:2mm;background:#f6f7f9"><b>Vehículos compatibles (opcional) &nbsp; ${chip('Activado', 'ok')}</b>
-      <div class="campo lleno" style="margin:1.5mm 0"><b>Nombre del repuesto</b>PASTILLAS FRENO DEL.</div>
       ${tabla(['Marca', 'Modelo', 'Año desde', 'Año hasta', ''], [
         ['TOYOTA', 'HILUX', '2005', '2015', '✕'],
         ['TOYOTA', 'FORTUNER', '2009', '', '✕'],
@@ -66,11 +67,11 @@ ${figura(
     marcas: [{ n: 1, x: 6, y: 25 }, { n: 2, x: 6, y: 38 }, { n: 3, x: 50, y: 50 }, { n: 4, x: 50, y: 82 }],
   }),
   'Ficha de un repuesto con vehículos compatibles y nombre armado automáticamente.',
-  ['El <b>nombre</b> se completa solo al agregar vehículos; puede corregirlo a mano.', 'Escriba el <b>nombre del repuesto</b> sin vehículos.', 'Una fila por vehículo: marca, modelo y rango de años. Año hasta vacío significa «en adelante».', 'Con <b>Armar el nombre automáticamente</b> activado, el nombre se actualiza cada vez que cambia la lista.']
+  ['El <b>nombre</b> se completa solo al agregar vehículos.', 'Escriba el <b>Nombre</b> del repuesto arriba, sin vehículos: ese mismo nombre se usa como base y no se vuelve a pedir.', 'Una fila por vehículo: marca, modelo y rango de años. Año hasta vacío significa «en adelante».', 'Con <b>Armar el nombre automáticamente</b> activado, el nombre se actualiza cada vez que cambia la lista.']
 )}
 ${pasos([
-  ['Active «Vehículos compatibles».', 'Aparece el cuadro para escribir el nombre del repuesto y la lista de vehículos.'],
-  ['Escriba el nombre del repuesto.', 'Por ejemplo <code>PASTILLAS FRENO DEL.</code>.'],
+  ['Escriba el Nombre del repuesto en el campo de arriba.', 'Por ejemplo <code>PASTILLAS FRENO DEL.</code>. Solo se escribe una vez.'],
+  ['Active «Vehículos compatibles».', 'Aparece la lista de vehículos. El nombre que ya escribió se usa como base para armar el nombre completo.'],
   ['Agregue cada vehículo.', 'Marca y modelo tienen sugerencias: al escribir las primeras letras aparecen las marcas y modelos que ya usó antes, así no se escriben distinto.'],
   ['Indique los años.', 'Desde y hasta, con cuatro cifras (2005 y 2015). Si el repuesto sirve de 2009 en adelante, deje «hasta» vacío.'],
   ['Revise el nombre.', 'El sistema lo arma corto: nombre del repuesto + primeros tres vehículos + «+N» si hay más. Los años se abrevian a dos cifras.'],
@@ -80,7 +81,7 @@ ${pasos([
   <li>La marca solo se repite cuando cambia: <code>TOYOTA HILUX 05-15, FORTUNER 09-UP, NISSAN FRONTIER</code>.</li>
   <li>Los años se muestran como <code>05-15</code>, <code>09-UP</code> (en adelante) o <code>12</code> (un solo año).</li>
   <li>Si hay más de tres vehículos se agrega <code>+N</code> al final; la lista completa queda guardada y la búsqueda por vehículo la usa completa.</li>
-  <li><b>Es opcional y editable.</b> Si prefiere escribir el nombre a mano, simplemente edítelo: la opción de armado automático se desactiva sola para ese repuesto. Para volver al nombre automático, active de nuevo la casilla.</li>
+  <li><b>Es opcional y editable.</b> El nombre automático viene activado. Puede seguir corrigiendo el Nombre de arriba cuando quiera: lo que usted escriba pasa a ser la base y los vehículos se agregan al final. Si prefiere escribir el nombre completo a su manera, apague «Armar el nombre automáticamente».</li>
   <li>Los repuestos que ya existían sin vehículos siguen funcionando: el filtro por vehículo intenta leer las marcas y años que estén escritos en su nombre.</li>
 </ul>
 
@@ -134,7 +135,7 @@ ${figura(
   'Lista de clientes.',
   ['Crea un cliente nuevo (si su usuario tiene permiso).', 'Tocar un cliente abre su detalle: ventas, créditos y abonos.']
 )}
-<p>El <b>detalle del cliente</b> reúne todo su historial: compras realizadas, créditos pendientes, abonos el resumen de compras (total comprado, cantidad de compras, cliente desde y última compra). Un cliente activo que lleva muchos días sin comprar aparece como inactivo en el reporte financiero.</p>
+<p>El <b>detalle del cliente</b> reúne todo su historial: compras realizadas, créditos pendientes, abonos y el resumen de compras (total comprado, cantidad de compras, cliente desde y última compra). Un cliente activo que lleva muchos días sin comprar aparece como inactivo en el reporte financiero.</p>
 <p>No se pueden repetir los números de RTN o DNI; si intenta registrar uno repetido el sistema avisa.</p>
 
 <h3>Proveedores</h3>
@@ -147,15 +148,15 @@ const cap7 = `
 ${figura(
   pantalla({
     modulo: 'Ventas', sub: 'Registrar Venta', titulo: 'Registrar Venta', alto: 100,
-    html: `<div class="fila">${chip('Factura', 'ok')}${chip('Boleta')}${chip('Cotización')}${chip('Venta')}${campo('Condición', 'Contado ▾')}${campo('Método de pago', 'Efectivo ▾')}</div>
+    html: `<div class="fila">${campo('Documento', 'Factura ▾')}${campo('Condición', 'Contado ▾')}${campo('Método de pago', 'Efectivo ▾')}</div>
     <div class="fila">${campo('Cliente', 'TALLER MECÁNICO LÓPEZ')}${campo('RTN / Documento', '08011985123456')}${btn('Más datos', 'sec')}</div>
     <div class="fila">${btn('Agregar Producto')}${btn('Escanear con celular', 'sec')}${btn('Ver promociones vigentes', 'sec')}</div>
-    ${tabla(['Producto', 'Cant.', 'Precio', 'Desc.', 'Subtotal'], [
+    ${tabla(['Producto', 'Cant.', 'Precio (c/ISV)', 'Desc.', 'Importe (c/ISV)'], [
       ['DISCO FRENO DEL. TOYOTA HILUX 05-15', '2', '1,450.00', '0%', '2,900.00'],
       ['PASTILLAS FRENO DEL. TOYOTA HILUX 05-15', '1', '680.00', '5%', '646.00'],
       ['LÍQUIDO DE FRENOS DOT4 500ML', '2', '95.00', '0%', '190.00'],
     ], [1, 2, 3, 4])}
-    <div class="fila" style="justify-content:space-between;margin-top:2mm"><div class="rejilla g3" style="flex:1">${kpi('Subtotal', 'L 3,736.00')}${kpi('ISV 15%', 'L 560.40')}${kpi('TOTAL A PAGAR', 'L 4,296.40')}</div>${campo('Paga con', '4,300.00')}</div>
+    <div class="fila" style="justify-content:space-between;margin-top:2mm"><div class="rejilla g4" style="flex:1">${kpi('Subtotal', 'L 3,248.70')}${kpi('Descuentos y rebajas', 'L 29.56')}${kpi('ISV 15%', 'L 487.30')}${kpi('TOTAL A PAGAR', 'L 3,736.00')}</div>${campo('Paga con', '3,800.00')}</div>
     <div class="fila">${btn('Guardar en Espera', 'sec')}${btn('Limpiar Venta', 'rojo')}${btn('Registrar Venta', 'ok')}</div>`,
     marcas: [{ n: 1, x: 36, y: 12 }, { n: 2, x: 36, y: 26 }, { n: 3, x: 36, y: 38 }, { n: 4, x: 36, y: 57 }, { n: 5, x: 60, y: 76 }, { n: 6, x: 76, y: 91 }],
   }),
@@ -165,7 +166,7 @@ ${figura(
 
 <h3>Registrar una venta paso a paso</h3>
 ${pasos([
-  ['Elija el tipo de documento.', 'Factura y Boleta cobran ISV; Venta es un ticket simple; Cotización no descuenta existencias.'],
+  ['Elija el tipo de documento.', 'Factura muestra el ISV desglosado; Venta es un ticket simple sin ISV; Cotización puede ser «sin ISV» o «con ISV» y no descuenta existencias.'],
   ['Busque los repuestos.', 'Presione <b>Agregar Producto</b> y escriba lo que busca. Para un vehículo concreto, llene los campos <b>Vehículo</b> y <b>Año</b> y presione Enter. Doble clic (o Enter sobre la fila resaltada) agrega el repuesto.'],
   ['Ajuste cantidades y descuentos.', 'Puede aplicar un descuento a una línea o un descuento general a toda la venta.'],
   ['Indique el cliente (opcional).', 'Escriba el nombre o use la lupa para buscarlo. Para facturas conviene registrar el RTN.'],
@@ -190,7 +191,19 @@ ${figura(
   'Buscador de repuestos dentro de una venta.',
   ['Texto de búsqueda (todas las palabras deben aparecer).', 'Filtro por vehículo y año.', 'Doble clic o Enter para agregar el repuesto a la venta.']
 )}
-<p>Si el repuesto no existe puede crearlo desde el mismo buscador con <b>Nuevo producto</b>. Si no tiene existencias, el sistema avisa y, si la clave especial está activa para esta acción, la pide antes de dejarlo agregar.</p>
+<p>Si el repuesto no existe puede crearlo desde el mismo buscador con <b>Nuevo producto</b>.</p>
+${aviso('Por defecto, un repuesto que no tiene existencia NO se puede agregar a una venta: el sistema muestra un mensaje y no lo deja seleccionar. En una cotización sí se puede, porque no descuenta existencias. Solo si el administrador activó la acción «Vender un producto sin existencia» en Configuración y existe clave especial, se podrá agregar pidiendo esa clave.', 'Sin existencia')}
+
+<h3>Cómo se calcula el ISV: el precio del inventario es el precio final</h3>
+<p>El precio que usted guarda en el inventario es lo que paga el cliente. El sistema <b>nunca le suma 15% encima</b>. Lo que hace depende del tipo de documento:</p>
+${datos(['Documento', 'Qué se ve en los totales', 'Ejemplo con un repuesto de L 1,150.00'], [
+  ['Venta / Cotización sin ISV', 'Solo el total (y los descuentos, si los hay). No hay filas de ISV.', 'Total L 1,150.00'],
+  ['Factura / Cotización con ISV', 'Subtotal, Descuentos y rebajas (si hay), ISV 15% y Total a pagar. El ISV se separa del precio.', 'Subtotal L 1,000.00 + ISV L 150.00 = Total L 1,150.00'],
+])}
+<p>Si cambia el tipo de documento a mitad de la venta, el <b>total no cambia</b>: solo cambia la forma de mostrarlo. En la factura, las columnas se llaman «Precio (c/ISV)» e «Importe (c/ISV)»; con el botón «Con ISV / Sin ISV» puede ver los precios de cada línea con o sin impuesto.</p>
+
+<h3>Descuentos y rebajas</h3>
+<p>Cada línea puede llevar un descuento en porcentaje, y toda la venta puede llevar un descuento general. Las promociones (por ejemplo precio fijo o combos) también rebajan el precio. Cuando hay cualquier descuento, en los totales aparece la fila <b>Descuentos y rebajas</b> con el monto total que se le rebajó al cliente, y el subtotal se muestra antes del descuento para que la cuenta se entienda. Esto se ve igual en Venta, Cotización y Factura.</p>
 
 <h3>Formas de pago</h3>
 ${datos(['Forma', 'Cómo se usa'], [
@@ -211,7 +224,7 @@ ${datos(['Forma', 'Cómo se usa'], [
 </ul>
 
 <h3>Cotizaciones</h3>
-<p>Elija el tipo <b>Cotización</b> para dar un precio. No descuenta existencias ni suma a las ventas. Más tarde, desde <b>Ver Detalle</b>, el botón <b>Convertir a venta</b> la transforma en venta real.</p>
+<p>En el selector de documento elija <b>Cotización sin ISV</b> o <b>Cotización con ISV</b> para dar un precio. Con ISV, los totales se muestran desglosados como en una factura; sin ISV, solo el total. No descuenta existencias ni suma a las ventas, y el sistema le deja agregar repuestos aunque estén agotados. Más tarde, desde <b>Ver Detalle</b>, el botón <b>Convertir a venta</b> la transforma en venta real (el precio se conserva igual).</p>
 
 <h3>Ver detalle, reimprimir y anular</h3>
 <p>En <b>Ventas ▸ Ver Detalle</b> (o <b>Ver Facturas</b>) busque la venta por número de documento, cliente o fecha. El detalle abre al instante y muestra las líneas, los costos y el método de pago. Desde ahí puede:</p>
