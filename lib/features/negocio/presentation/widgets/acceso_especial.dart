@@ -64,7 +64,7 @@ Future<ResultadoAccesoEspecial> verificarAccesoEspecial(BuildContext context, Wi
     if (!negocio.tieneClaveEspecial) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No tenés permiso para esto y todavía no hay una clave especial configurada en Negocio para que alguien lo autorice.')),
+          const SnackBar(content: Text('No tenés permiso para esto y todavía no hay una clave especial configurada en Configuración para que alguien lo autorice.')),
         );
       }
       return const ResultadoAccesoEspecial(autorizado: false);

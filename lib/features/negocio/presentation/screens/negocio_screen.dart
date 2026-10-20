@@ -510,7 +510,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Negocio',
+                        'Configuración',
                         style: GoogleFonts.poppins(
                           fontSize: esMovil ? 19 : 22,
                           fontWeight: FontWeight.w700,
@@ -1448,7 +1448,6 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
     );
   }
 
-  final _colorPersonalizadoCtrl = TextEditingController();
 
   Widget _tarjetaApariencia() {
     final actual = Marca.primario;
@@ -1495,24 +1494,14 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
           const SizedBox(height: 14),
           Row(
             children: [
-              SizedBox(
-                width: 170,
-                child: TextField(
-                  controller: _colorPersonalizadoCtrl,
-                  style: GoogleFonts.poppins(fontSize: 13),
-                  decoration: InputDecoration(
-                    labelText: 'Color propio (#RRGGBB)',
-                    labelStyle: GoogleFonts.poppins(fontSize: 12),
-                    isDense: true,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  onSubmitted: (_) => _aplicarColorPersonalizado(),
+              OutlinedButton.icon(
+                onPressed: _abrirSelectorColor,
+                icon: Container(
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(color: actual, shape: BoxShape.circle, border: Border.all(color: Colors.black26)),
                 ),
-              ),
-              const SizedBox(width: 10),
-              OutlinedButton(
-                onPressed: _aplicarColorPersonalizado,
-                child: Text('Aplicar', style: GoogleFonts.poppins(fontSize: 13)),
+                label: Text('Elegir otro color (RGB)', style: GoogleFonts.poppins(fontSize: 13)),
               ),
               const SizedBox(width: 10),
               TextButton(
@@ -1556,13 +1545,13 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
     }
   }
 
-  void _aplicarColorPersonalizado() {
-    final color = Marca.desdeHex(_colorPersonalizadoCtrl.text);
-    if (color == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Escribí un color válido, por ejemplo #1F5F46')));
-      return;
-    }
-    _aplicarColorMarca(color);
+  Future<void> _abrirSelectorColor() async {
+    final color = await showDialog<Color>(
+      useRootNavigator: false,
+      context: context,
+      builder: (_) => _SelectorColorDialog(inicial: Marca.primario),
+    );
+    if (color != null) _aplicarColorMarca(color);
   }
 
   Widget _tarjetaFactura() {
@@ -1919,6 +1908,143 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _SelectorColorDialog extends StatefulWidget {
+  final Color inicial;
+
+  const _SelectorColorDialog({required this.inicial});
+
+  @override
+  State<_SelectorColorDialog> createState() => _SelectorColorDialogState();
+}
+
+class _SelectorColorDialogState extends State<_SelectorColorDialog> {
+  static const _muestras = <int>[
+    0xFF000000, 0xFF303846, 0xFF475569, 0xFF6B7280, 0xFF9CA3AF, 0xFFD1D5DB,
+    0xFF7F1D1D, 0xFFB91C1C, 0xFFDC2626, 0xFFEF4444, 0xFFF97316, 0xFFEA580C,
+    0xFF92400E, 0xFFB45309, 0xFFD97706, 0xFFEAB308, 0xFFCA8A04, 0xFF84CC16,
+    0xFF166534, 0xFF15803D, 0xFF16A34A, 0xFF22C55E, 0xFF0D9488, 0xFF0E7490,
+    0xFF0284C7, 0xFF2563EB, 0xFF1D4ED8, 0xFF1E3A8A, 0xFF4338CA, 0xFF6D28D9,
+    0xFF7E22CE, 0xFF9333EA, 0xFFC026D3, 0xFFDB2777, 0xFFE11D48, 0xFF9F1239,
+  ];
+
+  late double _r = (widget.inicial.r * 255).roundToDouble();
+  late double _g = (widget.inicial.g * 255).roundToDouble();
+  late double _b = (widget.inicial.b * 255).roundToDouble();
+  late final TextEditingController _hex = TextEditingController(text: Marca.aHex(_color));
+
+  Color get _color => Color.fromARGB(255, _r.round(), _g.round(), _b.round());
+
+  @override
+  void dispose() {
+    _hex.dispose();
+    super.dispose();
+  }
+
+  void _fijar(Color c) {
+    setState(() {
+      _r = (c.r * 255).roundToDouble();
+      _g = (c.g * 255).roundToDouble();
+      _b = (c.b * 255).roundToDouble();
+      _hex.text = Marca.aHex(_color);
+    });
+  }
+
+  Widget _barra(String etiqueta, double valor, Color color, ValueChanged<double> alCambiar) {
+    return Row(
+      children: [
+        SizedBox(width: 18, child: Text(etiqueta, style: const TextStyle(fontWeight: FontWeight.w700))),
+        Expanded(
+          child: SliderTheme(
+            data: SliderTheme.of(context).copyWith(activeTrackColor: color, thumbColor: color),
+            child: Slider(
+              value: valor,
+              min: 0,
+              max: 255,
+              onChanged: (v) {
+                alCambiar(v);
+                setState(() => _hex.text = Marca.aHex(_color));
+              },
+            ),
+          ),
+        ),
+        SizedBox(width: 34, child: Text('${valor.round()}', textAlign: TextAlign.right)),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Elegir color'),
+      content: SizedBox(
+        width: 400,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final m in _muestras)
+                    InkWell(
+                      onTap: () => _fijar(Color(m)),
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Color(m),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Color(m) == _color ? Colors.black : Colors.black12, width: Color(m) == _color ? 3 : 1),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _barra('R', _r, Colors.red, (v) => _r = v),
+              _barra('G', _g, Colors.green, (v) => _g = v),
+              _barra('B', _b, Colors.blue, (v) => _b = v),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Container(
+                    width: 64,
+                    height: 44,
+                    decoration: BoxDecoration(color: _color, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.black26)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _hex,
+                      decoration: const InputDecoration(labelText: 'Código (#RRGGBB)', isDense: true, border: OutlineInputBorder()),
+                      onChanged: (t) {
+                        final c = Marca.desdeHex(t);
+                        if (c != null) {
+                          setState(() {
+                            _r = (c.r * 255).roundToDouble();
+                            _g = (c.g * 255).roundToDouble();
+                            _b = (c.b * 255).roundToDouble();
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        FilledButton(onPressed: () => Navigator.pop(context, _color), child: const Text('Aplicar')),
+      ],
     );
   }
 }
