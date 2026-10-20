@@ -34,24 +34,25 @@ class UsuarioRepository with ConRedMixin {
     Map<String, bool> accionesPermitidas = const {},
   ]) {
     return conRed(() async {
-      final existe = await _db.from('usuarios').select('id').eq('documento', documento).limit(1);
-      if (existe.isNotEmpty) {
-        throw Exception('El número de documento ya existe');
-      }
       final sal = ClaveHash.generarSal();
       final aplicaPermisos = rol == Roles.encargado || rol == Roles.empleado;
-      await _db.from('usuarios').insert({
-        'documento': documento,
-        'nombre_completo': nombreCompleto,
-        'correo': correo,
-        'clave': ClaveHash.hash(clave, sal),
-        'sal': sal,
-        'rol': rol,
-        'estado': estado,
-        'intentos_fallidos': 0,
-        'pantallas_permitidas': aplicaPermisos ? pantallasPermitidas : {},
-        'acciones_permitidas': aplicaPermisos ? accionesPermitidas : {},
-      });
+      try {
+        await _db.rpc('crear_usuario_con_clave', params: {
+          'p_datos': {
+            'documento': documento,
+            'nombre_completo': nombreCompleto,
+            'correo': correo,
+            'rol': rol,
+            'estado': estado,
+            'pantallas_permitidas': aplicaPermisos ? pantallasPermitidas : {},
+            'acciones_permitidas': aplicaPermisos ? accionesPermitidas : {},
+          },
+          'p_clave': ClaveHash.hash(clave, sal),
+          'p_sal': sal,
+        });
+      } on PostgrestException catch (e) {
+        throw Exception(e.message);
+      }
     });
   }
 
@@ -82,14 +83,15 @@ class UsuarioRepository with ConRedMixin {
         'pantallas_permitidas': aplicaPermisos ? pantallasPermitidas : {},
         'acciones_permitidas': aplicaPermisos ? accionesPermitidas : {},
       };
+      await _db.from('usuarios').update(data).eq('id', id);
       if (clave != null && clave.trim().isNotEmpty) {
         final sal = ClaveHash.generarSal();
-        data['clave'] = ClaveHash.hash(clave, sal);
-        data['sal'] = sal;
-        data['intentos_fallidos'] = 0;
-        data['bloqueado_hasta'] = null;
+        try {
+          await _db.rpc('guardar_credencial', params: {'p_id': id, 'p_clave': ClaveHash.hash(clave, sal), 'p_sal': sal});
+        } on PostgrestException catch (e) {
+          throw Exception(e.message);
+        }
       }
-      await _db.from('usuarios').update(data).eq('id', id);
     });
   }
 

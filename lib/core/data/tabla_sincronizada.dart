@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'almacen_local.dart';
+import 'sesion_servidor.dart';
 
 typedef DesdeFila<T> = T Function(Map<String, dynamic> fila);
 
@@ -23,6 +24,8 @@ class TablaSincronizada<T> {
   });
 
   static const _tamanoPagina = 1000;
+  static final List<TablaSincronizada> _todas = [];
+  static bool _oyenteSesion = false;
 
   final _db = Supabase.instance.client;
   final Map<String, Map<String, dynamic>> _filas = {};
@@ -62,7 +65,24 @@ class TablaSincronizada<T> {
     return salida.stream;
   }
 
-  Future<void> _asegurarInicio() => _inicio ??= _iniciar();
+  Future<void> _asegurarInicio() {
+    if (!_oyenteSesion) {
+      _oyenteSesion = true;
+      SesionServidor.alCambiar(() {
+        for (final t in List.of(_todas)) {
+          t._alIniciarSesion();
+        }
+      });
+    }
+    if (!_todas.contains(this)) _todas.add(this);
+    return _inicio ??= _iniciar();
+  }
+
+  void _alIniciarSesion() {
+    if (_inicio == null) return;
+    _suscribirRealtime();
+    unawaited(sincronizar());
+  }
 
   Future<void> _iniciar() async {
     _caja = await AlmacenLocal.abrir('t_$tabla');
@@ -89,8 +109,10 @@ class TablaSincronizada<T> {
     }
     _cargadoLocal = true;
     if (_modelos.isNotEmpty) _emitir();
-    unawaited(sincronizar());
-    _suscribirRealtime();
+    if (SesionServidor.activa) {
+      unawaited(sincronizar());
+      _suscribirRealtime();
+    }
     _temporizador = Timer.periodic(intervaloRespaldo, (_) => sincronizar());
   }
 
@@ -105,6 +127,9 @@ class TablaSincronizada<T> {
   }
 
   void _suscribirRealtime() {
+    if (!SesionServidor.activa) return;
+    final previo = _canal;
+    if (previo != null) unawaited(_db.removeChannel(previo));
     try {
       _canal = _db
           .channel('sync_$tabla')
@@ -149,6 +174,7 @@ class TablaSincronizada<T> {
 
   Future<void> _sincronizarInterno() async {
     await _asegurarInicio();
+    if (!SesionServidor.activa) return;
     try {
       var offset = 0;
       var mayor = _cursor;

@@ -1,0 +1,21 @@
+name: Mantener Supabase activo
+
+on:
+  schedule:
+    - cron: '23 13 */2 * *'
+  workflow_dispatch: {}
+
+jobs:
+  mantener:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reanudar el proyecto si esta pausado
+        env:
+          TOKEN: ${{ secrets.SUPABASE_MGMT_TOKEN }}
+          REF: ezdbvudlqwcuzutdfaij
+        run: |
+          estado=$(curl -sf -H "Authorization: Bearer $TOKEN" "https://api.supabase.com/v1/projects/$REF" | jq -r '.status')
+          echo "Estado actual: $estado"
+          if [ "$estado" != "ACTIVE_HEALTHY" ]; then
+            curl -sf -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{}' "https://api.supabase.com/v1/projects/$REF/restore"
+          fi

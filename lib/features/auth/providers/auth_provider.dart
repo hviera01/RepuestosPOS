@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/data/sesion_servidor.dart';
 import '../data/auth_repository.dart';
 import '../data/usuario_model.dart';
 import '../../../core/providers/tabs_provider.dart';
@@ -40,6 +41,7 @@ class AuthNotifier extends Notifier<AuthState> {
  Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('usuario_id');
+    SesionServidor.limpiar();
     state = AuthState();
     ref.invalidate(tabsProvider);
   }

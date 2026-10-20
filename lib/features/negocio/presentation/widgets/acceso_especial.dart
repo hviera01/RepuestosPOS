@@ -90,7 +90,6 @@ Future<ResultadoAccesoEspecial> verificarAccesoEspecial(BuildContext context, Wi
       context: context,
       barrierDismissible: false,
       builder: (context) => _ClaveEspecialDialog(
-        hashEsperado: negocio.claveEspecialHash,
         repo: repo,
         usuarios: usuarios.where((u) => u.estado).toList(),
         usuarioLogueadoId: usuarioLogueado?.id,
@@ -103,12 +102,11 @@ Future<ResultadoAccesoEspecial> verificarAccesoEspecial(BuildContext context, Wi
 }
 
 class _ClaveEspecialDialog extends StatefulWidget {
-  final String hashEsperado;
   final NegocioRepository repo;
   final List<UsuarioModel> usuarios;
   final String? usuarioLogueadoId;
 
-  const _ClaveEspecialDialog({required this.hashEsperado, required this.repo, required this.usuarios, this.usuarioLogueadoId});
+  const _ClaveEspecialDialog({required this.repo, required this.usuarios, this.usuarioLogueadoId});
 
   @override
   State<_ClaveEspecialDialog> createState() => _ClaveEspecialDialogState();
@@ -135,7 +133,7 @@ class _ClaveEspecialDialogState extends State<_ClaveEspecialDialog> {
     super.dispose();
   }
 
-  void _confirmar() {
+  Future<void> _confirmar() async {
     if (_usuarioSeleccionadoId == null) {
       setState(() => _error = 'Seleccioná quién autoriza');
       return;
@@ -145,7 +143,14 @@ class _ClaveEspecialDialogState extends State<_ClaveEspecialDialog> {
       setState(() => _error = 'Ingresá la clave');
       return;
     }
-    final valido = widget.repo.hashClave(clave) == widget.hashEsperado;
+    bool valido;
+    try {
+      valido = await widget.repo.verificarClaveEspecial(clave);
+    } catch (_) {
+      if (mounted) setState(() => _error = 'No se pudo verificar la clave, intente de nuevo');
+      return;
+    }
+    if (!mounted) return;
     if (!valido) {
       setState(() {
         _error = 'Clave incorrecta';

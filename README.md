@@ -19,7 +19,10 @@ Ejecutar en orden contra el proyecto de Supabase:
 dart tool/supabase_sql.dart supabase/schema.sql
 dart tool/supabase_sql.dart supabase/02_repuestos.sql
 dart tool/supabase_sql.dart supabase/03_rendimiento.sql
+dart tool/supabase_sql.dart supabase/04_seguridad.sql
 ```
+
+Después de `04_seguridad.sql` hay que guardar el secreto JWT del proyecto en `app_secretos` (clave `jwt_secret`) y crear el primer administrador con `select crear_usuario_inicial('admin', 'ADMINISTRADOR', 'clave-temporal');`.
 
 `tool/supabase_sql.dart` lee `.env` (ver `.env.example`). Después poner la URL y la anon key en `lib/core/config/supabase_config.dart`.
 
@@ -40,3 +43,9 @@ Compila Windows y Android, genera el instalador, firma cada archivo con la llave
 ## Web
 
 El despliegue a GitHub Pages lo hace `.github/workflows/deploy-pages.yml` al subir a `main`.
+
+## Seguridad
+
+- La base ya no acepta la clave pública sin sesión: solo `iniciar_sesion` y las tablas del escáner remoto están abiertas. Cada usuario recibe un token firmado de 24 horas que la app renueva sola.
+- Las claves de usuario (`usuarios_credenciales`) y la clave especial (`app_secretos`) no se pueden leer desde la API, ni siquiera con sesión. Solo se verifican y cambian con funciones del servidor, y cambiarlas exige ser administrador.
+- `dart run tool/probar_seguridad.dart <documento> <clave>` comprueba todo esto contra el proyecto real.

@@ -30,6 +30,13 @@ class NegocioRepository with ConRedMixin {
 
   Future<void> sincronizarAhora() => _tabla.sincronizar();
 
+  Future<bool> verificarClaveEspecial(String clave) {
+    return conRed(() async {
+      final r = await _db.rpc('verificar_clave_especial', params: {'p_hash': hashClave(clave)});
+      return r == true;
+    });
+  }
+
   Future<NegocioModel> obtenerNegocioActual() async {
     final cache = _cache;
     final cacheFecha = _cacheFecha;
@@ -130,11 +137,19 @@ class NegocioRepository with ConRedMixin {
   }
 
   Future<void> establecerClave(String clave) {
-    return _guardar({'clave_especial_hash': hashClave(clave)});
+    return conRed(() async {
+      await _db.rpc('establecer_clave_especial', params: {'p_hash': hashClave(clave)});
+      _invalidarCache();
+      await _tabla.sincronizar();
+    });
   }
 
   Future<void> quitarClave() {
-    return _guardar({'clave_especial_hash': ''});
+    return conRed(() async {
+      await _db.rpc('establecer_clave_especial', params: {'p_hash': ''});
+      _invalidarCache();
+      await _tabla.sincronizar();
+    });
   }
 
   Future<void> actualizarImpresoraTermica(String url, String nombre) {

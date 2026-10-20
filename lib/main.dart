@@ -9,6 +9,7 @@ import 'features/negocio/providers/negocio_provider.dart';
 import 'features/negocio/data/negocio_model.dart';
 import 'features/ventas/providers/carrito_provider.dart';
 import 'core/data/almacen_local.dart';
+import 'core/data/sesion_servidor.dart';
 import 'core/data/operaciones_service.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
@@ -33,6 +34,7 @@ Future<void> main() async {
   await Supabase.initialize(
     url: SupabaseConfig.url,
     anonKey: SupabaseConfig.anonKey,
+    accessToken: () async => SesionServidor.token,
   );
   await AlmacenLocal.iniciar();
   await Marca.cargarGuardado();

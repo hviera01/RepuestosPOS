@@ -81,7 +81,7 @@ class NegocioModel {
   final DateTime? fechaLimiteEmision;
   final String logoColorBase64;
   final String logoBnBase64;
-  final String claveEspecialHash;
+  final bool tieneClaveEspecial;
   final Map<String, bool> permisos;
   final String impresoraTermicaUrl;
   final String impresoraTermicaNombre;
@@ -116,7 +116,7 @@ class NegocioModel {
     this.fechaLimiteEmision,
     this.logoColorBase64 = '',
     this.logoBnBase64 = '',
-    this.claveEspecialHash = '',
+    this.tieneClaveEspecial = false,
     this.permisos = const {},
     this.impresoraTermicaUrl = '',
     this.impresoraTermicaNombre = '',
@@ -138,8 +138,6 @@ class NegocioModel {
     this.tipoDocumentoDefecto = 'Factura',
   });
 
-  bool get tieneClaveEspecial => claveEspecialHash.isNotEmpty;
-
   bool tienePermiso(String key) => permisos[key] == true;
 
   factory NegocioModel.fromMap(Map<String, dynamic>? data) {
@@ -158,7 +156,7 @@ class NegocioModel {
       fechaLimiteEmision: data['fecha_limite_emision'] == null ? null : DateTime.parse(data['fecha_limite_emision'] as String),
       logoColorBase64: data['logo_color_base64'] ?? '',
       logoBnBase64: data['logo_bn_base64'] ?? '',
-      claveEspecialHash: data['clave_especial_hash'] ?? '',
+      tieneClaveEspecial: data['tiene_clave_especial'] ?? false,
       permisos: Map<String, bool>.from(data['permisos'] ?? {}),
       impresoraTermicaUrl: data['impresora_termica_url'] ?? '',
       impresoraTermicaNombre: data['impresora_termica_nombre'] ?? '',
@@ -197,7 +195,6 @@ class NegocioModel {
       'fecha_limite_emision': fechaLimiteEmision?.toIso8601String(),
       'logo_color_base64': logoColorBase64,
       'logo_bn_base64': logoBnBase64,
-      'clave_especial_hash': claveEspecialHash,
       'permisos': permisos,
       'impresora_termica_url': impresoraTermicaUrl,
       'impresora_termica_nombre': impresoraTermicaNombre,
@@ -234,7 +231,7 @@ class NegocioModel {
     DateTime? fechaLimiteEmision,
     String? logoColorBase64,
     String? logoBnBase64,
-    String? claveEspecialHash,
+    bool? tieneClaveEspecial,
     Map<String, bool>? permisos,
     String? impresoraTermicaUrl,
     String? impresoraTermicaNombre,
@@ -269,7 +266,7 @@ class NegocioModel {
       fechaLimiteEmision: fechaLimiteEmision ?? this.fechaLimiteEmision,
       logoColorBase64: logoColorBase64 ?? this.logoColorBase64,
       logoBnBase64: logoBnBase64 ?? this.logoBnBase64,
-      claveEspecialHash: claveEspecialHash ?? this.claveEspecialHash,
+      tieneClaveEspecial: tieneClaveEspecial ?? this.tieneClaveEspecial,
       permisos: permisos ?? this.permisos,
       impresoraTermicaUrl: impresoraTermicaUrl ?? this.impresoraTermicaUrl,
       impresoraTermicaNombre:
