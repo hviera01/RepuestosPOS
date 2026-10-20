@@ -23,7 +23,7 @@ class PermisosEspeciales {
     ventasCreditoEliminar: 'Eliminar créditos en Ventas a Crédito',
     ventasCambiarPrecio: 'Cambiar precio de un producto en Ventas',
     ventasEditarDescripcion: 'Editar descripción de un producto en Ventas',
-    ventasVenderSinStock: 'Agregar a una venta un producto sin existencia',
+    ventasVenderSinStock: 'Permitir vender un producto sin existencia (con clave)',
     comprasCrear: 'Registrar compras',
     comprasEditar: 'Editar compras',
     comprasEliminar: 'Anular compras',
@@ -48,7 +48,7 @@ class PermisosEspeciales {
     ventasEditarDescripcion:
         'Pide la clave especial antes de cambiar la descripción de un producto dentro de una venta.',
     ventasVenderSinStock:
-        'Pide la clave especial antes de agregar a una venta (o aumentar la cantidad de) un producto sin existencia disponible, en categorías que sí controlan stock. Si se cancela, se ofrece igual la opción de reembasado.',
+        'Por defecto el sistema NO deja vender un producto sin existencia: muestra un aviso y no lo agrega. Si activa esto (y hay clave especial), se podrá agregar un producto sin existencia, o vender más de lo que hay, pidiendo la clave especial.',
     comprasCrear: 'Permite registrar una nueva compra.',
     comprasEditar: 'Permite editar una compra ya registrada.',
     comprasEliminar: 'Permite anular una compra ya registrada.',

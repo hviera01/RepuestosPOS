@@ -24,8 +24,6 @@ import '../widgets/importar_creditos_venta_dialog.dart';
 import '../../../ventas/presentation/screens/detalle_venta_screen.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
-import '../../../../core/tutorial/tutorial_modelos.dart';
-import '../../../../core/tutorial/tutorial_boton.dart';
 
 class VentasCreditoScreen extends ConsumerStatefulWidget {
   const VentasCreditoScreen({super.key});
@@ -48,76 +46,6 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
   final _keySelectorVista = GlobalKey();
   final _keyPrimeraAccion = GlobalKey();
 
-  TutorialTema get _temaAbonoCredito => TutorialTema(
-    titulo: 'Cómo registrar un abono a un crédito',
-    descripcion: 'Anotar un pago que te hace un cliente',
-    icono: Icons.payments_outlined,
-    bienvenida:
-        'Un "crédito" es cuando un cliente ya se llevó su producto pero '
-        'todavía no lo pagó completo, y te va pagando de a poco. Cada '
-        'vez que te paga una parte, eso se llama "abono". Te voy a '
-        'mostrar cómo ver cuánto te debe cada cliente y cómo anotar un '
-        'abono nuevo cuando te paga.',
-    pasos: () => [
-      TutorialPaso(
-        key: _keyStatTotal,
-        titulo: '¿Cuánto te deben en total?',
-        explicacion:
-            'Acá arriba ves la suma de todo lo que te deben todos tus '
-            'clientes juntos, sumando los créditos que todavía no están '
-            'pagados por completo.',
-        alineacion: ContentAlign.bottom,
-      ),
-      TutorialPaso(
-        key: _keyBuscador,
-        titulo: 'Buscar un crédito',
-        explicacion:
-            'Escribí el nombre del cliente o el número de factura acá '
-            'y tocá la flecha (o Enter) para encontrarlo rápido.',
-        obligatorio: false,
-      ),
-      TutorialPaso(
-        key: _keySelectorVista,
-        titulo: 'Filtrar la lista',
-        explicacion:
-            'Con este menú elegís qué créditos ver: "Deben" (todavía te '
-            'falta cobrar), "Liquidadas" (ya te pagaron todo) o "Todas".',
-      ),
-      TutorialPaso(
-        key: _keyPrimeraAccion,
-        titulo: 'Más acciones de un crédito',
-        explicacion:
-            'Tocá este botón (los tres puntitos) en la fila de un '
-            'cliente. Ahí aparece "Registrar abono" -para anotar que te '
-            'pagó una parte- y "Ver historial de abonos" -para ver '
-            'todos los pagos que ya te hizo antes-.',
-      ),
-      TutorialPaso(
-        key: tutorialKeyMontoAbono,
-        titulo: 'Monto del abono',
-        explicacion:
-            'Escribí acá cuánto dinero te está pagando el cliente en '
-            'este momento. El saldo pendiente se recalcula solo.',
-        obligatorio: true,
-      ),
-      TutorialPaso(
-        key: tutorialKeyFechaAbono,
-        titulo: 'Fecha del abono',
-        explicacion:
-            'Por defecto queda puesto hoy. Si el pago fue otro día, '
-            'tocá acá y elegí la fecha correcta.',
-        obligatorio: false,
-      ),
-      TutorialPaso(
-        key: tutorialKeyConfirmarAbono,
-        titulo: 'Guardar el abono',
-        explicacion:
-            'Cuando ya pusiste el monto, tocá este botón para guardar '
-            'el pago. El saldo pendiente del cliente baja automáticamente.',
-        obligatorio: true,
-      ),
-    ],
-  );
 
   @override
   void dispose() {
@@ -762,11 +690,7 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
             },
           ),
         ),
-        Positioned(
-          right: 16,
-          bottom: 16,
-          child: TutorialBoton(temas: [_temaAbonoCredito]),
-        ),
+
       ],
     );
   }

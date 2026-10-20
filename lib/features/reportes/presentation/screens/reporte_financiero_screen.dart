@@ -7,8 +7,6 @@ import '../../data/reporte_financiero_model.dart';
 import '../../data/reporte_financiero_export_service.dart';
 import '../../providers/reportes_provider.dart';
 import '../../../../core/widgets/pdf_preview_dialog.dart';
-import '../../../../core/tutorial/tutorial_modelos.dart';
-import '../../../../core/tutorial/tutorial_boton.dart';
 import '../widgets/reporte_financiero_secciones.dart';
 
 typedef _SeccionBuilder =
@@ -263,83 +261,11 @@ class _ReporteFinancieroScreenState
             },
           ),
         ),
-        Positioned(
-          right: 16,
-          bottom: 16,
-          child: TutorialBoton(temas: _temasTutorial),
-        ),
+
       ],
     );
   }
 
-  List<TutorialTema> get _temasTutorial => [
-    TutorialTema(
-      titulo: 'Cómo ver mis ganancias',
-      descripcion: 'Entender la utilidad, el flujo de dinero y más',
-      icono: Icons.trending_up_outlined,
-      bienvenida:
-          'Esta pantalla te muestra si de verdad estás ganando dinero, no '
-          'solo cuánto vendiste. Sin tocar nada, ya ves la información de '
-          'HOY. Lo más importante para entender es la "Utilidad": es lo '
-          'que ganaste DE VERDAD, después de restarle a lo que vendiste lo '
-          'que gastaste comprando mercadería y pagando otros gastos. Por '
-          'ejemplo: si vendiste L. 1,000 pero esa mercadería te costó L. '
-          '600 y gastaste L. 100 en otras cosas, tu utilidad real es L. '
-          '300, no L. 1,000.',
-      pasos: () => [
-        TutorialPaso(
-          key: _keyChipsRango,
-          titulo: 'Atajos rápidos',
-          explicacion:
-              'Estos botones son para no tener que elegir las fechas a '
-              'mano: tocá "Hoy", "Ayer", "Semana", "Mes" o "Trimestre" y el '
-              'reporte se vuelve a generar solo con esas fechas.',
-          obligatorio: false,
-        ),
-        TutorialPaso(
-          key: _keyFechaDesde,
-          titulo: 'Fecha Desde',
-          explicacion:
-              'Acá elegís desde qué día querés calcular la utilidad y los '
-              'demás números. Tocá el recuadro y elegí la fecha en el '
-              'calendario. Si usás uno de los atajos de arriba, esto se '
-              'llena solo.',
-          obligatorio: false,
-        ),
-        TutorialPaso(
-          key: _keyFechaHasta,
-          titulo: 'Fecha Hasta',
-          explicacion:
-              'Acá elegís hasta qué día querés calcular. Junto con '
-              '"Desde" forman el período que se va a analizar.',
-          obligatorio: false,
-        ),
-        TutorialPaso(
-          key: _keyTabs,
-          titulo: 'Las pestañas de información',
-          explicacion:
-              'Acá arriba hay varias pestañas: "Utilidad" (lo que ganaste '
-              'de verdad), "Flujo de Efectivo" (el dinero que entró y '
-              'salió), "Comparación Mensual", "Ranking de Productos" (lo '
-              'que más se vendió), y varias más. Tocá cualquiera para ver '
-              'esa información, o usá las flechitas de los costados si no '
-              'ves todas. Todas usan el mismo período de fechas que '
-              'elegiste arriba.',
-          obligatorio: false,
-        ),
-        TutorialPaso(
-          key: _keyPdf,
-          titulo: 'Descargar PDF completo',
-          explicacion:
-              'Este botón te muestra una vista previa en PDF con todo el '
-              'reporte financiero del período que elegiste, lista para '
-              'imprimir o guardar. Se activa apenas termina de generarse '
-              'el reporte.',
-          obligatorio: false,
-        ),
-      ],
-    ),
-  ];
 
   Widget _tabsYContenido(ReporteFinancieroData data, bool esMovil) {
     return DefaultTabController(

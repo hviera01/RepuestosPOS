@@ -44,8 +44,6 @@ import '../../../../core/utils/impresion_calentamiento.dart';
 import '../../../../core/widgets/barcode_scanner_screen.dart';
 import '../../../../core/widgets/exito_transaccion_overlay.dart';
 import '../../../../core/widgets/pdf_preview_dialog.dart';
-import '../../../../core/tutorial/tutorial_modelos.dart';
-import '../../../../core/tutorial/tutorial_boton.dart';
 import '../widgets/buscar_producto_dialog.dart';
 import '../widgets/panel_buscador_grid.dart';
 import '../../data/registrar_venta_vista_storage.dart';
@@ -744,6 +742,15 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
   }
 
 
+  Future<bool> _ventaSinExistenciaPermitida() async {
+    final negocio = await ref.read(negocioRepositoryProvider).obtenerNegocioActual();
+    return negocio.tieneClaveEspecial && negocio.tienePermiso(PermisosEspeciales.ventasVenderSinStock);
+  }
+
+  void _avisarSinExistencia(String nombre) {
+    _mostrarMensaje('"$nombre" no tiene existencia disponible: no se puede agregar a la venta.');
+  }
+
   bool _categoriaControlaStock(String idCategoria) {
     final categorias = ref.read(categoriasStreamProvider).value ?? [];
     final coincidencias = categorias.where((c) => c.id == idCategoria).toList();
@@ -753,11 +760,15 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
   Future<void> _agregarProductoDesdeBusqueda() async {
     _pausarLectorFisico = true;
     try {
+      final permiteSinExistencia = await _ventaSinExistenciaPermitida();
+      if (!mounted) return;
       final carritoActual = ref.read(carritoVentaProvider);
       final resultado = await Navigator.of(context).push<ProductoConPrecio>(
         MaterialPageRoute(
           fullscreenDialog: true,
           builder: (context) => BuscarProductoDialog(
+            esCotizacion: ref.read(carritoVentaProvider).esCotizacion,
+            permiteSinExistencia: permiteSinExistencia,
             condicion: carritoActual.condicion,
             metodoPago: carritoActual.metodoPago,
           ),
@@ -814,6 +825,11 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
         'Advertencia: "${producto.nombre}" no tiene existencia disponible, pero se agregará a la cotización.',
       );
     } else if (sinExistencia) {
+      if (!await _ventaSinExistenciaPermitida()) {
+        if (mounted) _avisarSinExistencia(producto.nombre);
+        return;
+      }
+      if (!mounted) return;
       final autorizado = (await verificarAccesoEspecial(
         context,
         ref,
@@ -1123,15 +1139,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       if (!mounted) return;
     }
     final productos = ref.read(productosStreamProvider).value ?? [];
-    bool coincide(ProductoModel p, String t) =>
-        p.estado && (p.codigoBarras.trim() == t || p.codigo.trim() == t);
-    var coincidencias = productos.where((p) => coincide(p, texto)).toList();
-    if (coincidencias.isEmpty) {
-      for (final variante in variantesCodigoBarras(texto)) {
-        coincidencias = productos.where((p) => coincide(p, variante)).toList();
-        if (coincidencias.isNotEmpty) break;
-      }
-    }
+    final coincidencias = buscarProductosPorCodigoEscaneado(productos, texto);
     if (coincidencias.isEmpty) {
       _mostrarMensaje('Código escaneado no encontrado: $texto');
       return;
@@ -1341,6 +1349,14 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
         : 0.0;
 
     if (stockDisponible < nuevaCantidad && !carrito.esCotizacion) {
+      if (!await _ventaSinExistenciaPermitida()) {
+        if (mounted) {
+          _mostrarMensaje('"${item.nombreProducto}" solo tiene ${_formatoCantidad(stockDisponible)} en existencia: no se puede vender más.');
+          _revertirCantidad(index);
+        }
+        return;
+      }
+      if (!mounted) return;
       final autorizado = (await verificarAccesoEspecial(
         context,
         ref,
@@ -2476,11 +2492,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               children: [
                 pantalla,
                 Positioned(top: 0, right: 0, child: _botonSelectorVista(vista)),
-                Positioned(
-                  right: 16,
-                  bottom: 16,
-                  child: TutorialBoton(temas: _temasTutorial()),
-                ),
+
               ],
             );
           },
@@ -2489,200 +2501,6 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     );
   }
 
-  List<TutorialTema> _temasTutorial() {
-    return [
-      TutorialTema(
-        titulo: 'Cómo hacer una venta simple al contado',
-        descripcion: 'Vender un producto y cobrarlo de una vez',
-        icono: Icons.point_of_sale_outlined,
-        bienvenida:
-            'Te voy a mostrar, paso a paso, cómo vender algo y cobrarlo al '
-            'contado de principio a fin.',
-        pasos: () => [
-          TutorialPaso(
-            key: _keyAgregarProducto,
-            titulo: 'Agregar el producto',
-            explicacion:
-                'Tocá acá para buscar el producto que el cliente quiere '
-                'comprar. Se abre una ventana donde podés escribir el '
-                'nombre o el código, o escanearlo con el lector. Elegís el '
-                'producto y se agrega solo a la lista de abajo.',
-            obligatorio: true,
-          ),
-          TutorialPaso(
-            key: _keyTablaProductos,
-            titulo: 'Los productos de la venta',
-            explicacion:
-                'Acá aparece todo lo que vas agregando. Si tocás la '
-                'cantidad, el precio o el descuento de cualquier fila, '
-                'podés escribir un valor distinto ahí mismo -por ejemplo, '
-                'si el cliente quiere 3 en vez de 1, o si le vas a hacer '
-                'un precio especial-.',
-          ),
-          TutorialPaso(
-            key: _keyCliente,
-            titulo: 'El cliente',
-            explicacion:
-                'Si sabés el nombre del cliente, escribilo acá. Si no lo '
-                'sabés, o es alguien que no conocés, podés dejarlo así '
-                'como está y va a quedar registrado como "Consumidor '
-                'Final". El icono de la lupa te deja buscar un cliente '
-                'que ya esté guardado en el sistema, para no escribirlo '
-                'de nuevo.',
-            obligatorio: false,
-          ),
-          TutorialPaso(
-            key: _keyCondicion,
-            titulo: 'Condición: Contado',
-            explicacion:
-                'Acá elegís cómo se va a pagar la venta. Para una venta al '
-                'contado -el cliente paga ya, ahora mismo- dejalo en '
-                '"Contado". Si en cambio el cliente se va a llevar el '
-                'producto y va a pagar después, elegí "Crédito" -pero eso '
-                'lo explico con calma en el otro tutorial, "Cómo hacer una '
-                'venta a crédito"-. Elegí la que corresponda a la venta '
-                'real que estás haciendo.',
-            obligatorio: true,
-          ),
-          TutorialPaso(
-            key: _keyMetodoPago,
-            titulo: 'Cómo te está pagando',
-            explicacion:
-                'Elegí con qué te paga el cliente: "Efectivo" si te da '
-                'billetes o monedas, "Tarjeta" si pasa una tarjeta, '
-                '"Transferencia" si te transfiere, "Cheque" si te da un '
-                'cheque, o "Mixto" si te paga con más de una forma a la '
-                'vez -por ejemplo una parte en efectivo y otra con '
-                'tarjeta-. Si elegís "Mixto", al confirmar la venta se te '
-                'va a abrir una ventana para repartir cuánto es de cada '
-                'forma de pago. Elegí la opción que corresponda a esta '
-                'venta real, no hay una única forma correcta.',
-            obligatorio: true,
-          ),
-          TutorialPaso(
-            key: _keyBotonRegistrarVenta,
-            titulo: 'Confirmar la venta',
-            explicacion:
-                'Cuando ya está todo listo, tocá acá. Si el pago es en '
-                'efectivo, te va a preguntar cuánto te dio el cliente para '
-                'calcular el vuelto. Después la venta queda registrada y '
-                'te da la opción de imprimir el ticket o la factura.',
-            obligatorio: true,
-          ),
-        ],
-      ),
-      TutorialTema(
-        titulo: 'Cómo hacer una venta a crédito',
-        descripcion: 'El cliente se lleva el producto y paga después',
-        icono: Icons.credit_score_outlined,
-        bienvenida:
-            'Te explico qué cambia cuando el cliente se lleva el producto '
-            'ahora pero va a pagar después, a crédito.',
-        pasos: () => [
-          TutorialPaso(
-            key: _keyCliente,
-            titulo: 'El cliente, en este caso SÍ importa',
-            explicacion:
-                'En una venta a crédito es importante saber quién es el '
-                'cliente, porque le estás fiando el producto -después vas '
-                'a necesitar poder ubicarlo para que te pague-. Usá la '
-                'lupa para buscarlo entre los clientes ya guardados, o '
-                'escribí su nombre acá si es la primera vez.',
-            obligatorio: true,
-          ),
-          TutorialPaso(
-            key: _keyCondicion,
-            titulo: 'Elegí Crédito',
-            explicacion:
-                'Acá tenés que elegir "Crédito" en vez de "Contado". Apenas '
-                'lo elegís, aparecen campos nuevos para la fecha en que '
-                'debe pagar y su teléfono, escondidos adentro de "Más '
-                'datos" (el paso siguiente).',
-            obligatorio: true,
-          ),
-          TutorialPaso(
-            key: _keyMasDatos,
-            titulo: 'Más datos',
-            explicacion:
-                'Tocá acá para desplegar los campos extra que aparecen '
-                'cuando la venta es a crédito: la fecha de vencimiento y '
-                'el teléfono del cliente.',
-          ),
-          TutorialPaso(
-            key: _keyFechaVencimiento,
-            titulo: 'Hasta cuándo tiene para pagar',
-            explicacion:
-                'Elegí la fecha límite que tiene el cliente para pagar '
-                'esta venta. Si no elegís nada, el sistema le pone una '
-                'fecha por defecto, pero es mejor confirmarla con el '
-                'cliente antes.',
-            obligatorio: false,
-          ),
-          TutorialPaso(
-            key: _keyTelefonoCredito,
-            titulo: 'Teléfono para avisarle',
-            explicacion:
-                'Escribí acá un número de teléfono donde se le pueda '
-                'avisar al cliente cuando se le acerque la fecha de pago, '
-                'o si ya se le venció. Se puede dejar vacío, pero si lo '
-                'llenás es más fácil contactarlo después.',
-            obligatorio: false,
-          ),
-          TutorialPaso(
-            key: _keyBotonRegistrarVenta,
-            titulo: 'Confirmar la venta a crédito',
-            explicacion:
-                'Al tocar acá, como es a crédito no te va a pedir cobrar '
-                'nada -el cliente todavía no paga-. La venta queda '
-                'registrada como pendiente de pago, y podés hacerle '
-                'seguimiento después desde el módulo de Créditos.',
-            obligatorio: true,
-          ),
-        ],
-      ),
-      TutorialTema(
-        titulo: 'Cómo aplicar un descuento',
-        descripcion: 'A un solo producto, o a toda la venta',
-        icono: Icons.percent_outlined,
-        bienvenida:
-            'Hay dos formas de hacer un descuento: a un producto en '
-            'particular (de línea) o a toda la venta junta (global). Te '
-            'muestro las dos.',
-        pasos: () => [
-          TutorialPaso(
-            key: _keyTablaProductos,
-            titulo: 'Descuento de línea (a un solo producto)',
-            explicacion:
-                'En la tabla de productos, cada fila tiene su propia '
-                'columna de "Descuento %". Tocá ese número en la fila del '
-                'producto al que le querés hacer un descuento y escribí el '
-                'porcentaje -por ejemplo, escribí 10 si es un 10% de '
-                'descuento-. Ese descuento solo afecta a ese producto, no '
-                'a los demás de la lista.',
-            obligatorio: false,
-          ),
-          TutorialPaso(
-            key: _keyMasDatos,
-            titulo: 'Más datos',
-            explicacion:
-                'Para el descuento que afecta a TODA la venta -no solo un '
-                'producto- tocá acá para desplegar los campos extra.',
-          ),
-          TutorialPaso(
-            key: _keyDescuentoGlobal,
-            titulo: 'Descuento global (a toda la venta)',
-            explicacion:
-                'Escribí acá el porcentaje de descuento que le vas a '
-                'hacer a la venta completa -por ejemplo, 5 para un 5% de '
-                'descuento sobre todo lo que lleva el cliente-. Se puede '
-                'dejar vacío si no le vas a hacer ningún descuento '
-                'general a esta venta.',
-            obligatorio: false,
-          ),
-        ],
-      ),
-    ];
-  }
 
   Widget _layoutClasico(
     CarritoVentaState carrito,

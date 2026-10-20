@@ -67,31 +67,16 @@ class _AuditoriaInventarioScreenState
     });
   }
 
-  bool _coincideExacto(ProductoModel p, String texto) =>
-      p.codigoBarras.trim() == texto || p.codigo.trim() == texto;
-
-  ProductoModel? _buscarPorCodigo(List<ProductoModel> productos, String texto) {
-    for (final p in productos) {
-      if (_coincideExacto(p, texto)) return p;
-    }
-    return null;
-  }
+  bool _coincideExacto(ProductoModel p, String texto) => coincideCodigoProducto(p, texto);
 
   Future<void> _escanear() async {
     final codigo = await escanearCodigoBarras(context);
     if (codigo == null || codigo.isEmpty || !mounted) return;
     var texto = codigo.trim();
     final productos = ref.read(productosStreamProvider).value ?? [];
-    var encontrado = _buscarPorCodigo(productos, texto);
-    if (encontrado == null) {
-      for (final variante in variantesCodigoBarras(texto)) {
-        encontrado = _buscarPorCodigo(productos, variante);
-        if (encontrado != null) {
-          texto = variante;
-          break;
-        }
-      }
-    }
+    final hallados = buscarProductosPorCodigoEscaneado(productos, texto, soloActivos: false);
+    final encontrado = hallados.isEmpty ? null : hallados.first;
+    if (encontrado != null) texto = encontrado.codigoBarras.isNotEmpty ? encontrado.codigoBarras : encontrado.codigo;
 
     if (encontrado != null && encontrado.idCategoria != _idCategoria) {
       if (_idCategoria == null) {

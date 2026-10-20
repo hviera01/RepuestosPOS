@@ -9,9 +9,6 @@ import '../../../../core/utils/formato_moneda.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
-import '../../../../core/tutorial/tutorial_modelos.dart';
-import '../../../../core/tutorial/tutorial_boton.dart';
-import '../../../../core/tutorial/tutorial_motor.dart';
 
 enum _ModoAjuste { ingreso, salida }
 
@@ -21,7 +18,6 @@ class AjusteStockDialog extends ConsumerStatefulWidget {
   final double? cantidadInicial;
   final String? motivoInicial;
   final Widget? notaSuperior;
-  final bool iniciarTutorialAlAbrir;
 
   const AjusteStockDialog({
     super.key,
@@ -30,7 +26,6 @@ class AjusteStockDialog extends ConsumerStatefulWidget {
     this.cantidadInicial,
     this.motivoInicial,
     this.notaSuperior,
-    this.iniciarTutorialAlAbrir = false,
   });
 
   @override
@@ -64,13 +59,6 @@ class _AjusteStockDialogState extends ConsumerState<AjusteStockDialog> {
     if (widget.motivoInicial != null) _motivoController.text = widget.motivoInicial!;
     if (_modo == _ModoAjuste.ingreso && widget.producto.precioCompra > 0) {
       _costoController.text = _formatoCantidad(widget.producto.precioCompra);
-    }
-    if (widget.iniciarTutorialAlAbrir) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          iniciarRecorridoTutorial(context, _temaAjustarExistencias.pasos(), onFinish: () {});
-        }
-      });
     }
   }
 
@@ -154,59 +142,6 @@ class _AjusteStockDialogState extends ConsumerState<AjusteStockDialog> {
     return cantidad.toStringAsFixed(2);
   }
 
-  TutorialTema get _temaAjustarExistencias => TutorialTema(
-    titulo: 'Editar/Ajustar Existencias (stock)',
-    descripcion: 'Sumar o restar unidades y por qué',
-    icono: Icons.tune,
-    bienvenida:
-        'Te voy a explicar cada campo de este ajuste: cuándo usar Ingreso o Salida, qué es el costo, de qué lote sale una salida, y para qué sirve el motivo.',
-    pasos: () => [
-      TutorialPaso(
-        key: _keySelectorModo,
-        titulo: 'Ingreso / Salida',
-        explicacion:
-            '"Ingreso" SUMA unidades -por ejemplo, llegó mercadería nueva sin pasar por una Compra formal, o encontraste unidades que no estaban contadas-. "Salida" RESTA unidades -por ejemplo, se dañó algo, se perdió, o el conteo físico dio menos de lo que decía el sistema-.',
-      ),
-      TutorialPaso(
-        key: _keyCantidad,
-        titulo: 'Cantidad',
-        explicacion:
-            _modo == _ModoAjuste.ingreso
-                ? 'Cuántas unidades están ENTRANDO. Este campo es obligatorio y tiene que ser mayor a 0.'
-                : 'Cuántas unidades están SALIENDO. Este campo es obligatorio y tiene que ser mayor a 0.',
-        obligatorio: true,
-      ),
-      if (_modo == _ModoAjuste.ingreso)
-        TutorialPaso(
-          key: _keyCosto,
-          titulo: 'Costo unitario de este ingreso',
-          explicacion:
-              'Cuánto costó cada unidad que está entrando. Es obligatorio -podés poner 0 si te la regalaron o no tuvo costo-, y sirve para que el costo del producto y las ganancias de las ventas queden bien calculados.',
-          obligatorio: true,
-        ),
-      if (_modo == _ModoAjuste.salida)
-        TutorialPaso(
-          key: _keyLote,
-          titulo: '¿De qué costo sale?',
-          explicacion:
-              'El stock de un producto se guarda internamente en "lotes" según lo que costó cada compra o ingreso. Acá elegís de cuál lote sale esta salida -por defecto ya viene marcado el que dice "Sale primero" (el más antiguo con existencia), que es el orden normal-. Si el producto no tiene lotes con existencia, la salida se descuenta del stock general sin asociarse a ningún costo en particular.',
-        ),
-      TutorialPaso(
-        key: _keyMotivo,
-        titulo: 'Motivo',
-        explicacion:
-            'Un texto libre y opcional para dejar anotado por qué se hizo este ajuste -por ejemplo "Conteo físico", "Producto dañado" o "Se venció"-. No es obligatorio, pero ayuda a entender después por qué cambió el número.',
-        obligatorio: false,
-      ),
-      TutorialPaso(
-        key: _keyGuardarAjuste,
-        titulo: 'Guardar',
-        explicacion:
-            'Tocá acá para aplicar el ajuste. La existencia del producto se actualiza al instante, ya no hace falta ningún paso más.',
-        obligatorio: true,
-      ),
-    ],
-  );
 
   InputDecoration _decoracion(String label, {String? hint}) {
     return InputDecoration(
@@ -242,7 +177,7 @@ class _AjusteStockDialogState extends ConsumerState<AjusteStockDialog> {
                   Expanded(
                     child: Text('Ajustar Existencia', style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                   ),
-                  TutorialBoton(temas: [_temaAjustarExistencias]),
+
                 ],
               ),
               const SizedBox(height: 6),

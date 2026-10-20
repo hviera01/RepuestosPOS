@@ -37,11 +37,15 @@ class BuscarProductoDialog extends ConsumerStatefulWidget {
   final String condicion;
 
   final String metodoPago;
+  final bool esCotizacion;
+  final bool permiteSinExistencia;
 
   const BuscarProductoDialog({
     super.key,
     this.condicion = 'Contado',
     this.metodoPago = 'Efectivo',
+    this.esCotizacion = false,
+    this.permiteSinExistencia = false,
   });
 
   @override
@@ -228,7 +232,23 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     return null;
   }
 
+  bool _controlaExistencia(ProductoModel producto) {
+    final categorias = ref.read(categoriasStreamProvider).value ?? [];
+    final coincidencias = categorias.where((c) => c.id == producto.idCategoria).toList();
+    return coincidencias.isEmpty ? true : coincidencias.first.controlaStock;
+  }
+
   void _confirmarSeleccion(ProductoModel producto) {
+    if (!producto.esCombo &&
+        producto.stock <= 0 &&
+        !widget.esCotizacion &&
+        !widget.permiteSinExistencia &&
+        _controlaExistencia(producto)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('"${producto.nombre}" no tiene existencia disponible: no se puede agregar a la venta.')),
+      );
+      return;
+    }
     final precio = _precioActivo(producto);
     if (precio == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -258,21 +278,13 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     );
   }
 
-  bool _coincideExacto(ProductoModel p, String texto) =>
-      p.codigoBarras.trim() == texto || p.codigo.trim() == texto;
+  bool _coincideExacto(ProductoModel p, String texto) => coincideCodigoProducto(p, texto);
 
   void _buscar({bool exacta = false}) {
-    var texto = _busquedaController.text.trim();
+    var texto = limpiarCodigoEscaneado(_busquedaController.text);
     final productos = ref.read(productosStreamProvider).value ?? [];
-    if (exacta &&
-        texto.isNotEmpty &&
-        !productos.any((p) => p.estado && _coincideExacto(p, texto))) {
-      for (final variante in variantesCodigoBarras(texto)) {
-        if (productos.any((p) => p.estado && _coincideExacto(p, variante))) {
-          texto = variante;
-          break;
-        }
-      }
+    if (!exacta && pareceCodigoDeBarras(texto) && productos.any((p) => p.estado && _coincideExacto(p, texto))) {
+      exacta = true;
     }
     setState(() {
       _busquedaAplicada = texto;

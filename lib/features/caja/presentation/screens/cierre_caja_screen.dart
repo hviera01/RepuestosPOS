@@ -16,8 +16,6 @@ import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/widgets/pdf_preview_dialog.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
-import '../../../../core/tutorial/tutorial_modelos.dart';
-import '../../../../core/tutorial/tutorial_boton.dart';
 
 class CierreCajaScreen extends ConsumerStatefulWidget {
   const CierreCajaScreen({super.key});
@@ -422,113 +420,11 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
                   },
                 ),
         ),
-        if (!_cargando)
-          Positioned(
-            right: 16,
-            bottom: 16,
-            child: TutorialBoton(temas: [_temaAbrirCaja(), _temaCerrarCaja()]),
-          ),
       ],
     );
   }
 
-  TutorialTema _temaAbrirCaja() {
-    return TutorialTema(
-      titulo: 'Cómo dejar el monto inicial de la caja',
-      descripcion: 'Poner o corregir la plata con la que arranca el turno',
-      icono: Icons.savings_outlined,
-      bienvenida:
-          'Te voy a mostrar dónde poner cuánta plata en efectivo hay en la '
-          'caja AL EMPEZAR el turno (antes de vender nada). Esto se llama '
-          '"monto inicial" y es distinto a cerrar la caja: acá solo lo '
-          'dejás guardado, no cierra nada todavía.',
-      pasos: () => [
-        TutorialPaso(
-          key: _keyMontoInicial,
-          titulo: 'Monto inicial',
-          explicacion:
-              'Contá la plata en efectivo que hay en la caja ANTES de '
-              'empezar a vender (por ejemplo, el cambio con el que arrancás '
-              'el día) y escribí ese número acá. Si ya lo habías puesto y '
-              'está mal, podés corregirlo en cualquier momento.',
-          obligatorio: true,
-        ),
-        TutorialPaso(
-          key: _keyGuardarMontoInicial,
-          titulo: 'Guardar monto inicial (sin cerrar)',
-          explicacion:
-              'Tocá este botón para guardar ese número. Esto NO cierra la '
-              'caja ni termina el turno, solo deja anotado con cuánta plata '
-              'arrancaste. Usalo también si te equivocaste al escribirlo y '
-              'lo querés corregir.',
-        ),
-      ],
-    );
-  }
 
-  TutorialTema _temaCerrarCaja() {
-    return TutorialTema(
-      titulo: 'Cómo cerrar caja al final del turno',
-      descripcion: 'Contar la plata y terminar el turno del día',
-      icono: Icons.lock_outline,
-      bienvenida:
-          'Te voy a explicar paso a paso cómo cerrar la caja cuando termina '
-          'el turno: qué es cada número que ves en la pantalla y qué tenés '
-          'que hacer vos con la plata de verdad que hay en la caja.',
-      pasos: () => [
-        TutorialPaso(
-          key: _keyDesde,
-          titulo: 'Desde (inicio del periodo)',
-          explicacion:
-              'Es la fecha y hora desde donde se están contando las ventas '
-              'de este turno. Normalmente ya viene puesta sola (desde el '
-              'último cierre) y no hace falta tocarla. Solo cambiala si '
-              'necesitás recalcular un periodo distinto.',
-          obligatorio: false,
-        ),
-        TutorialPaso(
-          key: _keyHasta,
-          titulo: 'Hasta (fin del periodo)',
-          explicacion:
-              'Es la fecha y hora hasta donde se cuentan las ventas, '
-              'normalmente "ahora mismo". Tampoco hace falta tocarla salvo '
-              'que quieras cerrar hasta un momento distinto.',
-          obligatorio: false,
-        ),
-        TutorialPaso(
-          key: _keyMontoInicial,
-          titulo: 'Monto inicial',
-          explicacion:
-              'Es la plata en efectivo con la que arrancó la caja este '
-              'turno. El sistema usa este número para calcular cuánto '
-              'efectivo debería haber ahora. Si no es correcto, corregilo '
-              'acá antes de seguir.',
-          obligatorio: true,
-        ),
-        TutorialPaso(
-          key: _keyTotalReal,
-          titulo: 'Total real efectivo',
-          explicacion:
-              'Este es el campo más importante: contá con tus manos toda '
-              'la plata en efectivo que hay AHORA MISMO en la caja (billetes '
-              'y monedas) y escribí ese número exacto acá. No es un cálculo, '
-              'es la plata real que estás contando.',
-          obligatorio: true,
-        ),
-        TutorialPaso(
-          key: _keyCerrarCaja,
-          titulo: 'Cerrar Caja',
-          explicacion:
-              'Cuando ya escribiste el total real que contaste, tocá este '
-              'botón para cerrar la caja y terminar el turno. El sistema '
-              'compara lo que contaste contra lo que debería haber '
-              '("efectivo esperado") y te muestra la diferencia: si sobra o '
-              'falta plata. Una vez cerrada, después te va a preguntar si '
-              'querés imprimir el ticket del cierre.',
-        ),
-      ],
-    );
-  }
 
   Widget _tarjetaResumen(bool esMovil, double anchoTotal) {
     return Container(

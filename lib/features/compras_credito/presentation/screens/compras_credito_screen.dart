@@ -22,8 +22,6 @@ import '../widgets/resumen_abonos_dialog.dart';
 import '../widgets/importar_creditos_compra_dialog.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
-import '../../../../core/tutorial/tutorial_modelos.dart';
-import '../../../../core/tutorial/tutorial_boton.dart';
 
 class ComprasCreditoScreen extends ConsumerStatefulWidget {
   const ComprasCreditoScreen({super.key});
@@ -44,80 +42,6 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
   final _keySelectorVista = GlobalKey();
   final _keyPrimeraAccion = GlobalKey();
 
-  TutorialTema get _temaAbonoCredito => TutorialTema(
-    titulo: 'Cómo pagarle un abono a un crédito de proveedor',
-    descripcion: 'Anotar un pago que le hacés a un proveedor',
-    icono: Icons.payments_outlined,
-    bienvenida:
-        'Un "crédito" acá es cuando un proveedor ya te entregó su '
-        'mercadería pero el negocio todavía no se la pagó completa, y '
-        'se le va pagando de a poco. Cada vez que el negocio le paga '
-        'una parte, eso se llama "abono". Te voy a mostrar cómo ver '
-        'cuánto le debe el negocio a cada proveedor y cómo anotar un '
-        'abono nuevo cuando se le paga.',
-    pasos: () => [
-      TutorialPaso(
-        key: _keyStatTotal,
-        titulo: '¿Cuánto le debe el negocio en total?',
-        explicacion:
-            'Acá arriba ves la suma de todo lo que el negocio le debe '
-            'a todos los proveedores juntos, sumando los créditos que '
-            'todavía no están pagados por completo.',
-        alineacion: ContentAlign.bottom,
-      ),
-      TutorialPaso(
-        key: _keyBuscador,
-        titulo: 'Buscar un crédito',
-        explicacion:
-            'Escribí el nombre del proveedor, el número de documento o '
-            'de factura acá y tocá la flecha (o Enter) para '
-            'encontrarlo rápido.',
-        obligatorio: false,
-      ),
-      TutorialPaso(
-        key: _keySelectorVista,
-        titulo: 'Filtrar la lista',
-        explicacion:
-            'Con este menú elegís qué créditos ver: "Deudas" (todavía '
-            'falta pagarle al proveedor), "Liquidadas" (ya se le pagó '
-            'todo) o "Todas".',
-      ),
-      TutorialPaso(
-        key: _keyPrimeraAccion,
-        titulo: 'Más acciones de un crédito',
-        explicacion:
-            'Tocá este botón (los tres puntitos) en la fila de un '
-            'proveedor. Ahí aparece "Registrar abono" -para anotar que '
-            'se le pagó una parte- y "Ver historial de abonos" -para '
-            'ver todos los pagos que ya se le hicieron antes-.',
-      ),
-      TutorialPaso(
-        key: tutorialKeyMontoAbono,
-        titulo: 'Monto del abono',
-        explicacion:
-            'Escribí acá cuánto dinero se le está pagando al proveedor '
-            'en este momento. El saldo pendiente se recalcula solo.',
-        obligatorio: true,
-      ),
-      TutorialPaso(
-        key: tutorialKeyFechaAbono,
-        titulo: 'Fecha del abono',
-        explicacion:
-            'Por defecto queda puesto hoy. Si el pago fue otro día, '
-            'tocá acá y elegí la fecha correcta.',
-        obligatorio: false,
-      ),
-      TutorialPaso(
-        key: tutorialKeyConfirmarAbono,
-        titulo: 'Guardar el abono',
-        explicacion:
-            'Cuando ya pusiste el monto, tocá este botón para guardar '
-            'el pago. El saldo pendiente del proveedor baja '
-            'automáticamente.',
-        obligatorio: true,
-      ),
-    ],
-  );
 
   @override
   void dispose() {
@@ -635,11 +559,7 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
             },
           ),
         ),
-        Positioned(
-          right: 16,
-          bottom: 16,
-          child: TutorialBoton(temas: [_temaAbonoCredito]),
-        ),
+
       ],
     );
   }

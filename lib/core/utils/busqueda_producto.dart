@@ -1,4 +1,5 @@
 import '../../features/productos/data/producto_model.dart';
+import 'codigo_barras_utils.dart';
 import 'texto_utils.dart';
 
 String _soloAlfanumerico(String texto) => texto.replaceAll(RegExp(r'[^a-z0-9]'), '');
@@ -22,11 +23,13 @@ bool coincideProductoEstricto(ProductoModel p, String consulta) {
   if (tokens.isEmpty) return true;
   final texto = textoNormalizadoDe(p);
   final codigoCompacto = codigoCompactoDe(p);
-  return tokens.every((t) {
+  final porTexto = tokens.every((t) {
     if (texto.contains(t)) return true;
     final compacto = _soloAlfanumerico(t);
     return compacto.length >= 4 && codigoCompacto.contains(compacto);
   });
+  if (porTexto) return true;
+  return pareceCodigoDeBarras(consulta) && coincideCodigoProducto(p, consulta);
 }
 
 int _prioridadCodigo(ProductoModel p, String consultaCompacta) {

@@ -33,8 +33,6 @@ import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
 import '../../../../core/widgets/imagen_zoom_dialog.dart';
 import '../../../../core/widgets/imagen_producto_network.dart';
-import '../../../../core/tutorial/tutorial_modelos.dart';
-import '../../../../core/tutorial/tutorial_boton.dart';
 
 class InventarioScreen extends ConsumerStatefulWidget {
   const InventarioScreen({super.key});
@@ -78,7 +76,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     return esMovil || (esTablet && _vistaTablet == 'tarjetas');
   }
 
-  bool _tutorialAjustarStockPendiente = false;
 
   GlobalKey get _keyAccionesSegunVista =>
       _seVenTarjetas ? _keyPrimeraTarjetaAcciones : _keyColumnaAcciones;
@@ -177,11 +174,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     if (busqueda.isNotEmpty) {
       lista = _busquedaPorCodigoBarras
           ? lista
-                .where(
-                  (p) =>
-                      p.codigoBarras.trim() == busqueda ||
-                      p.codigo.trim() == busqueda,
-                )
+                .where((p) => coincideCodigoProducto(p, busqueda))
                 .toList()
           : lista
                 .where((p) => _coincideBusqueda(p, busqueda, mapaCategorias))
@@ -219,179 +212,10 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     super.dispose();
   }
 
-  TutorialTema get _temaBuscarProducto => TutorialTema(
-    titulo: 'Cómo buscar un producto',
-    descripcion: 'Encontrar un producto rápido en la lista',
-    icono: Icons.search,
-    bienvenida:
-        'Te voy a mostrar las distintas formas de encontrar un producto en el inventario: escribiendo, escaneando el código de barras, o filtrando por Activos/Inactivos.',
-    pasos: () => [
-      TutorialPaso(
-        key: _keyBuscador,
-        titulo: 'Buscador',
-        explicacion:
-            'Acá podés escribir el nombre, el código, o parte del nombre del producto que buscás. Cuando termines de escribir, presioná la tecla Enter o el botón de la flecha (→) para buscar.',
-        obligatorio: false,
-      ),
-      TutorialPaso(
-        key: _keyEscanear,
-        titulo: 'Escanear código de barras',
-        explicacion:
-            'Si el producto tiene una etiqueta con código de barras, tocá este ícono para escanearlo con la cámara en vez de escribirlo a mano.',
-        obligatorio: false,
-      ),
-      TutorialPaso(
-        key: _keyFiltroEstado,
-        titulo: 'Activos / Inactivos',
-        explicacion:
-            'Elegí "Activos" para ver los productos que se venden normalmente, o "Inactivos" para ver los que fueron dados de baja pero se guardan igual en el sistema.',
-      ),
-      TutorialPaso(
-        key: _keyColumnaExistencia,
-        titulo: 'Columna Existencia',
-        explicacion:
-            'Acá se muestra cuántas unidades quedan de cada producto.',
-      ),
-      TutorialPaso(
-        key: _keyBotonNuevoProducto,
-        titulo: '¿No lo encontrás?',
-        explicacion:
-            'Si buscaste y el producto no aparece, es porque todavía no existe en el sistema. Tocá este botón "Nuevo Producto" para crearlo — ahí adentro hay otro botón de ayuda (el mismo ícono de birrete) que te explica cada campo del formulario.',
-        obligatorio: false,
-      ),
-    ],
-  );
 
-  TutorialTema get _temaCrearProducto => TutorialTema(
-    titulo: 'Crear Producto nuevo',
-    descripcion: 'Agregar un producto que todavía no existe en el sistema',
-    icono: Icons.add_box_outlined,
-    bienvenida:
-        'Te muestro dónde tocar para agregar un producto nuevo. Apenas se abra el formulario vas a ver otro ícono de ayuda (el mismo birrete, arriba a la derecha del formulario) que te explica cada campo uno por uno.',
-    pasos: () => [
-      TutorialPaso(
-        key: _keyBotonNuevoProducto,
-        titulo: 'Nuevo Producto',
-        explicacion:
-            'Tocá este botón para abrir el formulario y cargar un producto que no existe todavía en el inventario. Ahí adentro, arriba a la derecha, hay otro ícono de ayuda (el mismo birrete) que te explica cada campo del formulario uno por uno, y te aclara cuáles son obligatorios y cuáles podés dejar vacíos.',
-        obligatorio: false,
-      ),
-    ],
-  );
 
-  TutorialTema get _temaEditarProducto => TutorialTema(
-    titulo: 'Editar un Producto existente',
-    descripcion: 'Cambiar nombre, precio, foto, etc. de un producto que ya existe',
-    icono: Icons.edit_outlined,
-    bienvenida:
-        'Te muestro cómo abrir un producto que ya existe para cambiarle algún dato (nombre, precio, foto, categoría, etc.). Primero lo buscás, después lo editás.',
-    pasos: () => [
-      TutorialPaso(
-        key: _keySelectorVista,
-        titulo: 'Primero, buscá el producto',
-        avance: TutorialAvance.manual,
-        explicacion:
-            'Si Inventario te aparece vacío al entrar, es porque por defecto solo muestra "Productos filtrados" (los que buscaste). Tocá acá y elegí "Mostrar todos" para ver la lista completa -o si preferís, escribí el nombre del producto en el buscador de arriba-. Cuando ya veas el producto que querés editar, tocá "Siguiente".',
-      ),
-      TutorialPaso(
-        key: _keyAccionesSegunVista,
-        titulo: _seVenTarjetas ? 'Tres puntitos de la tarjeta' : 'Columna Acciones',
-        explicacion: _seVenTarjetas
-            ? 'Ya con el producto a la vista: en su tarjeta, arriba a la derecha, tocá los tres puntitos (⋮) y elegí "Editar producto". Se abre el mismo formulario que al crear uno nuevo, pero con todos los datos actuales ya cargados — cambiá solo lo que necesites y tocá Guardar. Ahí adentro también hay un ícono de ayuda (birrete) con el detalle de cada campo.'
-            : 'Ya con el producto a la vista: en esa fila, del lado derecho, tocá los tres puntitos (⋮) y elegí "Editar producto". Se abre el mismo formulario que al crear uno nuevo, pero con todos los datos actuales ya cargados — cambiá solo lo que necesites y tocá Guardar. Ahí adentro también hay un ícono de ayuda (birrete) con el detalle de cada campo.',
-        obligatorio: false,
-      ),
-    ],
-  );
 
-  TutorialTema get _temaAjustarExistencias => TutorialTema(
-    titulo: 'Editar/Ajustar Existencias (stock)',
-    descripcion: 'Sumar o restar unidades de un producto',
-    icono: Icons.tune,
-    bienvenida:
-        'Te voy a mostrar cómo corregir la cantidad de un producto cuando hacés un conteo físico, encontrás algo dañado, o simplemente el número no cuadra. Primero buscás el producto, después le ajustás la existencia -y ahí te voy a explicar cada campo, si tenés que sumar o restar y por qué-.',
-    alEmpezar: () => _tutorialAjustarStockPendiente = true,
-    pasos: () => [
-      TutorialPaso(
-        key: _keySelectorVista,
-        titulo: 'Primero, buscá el producto',
-        avance: TutorialAvance.manual,
-        explicacion:
-            'Si Inventario te aparece vacío al entrar, es porque por defecto solo muestra "Productos filtrados" (los que buscaste). Tocá acá y elegí "Mostrar todos" para ver la lista completa -o si preferís, escribí el nombre del producto en el buscador de arriba-. Cuando ya veas el producto que querés ajustar, tocá "Siguiente".',
-      ),
-      TutorialPaso(
-        key: _keyAccionesSegunVista,
-        titulo: _seVenTarjetas ? 'Tres puntitos de la tarjeta' : 'Columna Acciones',
-        explicacion: _seVenTarjetas
-            ? 'Ya con el producto a la vista: en su tarjeta, arriba a la derecha, tocá los tres puntitos (⋮) y elegí "Ajustar existencia". Ahí adentro te voy a seguir explicando cada campo -si sumar o restar, el costo, de qué lote sale, el motivo- para que sepas exactamente qué hacer.'
-            : 'Ya con el producto a la vista: en esa fila, del lado derecho, tocá los tres puntitos (⋮) y elegí "Ajustar existencia". Ahí adentro te voy a seguir explicando cada campo -si sumar o restar, el costo, de qué lote sale, el motivo- para que sepas exactamente qué hacer.',
-      ),
-    ],
-  );
 
-  TutorialTema get _temaBotonesSuperiores => TutorialTema(
-    titulo: 'Qué hace cada botón de arriba',
-    descripcion: 'Refrescar, Importar, Excel, PDF, Ticket, Etiquetas y los filtros',
-    icono: Icons.widgets_outlined,
-    bienvenida:
-        'Te voy a explicar, uno por uno, para qué sirve cada botón y cada filtro de la barra de arriba de Inventario.',
-    pasos: () => [
-      TutorialPaso(
-        key: _keySelectorVista,
-        titulo: 'Productos filtrados',
-        explicacion:
-            'Elegí qué lista de productos ver: "Productos filtrados" muestra solo lo que escribiste en el buscador (y queda vacío si todavía no buscaste nada), "Mostrar todos" muestra el inventario completo, y "Bajo existencia" muestra solo los productos con menos de 3 unidades — útil para saber qué hay que reponer.',
-      ),
-      TutorialPaso(
-        key: _keyCampoFiltro,
-        titulo: 'Filtrar por',
-        explicacion:
-            'Por defecto el buscador busca en todo (código, código de barras, nombre, descripción, categoría). Acá podés acotar la búsqueda a un solo campo en particular, por ejemplo buscar solo por Categoría.',
-      ),
-      TutorialPaso(
-        key: _keyRefrescar,
-        titulo: 'Refrescar',
-        explicacion:
-            'Trae los datos más nuevos a mano. Normalmente el sistema se actualiza solo apenas cambia algo (una venta, una compra, etc.), así que casi nunca vas a necesitar tocar este botón — sirve por si alguna vez sentís que la lista quedó desactualizada.',
-        obligatorio: false,
-      ),
-      TutorialPaso(
-        key: _keyImportar,
-        titulo: 'Importar',
-        explicacion:
-            'Carga muchos productos de una sola vez desde un archivo de Excel, en vez de escribirlos uno por uno a mano.',
-        obligatorio: false,
-      ),
-      TutorialPaso(
-        key: _keyExcel,
-        titulo: 'Excel',
-        explicacion:
-            'Descarga en un archivo de Excel la lista de productos que ves en pantalla en este momento. Antes de descargarlo, te deja elegir cuáles productos y qué columnas incluir.',
-        obligatorio: false,
-      ),
-      TutorialPaso(
-        key: _keyPdf,
-        titulo: 'PDF',
-        explicacion:
-            'Igual que Excel, pero descarga la lista en un archivo PDF. También te deja elegir antes cuáles productos y qué columnas incluir, y te muestra una vista previa antes de guardarlo o imprimirlo.',
-        obligatorio: false,
-      ),
-      TutorialPaso(
-        key: _keyTicket,
-        titulo: 'Ticket',
-        explicacion:
-            'Imprime en la impresora térmica un ticket de papel con la lista de productos en pantalla (antes te deja elegir qué datos incluir: código, precio, existencia, etc.) — sirve como una lista rápida en papel, por ejemplo para revisar precios.',
-        obligatorio: false,
-      ),
-      TutorialPaso(
-        key: _keyEtiquetas,
-        titulo: 'Etiquetas',
-        explicacion:
-            'Imprime etiquetas con el código de barras de cada producto, para pegarlas en el producto físico. Antes te pregunta si querés imprimir de TODOS los productos en pantalla, o solo de los que todavía no tienen código de barras asignado.',
-        obligatorio: false,
-      ),
-    ],
-  );
 
   void _buscar() {
     setState(() => _busquedaPorCodigoBarras = false);
@@ -400,22 +224,13 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
         .actualizar(_busquedaController.text.trim());
   }
 
-  bool _coincideExacto(ProductoModel p, String texto) =>
-      p.codigoBarras.trim() == texto || p.codigo.trim() == texto;
-
   Future<void> _escanear() async {
     final codigo = await escanearCodigoBarras(context);
     if (codigo == null || codigo.isEmpty || !mounted) return;
     var texto = codigo.trim();
     final productos = ref.read(productosStreamProvider).value ?? [];
-    if (!productos.any((p) => _coincideExacto(p, texto))) {
-      for (final variante in variantesCodigoBarras(texto)) {
-        if (productos.any((p) => _coincideExacto(p, variante))) {
-          texto = variante;
-          break;
-        }
-      }
-    }
+    final hallados = buscarProductosPorCodigoEscaneado(productos, texto, soloActivos: false);
+    if (hallados.isNotEmpty) texto = hallados.first.codigoBarras.isNotEmpty ? hallados.first.codigoBarras : hallados.first.codigo;
     _busquedaController.text = texto;
     setState(() => _busquedaPorCodigoBarras = true);
     ref.read(inventarioBusquedaProvider.notifier).actualizar(texto);
@@ -470,14 +285,11 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
       PermisosEspeciales.inventarioAjustarStock,
     )).autorizado;
     if (!autorizado || !mounted) return;
-    final continuarTutorial = _tutorialAjustarStockPendiente;
-    _tutorialAjustarStockPendiente = false;
     showDialog(
       useRootNavigator: false,
       context: context,
       builder: (context) => AjusteStockDialog(
         producto: producto,
-        iniciarTutorialAlAbrir: continuarTutorial,
       ),
     );
   }
@@ -938,19 +750,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
           busqueda: busqueda,
           vista: vista,
         ),
-        Positioned(
-          right: 16,
-          bottom: 16,
-          child: TutorialBoton(
-            temas: [
-              _temaBuscarProducto,
-              _temaCrearProducto,
-              _temaEditarProducto,
-              _temaAjustarExistencias,
-              _temaBotonesSuperiores,
-            ],
-          ),
-        ),
+
       ],
     );
   }

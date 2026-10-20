@@ -310,15 +310,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
       if (!mounted) return;
     }
     final productos = ref.read(productosStreamProvider).value ?? [];
-    bool coincide(ProductoModel p, String t) =>
-        p.estado && (p.codigoBarras.trim() == t || p.codigo.trim() == t);
-    var coincidencias = productos.where((p) => coincide(p, texto)).toList();
-    if (coincidencias.isEmpty) {
-      for (final variante in variantesCodigoBarras(texto)) {
-        coincidencias = productos.where((p) => coincide(p, variante)).toList();
-        if (coincidencias.isNotEmpty) break;
-      }
-    }
+    final coincidencias = buscarProductosPorCodigoEscaneado(productos, texto);
     if (coincidencias.isEmpty) {
       _mostrarMensaje('Código escaneado no encontrado: $texto');
       return;

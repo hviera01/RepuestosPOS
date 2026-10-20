@@ -18,8 +18,6 @@ import '../../../../core/services/remove_bg_service.dart';
 import '../../../../core/widgets/imagen_producto_network.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
-import '../../../../core/tutorial/tutorial_modelos.dart';
-import '../../../../core/tutorial/tutorial_boton.dart';
 
 class _ComponenteEnConstruccion {
   final ProductoModel producto;
@@ -408,135 +406,9 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
     }
   }
 
-  bool get _editando => widget.producto != null;
 
-  List<TutorialPaso> _pasosFormulario() => [
-    TutorialPaso(
-      key: _keyCodigo,
-      titulo: 'Código',
-      explicacion: _editando
-          ? 'Es el número interno con el que el sistema identifica a este producto. Normalmente no hace falta tocarlo, pero podés cambiarlo si hace falta.'
-          : 'Es un número interno para identificar el producto en el sistema. Si lo dejás vacío, el sistema le pone uno automáticamente — no hace falta que te preocupes por esto.',
-      obligatorio: false,
-    ),
-    TutorialPaso(
-      key: _keyCodigoBarras,
-      titulo: 'Código de barras',
-      explicacion:
-          'Si el producto tiene una etiqueta de fábrica con código de barras, podés escanearla tocando el ícono de la cámara, o escribir el número a mano. Si no tiene o no lo sabés, dejalo vacío: el sistema le va a poner uno solo, automáticamente.',
-      obligatorio: false,
-    ),
-    TutorialPaso(
-      key: _keyNombre,
-      titulo: 'Nombre',
-      explicacion: _editando
-          ? 'El nombre del producto, como aparece en la lista y en el ticket. Ya viene cargado con el nombre actual; cambialo si hace falta. Este campo SÍ es obligatorio, no se puede guardar sin nombre.'
-          : 'El nombre del producto, como querés que aparezca en la lista y en el ticket. Este campo SÍ es obligatorio, no se puede guardar sin nombre.',
-      obligatorio: true,
-    ),
-    TutorialPaso(
-      key: _keyCategoria,
-      titulo: 'Categoría',
-      explicacion:
-          'Elegí a qué categoría pertenece el producto (por ejemplo "Bebidas" o "Limpieza"). Es obligatorio elegir una para poder guardar.',
-      obligatorio: true,
-    ),
-    TutorialPaso(
-      key: _keyCombo,
-      titulo: '¿Es un combo o kit?',
-      explicacion:
-          'Activá esto SOLO si este producto en realidad es un paquete armado con otros productos que ya existen (por ejemplo, una canasta con varias cosas adentro). Si es un producto normal y suelto, dejalo apagado. Esta opción solo se puede elegir al crear el producto, no se puede cambiar después.',
-      obligatorio: false,
-    ),
-    TutorialPaso(
-      key: _keyExistencia,
-      titulo: _editando ? 'Existencia' : 'Existencia inicial',
-      explicacion: _editando
-          ? 'Acá se ve la existencia actual, pero este campo queda bloqueado: para sumar o restar unidades no se edita este número a mano, se usa "Ajustar existencia" desde el menú ⋮ de Inventario (tiene su propio tutorial, con motivo y todo).'
-          : 'Cuántas unidades de este producto tenés ahora mismo en stock. Si no sabés el número exacto, podés poner 0 y ajustarlo después desde Inventario.',
-      obligatorio: false,
-    ),
-    TutorialPaso(
-      key: _keyPrecioCompra,
-      titulo: 'Precio Compra',
-      explicacion:
-          'Cuánto te costó a vos comprar (o fabricar) una unidad de este producto. Sirve para saber cuánto ganás en cada venta.',
-      obligatorio: false,
-    ),
-    TutorialPaso(
-      key: _keyPrecioVenta,
-      titulo: 'Precio Venta',
-      explicacion:
-          'A cuánto le vas a vender este producto al cliente. Este campo SÍ es obligatorio.',
-      obligatorio: true,
-    ),
-    TutorialPaso(
-      key: _keyNivelesExtra,
-      titulo: 'Niveles de precio adicionales',
-      explicacion:
-          'Tocá acá SOLO si querés manejar hasta dos precios de venta más para este mismo producto (por ejemplo, un precio para venta al por mayor). La mayoría de los productos no necesita esto.',
-      obligatorio: false,
-    ),
-    TutorialPaso(
-      key: _keyPrecioVenta2,
-      titulo: 'Precio Venta 2',
-      explicacion: 'Un segundo precio de venta opcional para este producto.',
-      obligatorio: false,
-    ),
-    TutorialPaso(
-      key: _keyPrecioVenta3,
-      titulo: 'Precio Venta 3',
-      explicacion: 'Un tercer precio de venta opcional para este producto.',
-      obligatorio: false,
-    ),
-    TutorialPaso(
-      key: _keyFoto,
-      titulo: 'Foto del producto',
-      explicacion:
-          'Tocá el cuadro para elegir una foto del producto desde tu computadora o celular. Es totalmente opcional, el producto se puede guardar sin foto.',
-      obligatorio: false,
-    ),
-    TutorialPaso(
-      key: _keyEstado,
-      titulo: 'Estado',
-      explicacion:
-          'Activo quiere decir que el producto se puede vender normalmente. Si lo apagás (Inactivo), el producto se guarda pero deja de aparecer para venderse — usalo si dejaste de manejar ese producto.',
-    ),
-    if (_editando)
-      TutorialPaso(
-        key: _keyEliminar,
-        titulo: 'Eliminar producto',
-        explicacion:
-            'Este ícono de basurero borra el producto por completo del sistema. Usalo con cuidado -te va a pedir confirmación antes de borrarlo de verdad-.',
-        obligatorio: false,
-      ),
-    TutorialPaso(
-      key: _keyGuardar,
-      titulo: 'Guardar',
-      explicacion: _editando
-          ? 'Cuando ya cambiaste lo que necesitabas, tocá este botón para guardar los cambios del producto.'
-          : 'Cuando ya completaste el nombre, la categoría y el precio de venta, tocá este botón para guardar el producto.',
-      obligatorio: true,
-    ),
-  ];
 
-  TutorialTema get _temaAgregarProducto => TutorialTema(
-    titulo: 'Crear Producto nuevo',
-    descripcion: 'Llenar el formulario paso a paso',
-    icono: Icons.add_box_outlined,
-    bienvenida:
-        'Te voy a explicar qué es cada campo de este formulario, cuáles son obligatorios y cuáles podés dejar vacíos.',
-    pasos: _pasosFormulario,
-  );
 
-  TutorialTema get _temaEditarProducto => TutorialTema(
-    titulo: 'Editar un Producto existente',
-    descripcion: 'Los mismos campos, ya precargados con los datos actuales',
-    icono: Icons.edit_outlined,
-    bienvenida:
-        'Es el mismo formulario que "Crear Producto nuevo", pero ya viene con todos los datos actuales cargados. Te explico igual qué es cada campo, por si necesitás cambiar alguno.',
-    pasos: _pasosFormulario,
-  );
 
   InputDecoration _decoracion(String label) {
     return InputDecoration(
@@ -629,9 +501,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                       ),
                     ),
                   ),
-                  TutorialBoton(
-                    temas: [editando ? _temaEditarProducto : _temaAgregarProducto],
-                  ),
+
                   const SizedBox(width: 4),
                   IconButton(
                     icon: const Icon(Icons.close, size: 20),

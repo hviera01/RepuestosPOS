@@ -15,8 +15,6 @@ import '../../../usuarios/providers/usuarios_provider.dart';
 import '../../../compras/presentation/screens/detalle_compra_screen.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
 import '../../../../core/widgets/campo_teclado_compacto.dart';
-import '../../../../core/tutorial/tutorial_modelos.dart';
-import '../../../../core/tutorial/tutorial_boton.dart';
 
 class ReporteComprasScreen extends ConsumerStatefulWidget {
   const ReporteComprasScreen({super.key});
@@ -518,99 +516,11 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
             },
           ),
         ),
-        Positioned(
-          right: 16,
-          bottom: 16,
-          child: TutorialBoton(temas: _temasTutorial),
-        ),
+
       ],
     );
   }
 
-  List<TutorialTema> get _temasTutorial => [
-    TutorialTema(
-      titulo: 'Cómo ver mis compras de un período',
-      descripcion: 'Filtrar y revisar las compras de unos días',
-      icono: Icons.shopping_cart_outlined,
-      bienvenida:
-          'Esta pantalla te muestra todas las compras que hiciste en un '
-          'período de tiempo, con el total facturado. Sin tocar nada, ya '
-          'ves las compras de HOY. Te voy mostrando cada parte para que '
-          'puedas buscar lo que necesites.',
-      pasos: () => [
-        TutorialPaso(
-          key: _keyChipsRango,
-          titulo: 'Atajos rápidos',
-          explicacion:
-              'Estos botones son para no tener que elegir las fechas a '
-              'mano: tocá "Hoy", "Ayer", "Semana", "Mes" o "Trimestre" y el '
-              'reporte se actualiza solo con esas fechas.',
-          obligatorio: false,
-        ),
-        TutorialPaso(
-          key: _keyFechaDesde,
-          titulo: 'Fecha Desde',
-          explicacion:
-              'Acá elegís desde qué día querés ver las compras. Tocá el '
-              'recuadro y elegí la fecha en el calendario que aparece. Si '
-              'usás uno de los atajos de arriba, esto se llena solo.',
-          obligatorio: false,
-        ),
-        TutorialPaso(
-          key: _keyFechaHasta,
-          titulo: 'Fecha Hasta',
-          explicacion:
-              'Acá elegís hasta qué día querés ver las compras. Junto con '
-              '"Desde" forman el período que se va a mostrar.',
-          obligatorio: false,
-        ),
-        TutorialPaso(
-          key: _keyProveedor,
-          titulo: 'Filtrar por proveedor',
-          explicacion:
-              'Si querés ver solo lo que le compraste a un proveedor en '
-              'particular, elegilo acá. Si dejás "Todos los proveedores", '
-              'se muestran las compras de todos.',
-          obligatorio: false,
-        ),
-        TutorialPaso(
-          key: _keyMetodoPago,
-          titulo: 'Filtrar por método de pago',
-          explicacion:
-              'Si querés ver solo las compras que se pagaron, por ejemplo, '
-              'en Efectivo o con Tarjeta, elegilo acá. Si no elegís nada, '
-              'se muestran todas sin importar cómo se pagaron.',
-          obligatorio: false,
-        ),
-        TutorialPaso(
-          key: _keyCondicion,
-          titulo: 'Filtrar por condición',
-          explicacion:
-              'Acá elegís si querés ver solo las compras al Contado (se '
-              'pagaron completas) o solo las de Crédito (se están pagando '
-              'de a poco). Si no elegís nada, se muestran las dos.',
-          obligatorio: false,
-        ),
-        TutorialPaso(
-          key: _keyExcel,
-          titulo: 'Descargar Excel',
-          explicacion:
-              'Este botón descarga en un archivo de Excel las compras que '
-              'estás viendo ahora mismo en la pantalla (con los filtros que '
-              'hayas elegido), para guardarlas o mandarlas a alguien.',
-          obligatorio: false,
-        ),
-        TutorialPaso(
-          key: _keyPdf,
-          titulo: 'Descargar PDF',
-          explicacion:
-              'Este botón te muestra una vista previa en PDF de las compras '
-              'que estás viendo ahora mismo, lista para imprimir o guardar.',
-          obligatorio: false,
-        ),
-      ],
-    ),
-  ];
 
   Widget _statTotalFacturado(double total) {
     return Container(
