@@ -3,6 +3,11 @@ import 'pago_detalle_model.dart';
 import '../../../core/utils/formato_moneda.dart';
 
 class VentaModel {
+  bool get llevaIsv =>
+      tipoDocumento == 'Factura' ||
+      tipoDocumento == 'Boleta' ||
+      (tipoDocumento == 'Cotizacion' && impuesto > 0);
+
   final String id;
   final String tipoDocumento;
   final String numeroDocumento;

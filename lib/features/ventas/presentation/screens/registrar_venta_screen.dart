@@ -101,10 +101,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
   String _panelMovilDividida = 'buscar';
   bool _precioCarritoConIsv = true;
 
-  bool get _ventaEsFacturable {
-    final tipo = ref.read(carritoVentaProvider).tipoDocumento;
-    return tipo == 'Factura' || tipo == 'Boleta';
-  }
+  bool get _ventaEsFacturable => ref.read(carritoVentaProvider).aplicaIsv;
 
   bool get _mostrarPrecioConIsv => _ventaEsFacturable && _precioCarritoConIsv;
 
@@ -1473,6 +1470,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       id: carrito.idEnEspera ?? '',
       fecha: DateTime.now(),
       tipoDocumento: carrito.tipoDocumento,
+      cotizacionConIsv: carrito.cotizacionConIsv,
       condicion: carrito.condicion,
       metodoPago: carrito.metodoPago,
       documentoCliente: carrito.documentoCliente,
@@ -1540,6 +1538,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       id: carrito.idEnEspera ?? '',
       fecha: DateTime.now(),
       tipoDocumento: carrito.tipoDocumento,
+      cotizacionConIsv: carrito.cotizacionConIsv,
       condicion: carrito.condicion,
       metodoPago: carrito.metodoPago,
       documentoCliente: carrito.documentoCliente,
@@ -1765,6 +1764,25 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
   }
 
 
+  List<DropdownMenuItem<String>> _opcionesTipoDocumento() {
+    final entradas = <MapEntry<String, String>>[];
+    for (final e in tiposDocumento.entries) {
+      if (e.key == 'Cotizacion') {
+        entradas.add(const MapEntry('Cotizacion', 'Cotización sin ISV'));
+        entradas.add(const MapEntry('CotizacionIsv', 'Cotización con ISV'));
+      } else {
+        entradas.add(e);
+      }
+    }
+    return [
+      for (final e in entradas)
+        DropdownMenuItem(
+          value: e.key,
+          child: Text(e.value, overflow: TextOverflow.ellipsis),
+        ),
+    ];
+  }
+
   String get _textoBoton {
     final tipo = ref.watch(carritoVentaProvider).tipoDocumento;
     switch (tipo) {
@@ -1843,8 +1861,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
         .where((c) => !c.controlaStock)
         .map((c) => c.id)
         .toSet();
-    final esFacturable =
-        carrito.tipoDocumento == 'Factura' || carrito.tipoDocumento == 'Boleta';
+    final esFacturable = carrito.aplicaIsv;
     final negocioFinal = negocio;
     final nombreCliente = _nombreClienteController.text.trim().isEmpty
         ? 'CONSUMIDOR FINAL'
@@ -3978,26 +3995,24 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               SizedBox(
                 width: esMovil ? double.infinity : 190,
                 child: DropdownButtonFormField<String>(
-                  initialValue: carrito.tipoDocumento,
+                  initialValue: carrito.cotizacionConIsv
+                      ? 'CotizacionIsv'
+                      : carrito.tipoDocumento,
                   isExpanded: true,
                   decoration: _decoracion('Tipo de documento'),
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     color: const Color(0xFF1A1A1A),
                   ),
-                  items: tiposDocumento.entries
-                      .map(
-                        (e) => DropdownMenuItem(
-                          value: e.key,
-                          child: Text(e.value, overflow: TextOverflow.ellipsis),
-                        ),
-                      )
-                      .toList(),
+                  items: _opcionesTipoDocumento(),
                   onChanged: (v) {
                     if (v == null) return;
                     ref
                         .read(carritoVentaProvider.notifier)
-                        .establecerTipoDocumento(v);
+                        .establecerTipoDocumento(
+                          v == 'CotizacionIsv' ? 'Cotizacion' : v,
+                          cotizacionConIsv: v == 'CotizacionIsv',
+                        );
                   },
                 ),
               ),
@@ -4318,26 +4333,24 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                 key: _keyTipoDocumento,
                 width: esMovil ? double.infinity : 190,
                 child: DropdownButtonFormField<String>(
-                  initialValue: carrito.tipoDocumento,
+                  initialValue: carrito.cotizacionConIsv
+                      ? 'CotizacionIsv'
+                      : carrito.tipoDocumento,
                   isExpanded: true,
                   decoration: _decoracion('Tipo de documento'),
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     color: const Color(0xFF1A1A1A),
                   ),
-                  items: tiposDocumento.entries
-                      .map(
-                        (e) => DropdownMenuItem(
-                          value: e.key,
-                          child: Text(e.value, overflow: TextOverflow.ellipsis),
-                        ),
-                      )
-                      .toList(),
+                  items: _opcionesTipoDocumento(),
                   onChanged: (v) {
                     if (v == null) return;
                     ref
                         .read(carritoVentaProvider.notifier)
-                        .establecerTipoDocumento(v);
+                        .establecerTipoDocumento(
+                          v == 'CotizacionIsv' ? 'Cotizacion' : v,
+                          cotizacionConIsv: v == 'CotizacionIsv',
+                        );
                   },
                 ),
               ),
@@ -5322,14 +5335,21 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       ),
       child: Row(
         children: [
-          total('Subtotal', carrito.subtotal),
-          const SizedBox(width: 20),
-          if (destacarTotal && descuentosYRebajas > 0) ...[
+          if (carrito.aplicaIsv) ...[
+            total('Subtotal', carrito.subtotal),
+            const SizedBox(width: 20),
+          ] else if (descuentosYRebajas > 0) ...[
+            total('Subtotal', carrito.subtotal + descuentosYRebajas),
+            const SizedBox(width: 20),
+          ],
+          if (descuentosYRebajas > 0) ...[
             total('Descuentos y rebajas', descuentosYRebajas),
             const SizedBox(width: 20),
           ],
-          total('ISV', carrito.impuesto),
-          const SizedBox(width: 20),
+          if (carrito.aplicaIsv) ...[
+            total('ISV', carrito.impuesto),
+            const SizedBox(width: 20),
+          ],
           if (!destacarTotal)
             total('Total a pagar', carrito.totalAPagar, destacado: true),
           const Spacer(),
@@ -5928,8 +5948,13 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
             spacing: 24,
             runSpacing: 10,
             children: [
-              _filaTotalTexto('Subtotal', carrito.subtotal),
-              _filaTotalTexto('ISV (15%)', carrito.impuesto),
+              if (carrito.aplicaIsv) ...[
+                _filaTotalTexto('Subtotal', carrito.subtotal),
+                _filaTotalTexto('ISV (15%)', carrito.impuesto),
+              ] else if (carrito.descuentosYRebajas > 0)
+                _filaTotalTexto('Subtotal', carrito.subtotal + carrito.descuentosYRebajas),
+              if (carrito.descuentosYRebajas > 0)
+                _filaTotalTexto('Descuentos y rebajas', carrito.descuentosYRebajas),
               if (carrito.descuentoGlobalPorcentaje > 0)
                 _filaTotalTextoPorcentaje(
                   'Descuento global',

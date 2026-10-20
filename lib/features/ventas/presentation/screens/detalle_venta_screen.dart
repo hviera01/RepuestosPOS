@@ -1037,8 +1037,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
               ),
             ),
             const Spacer(),
-            if (venta.tipoDocumento == 'Factura' ||
-                venta.tipoDocumento == 'Boleta')
+            if (venta.llevaIsv)
               _selectorPrecioIsv(),
           ],
         ),
@@ -1414,7 +1413,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
 
   double _precioMostrado(dynamic item) {
     final esFacturable =
-        _venta?.tipoDocumento == 'Factura' || _venta?.tipoDocumento == 'Boleta';
+        (_venta?.llevaIsv ?? false);
     return (_precioConIsv && esFacturable)
         ? redondearMoneda((item.precioVenta as double) * 1.15)
         : item.precioVenta as double;
@@ -1436,7 +1435,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
       color: Colors.grey.shade600,
     );
     final esFacturable =
-        venta.tipoDocumento == 'Factura' || venta.tipoDocumento == 'Boleta';
+        venta.llevaIsv;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1619,7 +1618,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
             spacing: 24,
             runSpacing: 10,
             children: [
-              _filaTotalTexto('Subtotal', venta.subtotal),
+              if (venta.impuesto > 0) _filaTotalTexto('Subtotal', venta.subtotal),
               if (venta.descuentosYRebajas > 0)
                 _filaTotalTexto(
                   'Descuentos y rebajas',

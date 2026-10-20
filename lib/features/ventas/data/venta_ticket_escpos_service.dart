@@ -235,7 +235,7 @@ class VentaTicketEscPosService {
     final formatoFecha = DateFormat('dd/MM/yyyy hh:mm a');
     final formatoDia = DateFormat('dd/MM/yyyy');
 
-    final esFacturable = venta.tipoDocumento == 'Factura' || venta.tipoDocumento == 'Boleta';
+    final esFacturable = venta.llevaIsv;
     final mostrarConIsv = esFacturable && negocio.facturaPreciosConIsv;
     double precioMostrado(dynamic item) => mostrarConIsv ? redondearMoneda((item.precioVenta as double) * 1.15) : item.precioVenta as double;
     double importeMostrado(dynamic item) {

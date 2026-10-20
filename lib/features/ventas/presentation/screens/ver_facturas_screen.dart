@@ -33,7 +33,6 @@ class _VerFacturasScreenState extends ConsumerState<VerFacturasScreen> {
   static const _estados = ['Activa', 'Anulada'];
   static const _tiposDocumento = [
     'Factura',
-    'Boleta',
     'Cotizacion',
     'VentaSinFacturar',
   ];

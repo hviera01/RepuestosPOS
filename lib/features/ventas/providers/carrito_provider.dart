@@ -72,6 +72,7 @@ class CarritoVentaState {
   final double cambio;
   final double descuentoGlobalPorcentaje;
   final List<PagoDetalle> pagosMixtos;
+  final bool cotizacionConIsv;
 
   CarritoVentaState({
     this.idEnEspera,
@@ -93,6 +94,7 @@ class CarritoVentaState {
     this.cambio = 0,
     this.descuentoGlobalPorcentaje = 0,
     this.pagosMixtos = const [],
+    this.cotizacionConIsv = false,
   })  : tipoDocumento = tipoDocumento ?? tipoDocumentoVentaPorDefecto,
         fecha = fecha ?? DateTime.now();
 
@@ -101,7 +103,10 @@ class CarritoVentaState {
   bool get esCredito => condicion == 'Credito';
   bool get esPagoMixto => metodoPago == 'Mixto';
 
-  bool get _aplicaIsv => tipoDocumento == 'Factura' || tipoDocumento == 'Boleta';
+  bool get _aplicaIsv =>
+      tipoDocumento == 'Factura' ||
+      tipoDocumento == 'Boleta' ||
+      (tipoDocumento == 'Cotizacion' && cotizacionConIsv);
 
   bool get aplicaIsv => _aplicaIsv;
 
@@ -164,6 +169,7 @@ class CarritoVentaState {
     double? cambio,
     double? descuentoGlobalPorcentaje,
     List<PagoDetalle>? pagosMixtos,
+    bool? cotizacionConIsv,
   }) {
     return CarritoVentaState(
       idEnEspera: idEnEspera == _sinCambio
@@ -192,6 +198,7 @@ class CarritoVentaState {
       descuentoGlobalPorcentaje:
           descuentoGlobalPorcentaje ?? this.descuentoGlobalPorcentaje,
       pagosMixtos: pagosMixtos ?? this.pagosMixtos,
+      cotizacionConIsv: cotizacionConIsv ?? this.cotizacionConIsv,
     );
   }
 }
@@ -352,15 +359,20 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
   void establecerDescuentoGlobal(double v) =>
       state = state.copyWith(descuentoGlobalPorcentaje: v);
 
-  void establecerTipoDocumento(String v) {
+  void establecerTipoDocumento(String v, {bool cotizacionConIsv = false}) {
+    final conIsv = v == 'Cotizacion' && cotizacionConIsv;
     final antes = state.aplicaIsv;
-    final despues = tipoAplicaIsv(v);
+    final despues = tipoAplicaIsv(v) || conIsv;
     if (antes == despues) {
-      state = state.copyWith(tipoDocumento: v);
+      state = state.copyWith(tipoDocumento: v, cotizacionConIsv: conIsv);
       return;
     }
     final factor = despues ? 1 / 1.15 : 1.15;
-    state = state.copyWith(tipoDocumento: v, items: convertirPreciosItems(state.items, factor));
+    state = state.copyWith(
+      tipoDocumento: v,
+      cotizacionConIsv: conIsv,
+      items: convertirPreciosItems(state.items, factor),
+    );
   }
 
   void establecerCondicion(String v) {
@@ -438,7 +450,8 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
   }
 
   void cargarDesdeVenta(VentaModel venta, {bool forzarFactura = false}) {
-    final aFactura = forzarFactura && venta.tipoDocumento == 'Cotizacion';
+    final cotConIsv = venta.tipoDocumento == 'Cotizacion' && venta.impuesto > 0;
+    final aFactura = forzarFactura && venta.tipoDocumento == 'Cotizacion' && !cotConIsv;
     state = CarritoVentaState(
       items: (aFactura ? convertirPreciosItems(venta.detalle, 1 / 1.15) : venta.detalle)
           .map(
@@ -459,6 +472,7 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
       tipoDocumento: (forzarFactura && venta.tipoDocumento == 'Cotizacion')
           ? 'Factura'
           : venta.tipoDocumento,
+      cotizacionConIsv: cotConIsv && !forzarFactura,
       condicion: venta.condicion,
       metodoPago: venta.condicion == 'Credito'
           ? ''

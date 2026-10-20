@@ -10,6 +10,7 @@ class VentaEnEsperaModel {
   final String id;
   final DateTime? fecha;
   final String tipoDocumento;
+  final bool cotizacionConIsv;
   final String condicion;
   final String metodoPago;
   final String documentoCliente;
@@ -30,6 +31,7 @@ class VentaEnEsperaModel {
     required this.id,
     required this.fecha,
     required this.tipoDocumento,
+    this.cotizacionConIsv = false,
     required this.condicion,
     required this.metodoPago,
     required this.documentoCliente,
@@ -50,7 +52,7 @@ class VentaEnEsperaModel {
   double get total => items.fold<double>(0, (s, i) => s + i.subtotal);
 
   double get totalFinal {
-    final aplicaIsv = tipoDocumento == 'Factura' || tipoDocumento == 'Boleta';
+    final aplicaIsv = tipoDocumento == 'Factura' || tipoDocumento == 'Boleta' || cotizacionConIsv;
     var totalFinal = 0.0;
     for (final i in items) {
       final precioFinal = aplicaIsv ? redondearMoneda(i.precioVenta * 1.15) : i.precioVenta;
@@ -67,7 +69,8 @@ class VentaEnEsperaModel {
     return VentaEnEsperaModel(
       id: id,
       fecha: data['fecha'] == null ? null : DateTime.parse(data['fecha'] as String),
-      tipoDocumento: data['tipo_documento'] ?? 'Factura',
+      tipoDocumento: data['tipo_documento'] == 'CotizacionIsv' ? 'Cotizacion' : (data['tipo_documento'] ?? 'Factura'),
+      cotizacionConIsv: data['tipo_documento'] == 'CotizacionIsv',
       condicion: data['condicion'] ?? 'Contado',
       metodoPago: data['metodo_pago'] ?? 'Efectivo',
       documentoCliente: data['documento_cliente'] ?? '',
@@ -88,7 +91,7 @@ class VentaEnEsperaModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'tipoDocumento': tipoDocumento,
+      'tipoDocumento': cotizacionConIsv ? 'CotizacionIsv' : tipoDocumento,
       'condicion': condicion,
       'metodoPago': metodoPago,
       'documentoCliente': documentoCliente,
@@ -110,7 +113,7 @@ class VentaEnEsperaModel {
   Map<String, dynamic> toRow() {
     return {
       'fecha': DateTime.now().toIso8601String(),
-      'tipo_documento': tipoDocumento,
+      'tipo_documento': cotizacionConIsv ? 'CotizacionIsv' : tipoDocumento,
       'condicion': condicion,
       'metodo_pago': metodoPago,
       'documento_cliente': documentoCliente,

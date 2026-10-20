@@ -192,7 +192,7 @@ class VentaExportService {
   pw.Widget _tablaItemsFormal(VentaModel venta, bool conIsv) {
     final estiloEncabezado = pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.white);
     final estiloCelda = const pw.TextStyle(fontSize: 9);
-    final esFacturable = venta.tipoDocumento == 'Factura' || venta.tipoDocumento == 'Boleta';
+    final esFacturable = venta.llevaIsv;
     final mostrarConIsv = esFacturable && conIsv;
     double precioMostrado(dynamic item) => mostrarConIsv ? redondearMoneda((item.precioVenta as double) * 1.15) : item.precioVenta as double;
     double importeMostrado(dynamic item) {
@@ -271,7 +271,7 @@ class VentaExportService {
 
   pw.Widget _bloqueTotales(VentaModel venta) {
     final descuentosYRebajas = venta.descuentosYRebajas;
-    final esFacturable = venta.tipoDocumento == 'Factura' || venta.tipoDocumento == 'Boleta';
+    final esFacturable = venta.llevaIsv;
 
     return pw.Container(
       width: 210,
@@ -369,7 +369,7 @@ class VentaExportService {
     final fNormal = esAngosto ? 7.0 : 8.0;
     final alturaMm = _estimarAlturaTicketMm(venta, negocio, tieneLogo: logo != null, anchoMm: anchoMm);
 
-    final esFacturable = venta.tipoDocumento == 'Factura' || venta.tipoDocumento == 'Boleta';
+    final esFacturable = venta.llevaIsv;
     final mostrarConIsv = esFacturable && negocio.facturaPreciosConIsv;
     double precioMostrado(dynamic item) => mostrarConIsv ? redondearMoneda((item.precioVenta as double) * 1.15) : item.precioVenta as double;
     double importeMostrado(dynamic item) {

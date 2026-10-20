@@ -14,7 +14,7 @@ import '../../compras_credito/data/compra_credito_repository.dart';
 import '../../compras_credito/data/abono_compra_model.dart';
 import '../../ventas_credito/data/venta_credito_repository.dart';
 import '../../ventas_credito/data/abono_model.dart';
-import '../../caja/data/cierre_caja_repository.dart';
+import '../../caja/data/caja_repository.dart';
 import '../../compras_credito/data/compra_credito_model.dart';
 import '../../clientes/data/cliente_model.dart';
 
@@ -32,7 +32,7 @@ class ReporteFinancieroRepository with ConRedMixin {
   final _egresoRepository = EgresoRepository();
   final _compraCreditoRepository = CompraCreditoRepository();
   final _ventaCreditoRepository = VentaCreditoRepository();
-  final _cierreCajaRepository = CierreCajaRepository();
+  final _cajaRepository = CajaRepository();
 
   static const _vigenciaCache = Duration(minutes: 5);
   List<PuntoMensual>? _serieMensualCache;
@@ -92,17 +92,7 @@ class ReporteFinancieroRepository with ConRedMixin {
         DateTime.now().difference(cacheEn) < _vigenciaCache) {
       return _efectivoEstimadoCache!;
     }
-    final estado = await _cierreCajaRepository.obtenerEstadoCaja();
-    final hoy = DateTime.now();
-    final finInclusive = DateTime(hoy.year, hoy.month, hoy.day, 23, 59, 59);
-    final totales = await _cierreCajaRepository.calcularTotales(
-      estado.fechaDesde,
-      finInclusive,
-    );
-    final resultado =
-        estado.montoInicial +
-        totales.ingresosEfectivo -
-        totales.egresosEfectivo;
+    final resultado = await _cajaRepository.efectivoEstimado();
     _efectivoEstimadoCache = resultado;
     _efectivoEstimadoCacheEn = DateTime.now();
     return resultado;

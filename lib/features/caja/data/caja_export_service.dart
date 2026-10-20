@@ -2,188 +2,186 @@ import 'dart:typed_data';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'cierre_caja_model.dart';
+import 'caja_model.dart';
 import '../../../core/utils/formato_moneda.dart';
 import '../../../core/utils/logo_pdf.dart';
 import '../../negocio/data/negocio_model.dart';
 
 class CajaExportService {
-  static const _colorMarca = PdfColor.fromInt(0xFF0F1B3D);
-  static const _colorGrisTexto = PdfColor.fromInt(0xFF4B4F58);
   static const _colorGrisClaro = PdfColor.fromInt(0xFFF2F3F7);
+  static const _colorTexto = PdfColor.fromInt(0xFF303846);
 
-  double? _anchoValidoDesdeFormato(PdfPageFormat? formato) {
+  String titulo(CajaModel c) => c.abierta ? 'CORTE X (CAJA ABIERTA)' : 'CORTE Z (CAJA CERRADA)';
+
+  double? _anchoValido(PdfPageFormat? formato) {
     if (formato == null) return null;
-    final anchoMm = formato.width / PdfPageFormat.mm;
-    if (anchoMm < 40 || anchoMm > 120) return null;
-    return anchoMm;
+    final mm = formato.width / PdfPageFormat.mm;
+    if (mm < 40 || mm > 120) return null;
+    return mm;
   }
 
-  Future<Uint8List> generarTicketCierre(CierreCajaModel cierre, NegocioModel negocio, {PdfPageFormat? formatoImpresora}) async {
+  List<List<Object>> _filas(CajaModel c) {
+    return [
+      ['Fondo inicial', c.montoApertura],
+      ['Ventas en efectivo', c.ventasEfectivo],
+      ['Abonos en efectivo', c.abonosEfectivo],
+      ['Gastos pagados en efectivo', -c.gastos],
+      ['Pagos a proveedores en efectivo', -c.pagosProveedores],
+      ['Compras en efectivo', -c.comprasEfectivo],
+    ];
+  }
+
+  Future<Uint8List> generarTicket(CajaModel c, NegocioModel negocio, {PdfPageFormat? formatoImpresora}) async {
     final doc = pw.Document();
     final logo = decodificarLogoPdf(negocio.logoBnBase64);
-    final formatoFecha = DateFormat('dd/MM/yyyy HH:mm');
-    const fSmall = 7.5;
-    const fNormal = 8.0;
-    final anchoMm = _anchoValidoDesdeFormato(formatoImpresora);
-    final alturaMm = _estimarAlturaTicketCierreMm(cierre, negocio, tieneLogo: logo != null);
-    final anchoPaginaMm = anchoMm ?? 80.0;
+    final fecha = DateFormat('dd/MM/yyyy HH:mm');
+    const f = 8.0;
+    final ancho = _anchoValido(formatoImpresora) ?? 80.0;
+    final alto = 190.0 + (logo != null ? 20 : 0) + (c.notas.isNotEmpty || c.notasCierre.isNotEmpty ? 24 : 0);
+
+    pw.Widget fila(String etiqueta, double valor, {bool negrita = false}) {
+      final estilo = pw.TextStyle(fontSize: f, fontWeight: negrita ? pw.FontWeight.bold : pw.FontWeight.normal);
+      return pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [pw.Expanded(child: pw.Text(etiqueta, style: estilo)), pw.Text(formatearMoneda(valor), style: estilo)],
+      );
+    }
+
+    pw.Widget sep() => pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 3), child: pw.Divider(thickness: 0.7));
 
     doc.addPage(
       pw.MultiPage(
         maxPages: 2000,
-        pageFormat: PdfPageFormat(anchoPaginaMm * PdfPageFormat.mm, alturaMm * PdfPageFormat.mm, marginAll: 8 * PdfPageFormat.mm),
-        build: (context) {
-          return [
-            if (logo != null) pw.Center(child: pw.Image(logo, height: 50)),
-            if (negocio.nombre.isNotEmpty)
-              pw.Center(child: pw.Text(negocio.nombre.toUpperCase(), style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold))),
-            pw.SizedBox(height: 6),
-            _separador(),
-            pw.Center(child: pw.Text('CIERRE DE CAJA', style: pw.TextStyle(fontSize: fNormal + 1, fontWeight: pw.FontWeight.bold))),
-            _separador(),
-            pw.Text('Desde: ${formatoFecha.format(cierre.fechaInicio)}', style: const pw.TextStyle(fontSize: fNormal)),
-            pw.Text('Hasta: ${formatoFecha.format(cierre.fechaFin)}', style: const pw.TextStyle(fontSize: fNormal)),
-            pw.Text('Usuario: ${cierre.usuarioResponsable}', style: const pw.TextStyle(fontSize: fNormal)),
-            _separador(),
-            _filaTicket('Monto inicial efectivo:', cierre.montoInicial, fNormal),
-            _filaTicket('Ingreso efectivo:', cierre.ingresosEfectivo, fNormal),
-            _filaTicket('Ingreso tarjeta:', cierre.ingresosTarjeta, fNormal),
-            _filaTicket('Ingreso transferencia:', cierre.ingresosTransferencia, fNormal),
-            _filaTicket('Egreso efectivo:', cierre.egresosEfectivo, fNormal),
-            _filaTicket('Egreso transferencia:', cierre.egresosTransferencia, fNormal),
-            _separador(),
-            _filaTicket('Total efectivo:', cierre.totalCalculadoEfectivo, fNormal, negrita: true),
-            _filaTicket('Total transferencia:', cierre.totalTransferencia, fNormal, negrita: true),
-            _filaTicket('Gran total:', cierre.granTotal, fNormal, negrita: true),
-            _filaTicket('Total real efectivo:', cierre.totalReal, fNormal, negrita: true),
-            _filaTicket('Diferencia:', cierre.diferencia, fNormal, negrita: true),
-            _separador(),
-            if (cierre.observaciones.isNotEmpty) ...[
-              pw.Text('Observaciones:', style: pw.TextStyle(fontSize: fSmall, fontWeight: pw.FontWeight.bold)),
-              pw.Text(cierre.observaciones, style: const pw.TextStyle(fontSize: fSmall)),
-              _separador(),
-            ],
-            pw.SizedBox(height: 6),
-            pw.Center(child: pw.Text('REPORTE CIERRE DE CAJA', style: pw.TextStyle(fontSize: fSmall, fontWeight: pw.FontWeight.bold))),
-          ];
-        },
+        pageFormat: PdfPageFormat(ancho * PdfPageFormat.mm, alto * PdfPageFormat.mm, marginAll: 8 * PdfPageFormat.mm),
+        build: (context) => [
+          if (logo != null) pw.Center(child: pw.Image(logo, height: 50)),
+          if (negocio.nombre.isNotEmpty)
+            pw.Center(child: pw.Text(negocio.nombre.toUpperCase(), style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold))),
+          sep(),
+          pw.Center(child: pw.Text(titulo(c), style: pw.TextStyle(fontSize: f + 1, fontWeight: pw.FontWeight.bold))),
+          sep(),
+          pw.Text('Cajero: ${c.usuario}', style: const pw.TextStyle(fontSize: f)),
+          pw.Text('Apertura: ${fecha.format(c.abiertaEn)}', style: const pw.TextStyle(fontSize: f)),
+          pw.Text(
+            c.abierta ? 'Corte: ${fecha.format(DateTime.now())}' : 'Cierre: ${fecha.format(c.cerradaEn!)}',
+            style: const pw.TextStyle(fontSize: f),
+          ),
+          sep(),
+          pw.Text('EFECTIVO', style: pw.TextStyle(fontSize: f, fontWeight: pw.FontWeight.bold)),
+          for (final r in _filas(c)) fila(r[0] as String, r[1] as double),
+          sep(),
+          fila('Efectivo esperado', c.efectivoEsperado, negrita: true),
+          if (!c.abierta) ...[
+            fila('Efectivo contado', c.montoCierre ?? 0, negrita: true),
+            fila('Diferencia', c.diferencia, negrita: true),
+          ],
+          sep(),
+          pw.Text('VENTAS (${c.cantidadVentas})', style: pw.TextStyle(fontSize: f, fontWeight: pw.FontWeight.bold)),
+          fila('Efectivo', c.ventasEfectivo),
+          fila('Tarjeta', c.ventasTarjeta),
+          fila('Transferencia', c.ventasTransferencia),
+          fila('Cheque', c.ventasCheque),
+          fila('Crédito', c.ventasCredito),
+          fila('Total ventas', c.totalVentas, negrita: true),
+          sep(),
+          fila('Abonos con otros métodos', c.abonosOtros),
+          if (c.notas.isNotEmpty) ...[
+            sep(),
+            pw.Text('Notas de apertura:', style: pw.TextStyle(fontSize: f - 0.5, fontWeight: pw.FontWeight.bold)),
+            pw.Text(c.notas, style: const pw.TextStyle(fontSize: f - 0.5)),
+          ],
+          if (c.notasCierre.isNotEmpty) ...[
+            sep(),
+            pw.Text('Notas de cierre:', style: pw.TextStyle(fontSize: f - 0.5, fontWeight: pw.FontWeight.bold)),
+            pw.Text(c.notasCierre, style: const pw.TextStyle(fontSize: f - 0.5)),
+          ],
+        ],
       ),
     );
     return doc.save();
   }
 
-  double _estimarAlturaTicketCierreMm(CierreCajaModel cierre, NegocioModel negocio, {required bool tieneLogo}) {
-    double alto = 140.0;
-    if (tieneLogo) alto += 20.0;
-    if (negocio.nombre.isNotEmpty) alto += 7.0;
-    if (cierre.observaciones.isNotEmpty) {
-      alto += 14.0;
-      alto += (cierre.observaciones.length / 45).ceil() * 4.0;
-    }
-    return alto;
-  }
-
-  Future<Uint8List> generarPdfCierre(CierreCajaModel cierre, NegocioModel negocio) async {
+  Future<Uint8List> generarPdf(CajaModel c, NegocioModel negocio) async {
     final doc = pw.Document();
-    final formatoFecha = DateFormat('dd/MM/yyyy HH:mm');
+    final fecha = DateFormat('dd/MM/yyyy HH:mm');
+
+    pw.Widget celda(String t, {bool negrita = false, pw.TextAlign align = pw.TextAlign.left}) => pw.Padding(
+          padding: const pw.EdgeInsets.all(6),
+          child: pw.Text(t, textAlign: align, style: pw.TextStyle(fontSize: 10, fontWeight: negrita ? pw.FontWeight.bold : pw.FontWeight.normal)),
+        );
+
+    pw.Widget tabla(String encabezado, List<List<Object>> filas, {List<String> negritas = const []}) {
+      return pw.Table(
+        border: pw.TableBorder.all(color: const PdfColor.fromInt(0xFFE0E2E8), width: 0.6),
+        columnWidths: const {0: pw.FlexColumnWidth(3), 1: pw.FlexColumnWidth(2)},
+        children: [
+          pw.TableRow(
+            decoration: const pw.BoxDecoration(color: _colorGrisClaro),
+            children: [celda(encabezado, negrita: true), celda('Monto', negrita: true, align: pw.TextAlign.right)],
+          ),
+          for (final r in filas)
+            pw.TableRow(children: [
+              celda(r[0] as String, negrita: negritas.contains(r[0])),
+              celda(formatearMoneda(r[1] as double), negrita: negritas.contains(r[0]), align: pw.TextAlign.right),
+            ]),
+        ],
+      );
+    }
 
     doc.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.letter,
         margin: const pw.EdgeInsets.fromLTRB(34, 30, 34, 30),
-        build: (context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text(negocio.nombre.isEmpty ? 'MI NEGOCIO' : negocio.nombre.toUpperCase(),
-                      style: pw.TextStyle(fontSize: 17, fontWeight: pw.FontWeight.bold, color: _colorMarca)),
-                  pw.Container(
-                    padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: pw.BoxDecoration(color: _colorMarca, borderRadius: pw.BorderRadius.circular(8)),
-                    child: pw.Text('CIERRE DE CAJA', style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold, color: PdfColors.white)),
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 18),
-              pw.Row(
-                children: [
-                  pw.Expanded(child: pw.Text('Desde: ${formatoFecha.format(cierre.fechaInicio)}', style: const pw.TextStyle(fontSize: 10))),
-                  pw.Expanded(child: pw.Text('Hasta: ${formatoFecha.format(cierre.fechaFin)}', style: const pw.TextStyle(fontSize: 10))),
-                  pw.Expanded(child: pw.Text('Usuario: ${cierre.usuarioResponsable}', style: const pw.TextStyle(fontSize: 10))),
-                ],
-              ),
-              pw.SizedBox(height: 16),
-              _tablaResumen(cierre),
-              pw.SizedBox(height: 16),
-              if (cierre.observaciones.isNotEmpty) ...[
-                pw.Text('Observaciones', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: _colorGrisTexto)),
-                pw.SizedBox(height: 4),
-                pw.Text(cierre.observaciones, style: const pw.TextStyle(fontSize: 10)),
+        build: (context) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(negocio.nombre.isEmpty ? 'MI NEGOCIO' : negocio.nombre.toUpperCase(),
+                    style: pw.TextStyle(fontSize: 17, fontWeight: pw.FontWeight.bold, color: _colorTexto)),
+                pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                  decoration: pw.BoxDecoration(color: _colorTexto, borderRadius: pw.BorderRadius.circular(8)),
+                  child: pw.Text(titulo(c), style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.white)),
+                ),
               ],
-            ],
-          );
-        },
+            ),
+            pw.SizedBox(height: 16),
+            pw.Row(children: [
+              pw.Expanded(child: pw.Text('Cajero: ${c.usuario}', style: const pw.TextStyle(fontSize: 10))),
+              pw.Expanded(child: pw.Text('Apertura: ${fecha.format(c.abiertaEn)}', style: const pw.TextStyle(fontSize: 10))),
+              pw.Expanded(
+                child: pw.Text(
+                  c.abierta ? 'Corte: ${fecha.format(DateTime.now())}' : 'Cierre: ${fecha.format(c.cerradaEn!)}',
+                  style: const pw.TextStyle(fontSize: 10),
+                ),
+              ),
+            ]),
+            pw.SizedBox(height: 14),
+            tabla('Efectivo en caja', [
+              ..._filas(c),
+              ['Efectivo esperado', c.efectivoEsperado],
+              if (!c.abierta) ['Efectivo contado', c.montoCierre ?? 0],
+              if (!c.abierta) ['Diferencia', c.diferencia],
+            ], negritas: const ['Efectivo esperado', 'Efectivo contado', 'Diferencia']),
+            pw.SizedBox(height: 14),
+            tabla('Ventas (${c.cantidadVentas})', [
+              ['Efectivo', c.ventasEfectivo],
+              ['Tarjeta', c.ventasTarjeta],
+              ['Transferencia', c.ventasTransferencia],
+              ['Cheque', c.ventasCheque],
+              ['Crédito', c.ventasCredito],
+              ['Total ventas', c.totalVentas],
+              ['Abonos con otros métodos', c.abonosOtros],
+            ], negritas: const ['Total ventas']),
+            pw.SizedBox(height: 14),
+            if (c.notas.isNotEmpty) pw.Text('Notas de apertura: ${c.notas}', style: const pw.TextStyle(fontSize: 10)),
+            if (c.notasCierre.isNotEmpty) pw.Text('Notas de cierre: ${c.notasCierre}', style: const pw.TextStyle(fontSize: 10)),
+          ],
+        ),
       ),
     );
     return doc.save();
-  }
-
-  pw.Widget _tablaResumen(CierreCajaModel cierre) {
-    final filas = [
-      ['Monto inicial efectivo', cierre.montoInicial],
-      ['Ingreso efectivo', cierre.ingresosEfectivo],
-      ['Ingreso tarjeta', cierre.ingresosTarjeta],
-      ['Ingreso transferencia', cierre.ingresosTransferencia],
-      ['Egreso efectivo', cierre.egresosEfectivo],
-      ['Egreso transferencia', cierre.egresosTransferencia],
-      ['Total efectivo (calculado)', cierre.totalCalculadoEfectivo],
-      ['Total transferencia', cierre.totalTransferencia],
-      ['Gran total', cierre.granTotal],
-      ['Total real efectivo', cierre.totalReal],
-      ['Diferencia', cierre.diferencia],
-    ];
-
-    return pw.Table(
-      border: pw.TableBorder.all(color: const PdfColor.fromInt(0xFFE0E2E8), width: 0.6),
-      columnWidths: const {0: pw.FlexColumnWidth(3), 1: pw.FlexColumnWidth(2)},
-      children: [
-        pw.TableRow(
-          decoration: const pw.BoxDecoration(color: _colorGrisClaro),
-          children: [
-            pw.Padding(padding: const pw.EdgeInsets.all(6), child: pw.Text('Concepto', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold))),
-            pw.Padding(padding: const pw.EdgeInsets.all(6), child: pw.Text('Monto', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold), textAlign: pw.TextAlign.right)),
-          ],
-        ),
-        for (final fila in filas)
-          pw.TableRow(
-            children: [
-              pw.Padding(padding: const pw.EdgeInsets.all(6), child: pw.Text(fila[0] as String, style: const pw.TextStyle(fontSize: 10))),
-              pw.Padding(padding: const pw.EdgeInsets.all(6), child: pw.Text(formatearMoneda(fila[1] as double), style: const pw.TextStyle(fontSize: 10), textAlign: pw.TextAlign.right)),
-            ],
-          ),
-      ],
-    );
-  }
-
-  pw.Widget _separador() {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(vertical: 3),
-      child: pw.Divider(thickness: 0.7),
-    );
-  }
-
-  pw.Widget _filaTicket(String etiqueta, double valor, double tamano, {bool negrita = false}) {
-    final estilo = pw.TextStyle(fontSize: tamano, fontWeight: negrita ? pw.FontWeight.bold : pw.FontWeight.normal);
-    return pw.Row(
-      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-      children: [
-        pw.Text(etiqueta, style: estilo),
-        pw.Text(formatearMoneda(valor), style: estilo),
-      ],
-    );
   }
 }

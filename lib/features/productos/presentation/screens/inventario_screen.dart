@@ -75,8 +75,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     final esTablet = !esMovil && ancho < 1100;
     return esMovil || (esTablet && _vistaTablet == 'tarjetas');
   }
-
-
   GlobalKey get _keyAccionesSegunVista =>
       _seVenTarjetas ? _keyPrimeraTarjetaAcciones : _keyColumnaAcciones;
   bool _busquedaPorCodigoBarras = false;

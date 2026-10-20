@@ -61,7 +61,6 @@ class _ReporteVentasScreenState extends ConsumerState<ReporteVentasScreen> {
   static const _estados = ['Activa', 'Anulada'];
   static const _tiposDocumento = [
     'Factura',
-    'Boleta',
     'Cotizacion',
     'VentaSinFacturar',
   ];

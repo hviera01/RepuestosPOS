@@ -1620,7 +1620,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
           ),
           const SizedBox(height: 3),
           Text(
-            'El número que le va a tocar a la próxima Factura o Boleta que registrés. Sirve para continuar la numeración de un talonario físico en vez de arrancar siempre desde 1 (por ejemplo, después de vaciar los datos de prueba).',
+            'El número que le va a tocar a la próxima Factura que registrés. Sirve para continuar la numeración de un talonario físico en vez de arrancar siempre desde 1 (por ejemplo, después de vaciar los datos de prueba).',
             style: GoogleFonts.poppins(
               fontSize: 12,
               color: Colors.grey.shade600,
