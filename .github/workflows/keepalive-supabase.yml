@@ -1,0 +1,29 @@
+name: Keep-alive Supabase (auto-restore)
+
+on:
+  schedule:
+    - cron: '23 13 */3 * *'
+  workflow_dispatch: {}
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Revisar estado y reanudar si está pausado
+        env:
+          TOKEN: ${{ secrets.SUPABASE_MGMT_TOKEN }}
+          REF: PENDIENTE_REF
+        run: |
+          # El ping anterior (curl a /rest/v1/negocio_config) corrió sin
+          # errores en gestion_negocios y aun así el proyecto se pausó por
+          # inactividad, así que en vez de simular actividad, este workflow
+          # consulta el estado real por la Management API y reanuda si hace falta.
+          status=$(curl -sf -H "Authorization: Bearer $TOKEN" \
+            "https://api.supabase.com/v1/projects/$REF" | jq -r '.status')
+          echo "Estado actual: $status"
+          if [ "$status" != "ACTIVE_HEALTHY" ]; then
+            echo "Proyecto pausado, reanudando..."
+            curl -sf -X POST -H "Authorization: Bearer $TOKEN" \
+              -H "Content-Type: application/json" -d '{}' \
+              "https://api.supabase.com/v1/projects/$REF/restore"
+          fi

@@ -1,0 +1,238 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../data/modulos_menu.dart';
+import '../providers/actualizacion_provider.dart';
+import '../services/actualizacion_service.dart';
+import '../utils/abrir_submodulo.dart';
+import '../utils/permisos_modulo.dart';
+import '../widgets/actualizacion_dialog.dart';
+import '../widgets/actualizacion_respaldo_dialog.dart';
+import '../../features/auth/providers/auth_provider.dart';
+
+class SideMenu extends ConsumerWidget {
+  final VoidCallback onCerrar;
+
+  const SideMenu({super.key, required this.onCerrar});
+
+  Future<void> _buscarActualizaciones(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final mensajero = ScaffoldMessenger.of(context);
+    mensajero.showSnackBar(
+      const SnackBar(
+        content: Text('Buscando actualizaciones...'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+    ActualizacionDisponible? actualizacion;
+    try {
+      actualizacion = await ActualizacionService.buscarActualizacion();
+    } catch (e) {
+      if (!context.mounted) return;
+      // Distinto del caso "ya estás al día": acá el chequeo ni siquiera se
+      // pudo completar (sin internet, GitHub no responde, un problema de
+      // certificado SSL específico de ese equipo, etc.) — antes esto se
+      // confundía con "ya tenés la última versión", lo que hacía parecer que
+      // nunca había actualizaciones nuevas aunque sí las hubiera. Como
+      // respaldo práctico para cuando el chequeo automático nunca logra
+      // conectarse en un equipo puntual: un diálogo con un botón
+      // "Actualizar" que abre DIRECTO la descarga del instalador más nuevo,
+      // sin depender del mismo mecanismo que está fallando acá.
+      await mostrarDialogoActualizacionRespaldo(context, e.toString());
+      return;
+    }
+    if (!context.mounted) return;
+    if (actualizacion == null) {
+      mensajero.showSnackBar(
+        const SnackBar(content: Text('Ya tenés la última versión instalada')),
+      );
+      return;
+    }
+    ref
+        .read(actualizacionDisponibleProvider.notifier)
+        .establecer(actualizacion);
+    mostrarDialogoActualizacion(context, actualizacion);
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+    final usuario = authState.usuario;
+    // La regla de quién ve qué vive en un único lugar compartido con
+    // HomeScreen -ver puedeVerSubModulo-, para que ambos menús (el lateral
+    // de acá y la grilla de Inicio) no vuelvan a desincronizarse.
+    bool puedeVer(SubModulo s) => puedeVerSubModulo(usuario, s);
+
+    final modulos = obtenerModulos().where((m) {
+      return m.subModulos.any(puedeVer);
+    }).toList();
+
+    return Material(
+      color: Colors.white,
+      elevation: 20,
+      child: SizedBox(
+        width: 300,
+        height: double.infinity,
+        child: SafeArea(
+          child: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 18,
+                ),
+                color: const Color(0xFF0F1B3D),
+                child: Row(
+                  children: [
+                    Text(
+                      'MENÚ',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      onPressed: onCerrar,
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: modulos.length,
+                  itemBuilder: (context, index) {
+                    final modulo = modulos[index];
+                    final disponibles = modulo.subModulos.where(puedeVer).toList();
+                    if (disponibles.length == 1) {
+                      return ListTile(
+                        leading: Icon(
+                          modulo.icono,
+                          color: modulo.color,
+                          size: 22,
+                        ),
+                        title: Text(
+                          modulo.titulo,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onTap: () {
+                          abrirSubModulo(context, ref, disponibles.first);
+                          onCerrar();
+                        },
+                      );
+                    }
+                    return Theme(
+                      data: Theme.of(
+                        context,
+                      ).copyWith(dividerColor: Colors.transparent),
+                      child: ExpansionTile(
+                        leading: Icon(
+                          modulo.icono,
+                          color: modulo.color,
+                          size: 22,
+                        ),
+                        title: Text(
+                          modulo.titulo,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        children: disponibles.map((sub) {
+                          return ListTile(
+                            contentPadding: const EdgeInsets.only(
+                              left: 56,
+                              right: 16,
+                            ),
+                            leading: Icon(
+                              sub.icono,
+                              size: 18,
+                              color: Colors.grey.shade600,
+                            ),
+                            title: Text(
+                              sub.titulo,
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
+                            onTap: () {
+                              abrirSubModulo(context, ref, sub);
+                              onCerrar();
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              if (ActualizacionService.aplica) ...[
+                Builder(
+                  builder: (context) {
+                    final actualizacion = ref.watch(
+                      actualizacionDisponibleProvider,
+                    );
+                    final hayActualizacion = actualizacion != null;
+                    final colorVerde = const Color(0xFF1E9E5A);
+                    return ListTile(
+                      leading: Icon(
+                        hayActualizacion
+                            ? Icons.system_update
+                            : Icons.system_update_alt,
+                        color: hayActualizacion
+                            ? colorVerde
+                            : Colors.grey.shade600,
+                        size: 20,
+                      ),
+                      title: Text(
+                        hayActualizacion
+                            ? 'Actualización disponible'
+                            : 'Buscar actualizaciones',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: hayActualizacion
+                              ? FontWeight.w700
+                              : FontWeight.w400,
+                          color: hayActualizacion
+                              ? colorVerde
+                              : Colors.grey.shade700,
+                        ),
+                      ),
+                      subtitle: hayActualizacion
+                          ? Text(
+                              'v${actualizacion.version} · tocá para instalar',
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                color: colorVerde,
+                              ),
+                            )
+                          : null,
+                      onTap: () => hayActualizacion
+                          ? mostrarDialogoActualizacion(context, actualizacion)
+                          : _buscarActualizaciones(context, ref),
+                    );
+                  },
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

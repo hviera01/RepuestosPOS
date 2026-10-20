@@ -1,0 +1,81 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Instalador de Windows compilado (ver windows/installer/RepuestosPOS.iss
+# para el script fuente, eso sí se versiona)
+/windows/installer/Output/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Cache del compilador de Kotlin (generado al compilar, no se versiona).
+/android/.kotlin/
+
+# Archivos de ejemplo/reales subidos para probar el importador — nunca deben
+# subirse al repo (datos reales del negocio: inventario, precios, clientes).
+/excel_importar/
+
+# Cache de wrangler (Cloudflare) cuando se corre desde la raíz del repo.
+.wrangler/
+
+# Configuración local de Claude Code (permisos propios de esta máquina).
+.claude/
+
+# Secretos de Supabase (token de acceso, password de DB, claves) — nunca al repo.
+.env
+.secrets/
+
+# Dependencias de Node de los tools (tool/*/node_modules) — se reinstalan con
+# npm install, nunca deben subirse al repo.
+node_modules/
+
+# Sesión de WhatsApp Web (tool/reporte_whatsapp/auth_info) — son credenciales
+# reales (creds.json, pre-keys) que dejan usar esa cuenta de WhatsApp; un
+# commit viejo (abbd720) las subió sin querer junto con node_modules vía
+# `git add -A` sin revisar `git status` primero. Ya se hizo `git rm --cached`
+# para sacarlas de los commits nuevos, pero siguen recuperables en el
+# historial viejo hasta que se reescriba con git filter-repo/BFG + force-push
+# -avisado en el reporte de la tarea; mientras tanto, conviene cerrar sesión
+# de esa cuenta de WhatsApp en el celular vinculado y volver a vincular
+# cuando haga falta usar el tool de nuevo-.
+tool/reporte_whatsapp/auth_info/

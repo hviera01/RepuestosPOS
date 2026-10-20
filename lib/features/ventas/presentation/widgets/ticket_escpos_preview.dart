@@ -1,0 +1,224 @@
+import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'package:image/image.dart' as img;
+import 'package:intl/intl.dart';
+import '../../data/venta_model.dart';
+import '../../data/numero_a_letras.dart';
+import '../../data/tipos_documento.dart';
+import '../../../negocio/data/negocio_model.dart';
+import '../../../../core/utils/formato_moneda.dart';
+import '../../../../core/utils/logo_escpos.dart';
+import '../../../../core/utils/texto_utils.dart';
+
+/// Reproduce en pantalla, con widgets normales de Flutter (no un PDF), el
+/// mismo contenido y el mismo orden que imprime de verdad
+/// VentaTicketEscPosService en la impresora térmica -la vía que se usa en
+/// Windows para el ticket de venta, ver PdfPreviewDialog-. No es
+/// pixel-perfecto (una impresora térmica real usa su propia tipografía de
+/// matriz de puntos), pero muestra las mismas secciones, los mismos datos y
+/// en el mismo orden, a diferencia de la vista previa en PDF -que en ese
+/// camino ya no es lo que de verdad se manda a imprimir-.
+class TicketEscPosPreview extends StatelessWidget {
+  final VentaModel venta;
+  final NegocioModel negocio;
+  final bool esCopia;
+
+  const TicketEscPosPreview({super.key, required this.venta, required this.negocio, required this.esCopia});
+
+  @override
+  Widget build(BuildContext context) {
+    const estiloBase = TextStyle(fontFamily: 'monospace', fontSize: 12, color: Colors.black, height: 1.35);
+    final formatoFecha = DateFormat('dd/MM/yyyy hh:mm a');
+    final formatoDia = DateFormat('dd/MM/yyyy');
+
+    // Este negocio no cobra ISV en su venta normal (VentaSinFacturar): solo
+    // se aplica el 15% si esta venta es Factura o Boleta formal (ver
+    // CarritoVentaState._aplicaIsv), igual que en VentaTicketEscPosService
+    // (esta vista tiene que mostrar exactamente lo mismo que va a imprimirse).
+    final esFacturable = venta.tipoDocumento == 'Factura' || venta.tipoDocumento == 'Boleta';
+    final mostrarConIsv = esFacturable && negocio.facturaPreciosConIsv;
+    double precioMostrado(item) => mostrarConIsv ? redondearMoneda((item.precioVenta as double) * 1.15) : item.precioVenta as double;
+    double importeMostrado(item) {
+      if (!mostrarConIsv) return item.subtotal as double;
+      final precio = precioMostrado(item);
+      return redondearMoneda(precio * (item.cantidad as double) * (1 - (item.descuentoPorcentaje as double) / 100));
+    }
+
+    final descuentosYRebajas = venta.descuentosYRebajas;
+
+    // quitarTildes acá también: esta vista previa tiene que mostrar
+    // exactamente lo que va a salir impreso (ver el comentario de la
+    // clase), y el ticket real no lleva tildes -muchas impresoras térmicas
+    // no tienen bien configurada la página de códigos y las imprimen mal-.
+    Widget linea(String texto, {bool centrado = false, bool negrita = false, double tamano = 12}) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 1),
+        child: Text(
+          quitarTildes(texto),
+          textAlign: centrado ? TextAlign.center : TextAlign.left,
+          style: estiloBase.copyWith(fontWeight: negrita ? FontWeight.bold : FontWeight.normal, fontSize: tamano),
+        ),
+      );
+    }
+
+    Widget fila(String izquierda, String derecha, {bool negrita = false}) {
+      final estilo = estiloBase.copyWith(fontWeight: negrita ? FontWeight.bold : FontWeight.normal);
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 1),
+        child: Row(
+          children: [
+            Expanded(child: Text(quitarTildes(izquierda), style: estilo)),
+            Text(quitarTildes(derecha), style: estilo),
+          ],
+        ),
+      );
+    }
+
+    Widget separador() => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Container(height: 1, color: Colors.black26),
+        );
+
+    // El nombre del producto ocupa la misma proporción de ancho (8/12) que
+    // la columna de cantidad/precio de la fila de abajo, dejando la columna
+    // de la derecha (donde va IMPORTE) siempre limpia -si el nombre es
+    // largo y se parte en dos líneas, esa segunda línea nunca llega hasta
+    // ahí-, igual que en el ticket real.
+    Widget nombreProducto(String texto) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 1),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(flex: 8, child: Text(quitarTildes(texto), style: estiloBase)),
+            const Expanded(flex: 4, child: SizedBox()),
+          ],
+        ),
+      );
+    }
+
+    // Mismo decode que el ticket real (recortado sin margen en blanco/
+    // transparente, ver logo_escpos.dart), re-encodeado a PNG para
+    // Image.memory: así la vista previa queda igual de "pegada" al nombre
+    // que la impresión de verdad, en vez de mostrar el logo tal cual lo
+    // subió el negocio (que puede traer margen de sobra).
+    final logoDecodificado = decodificarLogoEscPos(negocio.logoBnBase64);
+    final Uint8List? logoBytes = logoDecodificado == null ? null : Uint8List.fromList(img.encodePng(logoDecodificado));
+
+    // Mismo ancho que se usa de verdad al imprimir (ver
+    // NegocioModel.anchoTicketMm/VentaTicketEscPosService): la proporción
+    // entre 58mm y 80mm (384/576 puntos ESC/POS reales) se traslada acá para
+    // que el mismo texto envuelva en los mismos puntos que en el papel real.
+    final anchoContenedor = negocio.anchoTicketMm == 58 ? 320.0 * 384 / 576 : 320.0;
+
+    return Container(
+      width: anchoContenedor,
+      padding: const EdgeInsets.all(16),
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (logoBytes != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: Center(child: Image.memory(logoBytes, width: 170)),
+            ),
+          if (negocio.nombre.isNotEmpty) ..._encabezadoNombreNegocio(negocio.nombre, linea),
+          if (negocio.eslogan.isNotEmpty) linea(negocio.eslogan, centrado: true),
+          if (negocio.direccion.isNotEmpty) linea('Dirección: ${negocio.direccion}', centrado: true),
+          if (negocio.rtn.isNotEmpty) linea('RTN: ${negocio.rtn}', centrado: true),
+          if (negocio.telefono.isNotEmpty) linea('Tel: ${negocio.telefono}', centrado: true),
+          if (negocio.correo.isNotEmpty) linea('Email: ${negocio.correo}', centrado: true),
+          if (negocio.cai.isNotEmpty) linea('CAI: ${negocio.cai}', centrado: true),
+          const SizedBox(height: 6),
+          separador(),
+          linea('${(tiposDocumento[venta.tipoDocumento] ?? venta.tipoDocumento).toUpperCase()} ${negocio.rangoPrefijo}${venta.numeroDocumento}', negrita: true),
+          linea('Fecha: ${venta.fechaRegistro != null ? formatoFecha.format(venta.fechaRegistro!) : '-'}'),
+          linea('Atendido por: ${venta.usuarioRegistro}'),
+          linea('Condición: ${venta.condicion}'),
+          if (venta.condicion == 'Credito' && venta.fechaVencimiento != null) linea('Fecha de vencimiento: ${formatoDia.format(venta.fechaVencimiento!)}'),
+          separador(),
+          linea('Cliente: ${venta.nombreCliente.isEmpty ? 'CONSUMIDOR FINAL' : venta.nombreCliente}'),
+          linea('ID/RTN Cliente: ${venta.documentoCliente.isEmpty ? 'N/A' : venta.documentoCliente}'),
+          if (venta.oc.isNotEmpty) linea('No. O/C exenta: ${venta.oc}'),
+          if (venta.regExonerado.isNotEmpty) linea('No. Reg de exonerado: ${venta.regExonerado}'),
+          if (venta.regSag.isNotEmpty) linea('No. De reg de la SAG: ${venta.regSag}'),
+          if (venta.observaciones.isNotEmpty) ...[
+            separador(),
+            linea('Observaciones: ${venta.observaciones}'),
+          ],
+          separador(),
+          fila('CANT DESCRIPCIÓN', 'IMPORTE', negrita: true),
+          separador(),
+          for (final item in venta.detalle) ...[
+            nombreProducto(item.nombreProducto),
+            fila(
+              '${_formatoCantidad(item.cantidad)} x ${formatearMoneda(precioMostrado(item))}${item.descuentoPorcentaje > 0 ? ' (-${_formatoCantidad(item.descuentoPorcentaje)}%)' : ''}',
+              formatearMoneda(importeMostrado(item)),
+            ),
+            const SizedBox(height: 8),
+          ],
+          separador(),
+          fila('SUBTOTAL:', formatearMoneda(venta.subtotal)),
+          if (venta.descuentoGlobal > 0) linea('Descuento global: ${_formatoCantidad(venta.descuentoGlobal)}%'),
+          if (descuentosYRebajas > 0) fila('Descuentos y rebajas:', formatearMoneda(descuentosYRebajas)),
+          if (esFacturable) ...[
+            fila('Gravado 15%:', formatearMoneda(venta.subtotal)),
+            fila('Gravado 18%:', formatearMoneda(0)),
+            fila('ISV 15%:', formatearMoneda(venta.impuesto)),
+          ],
+          fila('TOTAL A PAGAR:', formatearMoneda(venta.totalAPagar), negrita: true),
+          const SizedBox(height: 6),
+          separador(),
+          linea('Son: ${convertirNumeroALetras(venta.totalAPagar)}'),
+          if (venta.condicion != 'Credito') ...[
+            if (venta.metodoPago == 'Efectivo') ...[
+              linea('Efectivo: ${formatearMoneda(venta.montoPago)}'),
+              linea('Cambio: ${formatearMoneda(venta.montoCambio)}'),
+            ] else if (venta.metodoPago == 'Tarjeta')
+              linea('Pago con tarjeta: ${formatearMoneda(venta.totalAPagar)}')
+            else if (venta.metodoPago == 'Transferencia')
+              linea('Transferencia')
+            else if (venta.metodoPago == 'Cheque')
+              linea('Pago con cheque: ${formatearMoneda(venta.totalAPagar)}')
+            else if (venta.metodoPago == 'Mixto')
+              for (final pago in venta.pagosMixtos) linea('${pago.metodoPago}: ${formatearMoneda(pago.monto)}'),
+          ],
+          separador(),
+          if (negocio.rangoPrefijo.isNotEmpty || negocio.rangoDesde.isNotEmpty)
+            linea('Rango Aut.: ${negocio.rangoPrefijo}${negocio.rangoDesde} al ${negocio.rangoPrefijo}${negocio.rangoHasta}'),
+          if (negocio.fechaLimiteEmision != null) linea('Fecha Límite: ${formatoDia.format(negocio.fechaLimiteEmision!)}'),
+          // Pedido explícito del dueño: quitar el resto del pie legal
+          // ("ORIGINAL: CLIENTE"/"COPIA: OBLIGADO TRIBUTARIO EMISOR"/"LA
+          // FACTURA ES BENEFICIO DE TODOS"), dejando solo el agradecimiento
+          // y el ORIGINAL/COPIA de más abajo.
+          const SizedBox(height: 6),
+          linea('¡GRACIAS POR SU COMPRA!', centrado: true, negrita: true),
+          const SizedBox(height: 10),
+          Align(alignment: Alignment.centerRight, child: linea(esCopia ? 'COPIA' : 'ORIGINAL', negrita: true)),
+        ],
+      ),
+    );
+  }
+
+  String _formatoCantidad(double cantidad) {
+    if (cantidad == cantidad.roundToDouble()) return cantidad.toInt().toString();
+    return cantidad.toStringAsFixed(2);
+  }
+
+  // Ver el mismo comentario/pedido en venta_export_service.dart: si el
+  // nombre del negocio tiene más de una palabra, la primera va sola en su
+  // propia línea (la marca corta, "CK") y el resto abajo (la razón social
+  // completa, "S DE R.L. DE C.V."), igual que en el ticket real.
+  List<Widget> _encabezadoNombreNegocio(String nombre, Widget Function(String, {bool centrado, bool negrita, double tamano}) linea) {
+    final nombreMayus = nombre.toUpperCase().trim();
+    final espacio = nombreMayus.indexOf(' ');
+    if (espacio == -1) {
+      return [linea(nombreMayus, centrado: true, negrita: true, tamano: 15)];
+    }
+    return [
+      linea(nombreMayus.substring(0, espacio), centrado: true, negrita: true, tamano: 15),
+      linea(nombreMayus.substring(espacio + 1).trim(), centrado: true, negrita: true, tamano: 15),
+    ];
+  }
+}
