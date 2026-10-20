@@ -163,6 +163,8 @@ class NegocioModel {
   // (comportamiento de siempre: ESC/POS crudo, correcto para impresoras
   // genéricas que sí lo hablan).
   final bool impresoraUsbUsarDriverWindows;
+  final Map<String, dynamic> tema;
+  final String tipoDocumentoDefecto;
 
   const NegocioModel({
     this.nombre = '',
@@ -196,6 +198,8 @@ class NegocioModel {
     this.pcPrincipalHostname = '',
     this.imprimirFacturas = true,
     this.impresoraUsbUsarDriverWindows = false,
+    this.tema = const {},
+    this.tipoDocumentoDefecto = 'Factura',
   });
 
   bool get tieneClaveEspecial => claveEspecialHash.isNotEmpty;
@@ -237,6 +241,8 @@ class NegocioModel {
       imprimirFacturas: data['imprimir_facturas'] ?? true,
       impresoraUsbUsarDriverWindows:
           data['impresora_usb_usar_driver_windows'] ?? false,
+      tema: Map<String, dynamic>.from((data['tema'] as Map?) ?? const {}),
+      tipoDocumentoDefecto: (data['tipo_documento_defecto'] ?? 'Factura') as String,
     );
   }
 
@@ -273,6 +279,8 @@ class NegocioModel {
       'pc_principal_hostname': pcPrincipalHostname,
       'imprimir_facturas': imprimirFacturas,
       'impresora_usb_usar_driver_windows': impresoraUsbUsarDriverWindows,
+      'tema': tema,
+      'tipo_documento_defecto': tipoDocumentoDefecto,
     };
   }
 
@@ -308,6 +316,8 @@ class NegocioModel {
     String? pcPrincipalHostname,
     bool? imprimirFacturas,
     bool? impresoraUsbUsarDriverWindows,
+    Map<String, dynamic>? tema,
+    String? tipoDocumentoDefecto,
   }) {
     return NegocioModel(
       nombre: nombre ?? this.nombre,
@@ -347,6 +357,8 @@ class NegocioModel {
       imprimirFacturas: imprimirFacturas ?? this.imprimirFacturas,
       impresoraUsbUsarDriverWindows:
           impresoraUsbUsarDriverWindows ?? this.impresoraUsbUsarDriverWindows,
+      tema: tema ?? this.tema,
+      tipoDocumentoDefecto: tipoDocumentoDefecto ?? this.tipoDocumentoDefecto,
     );
   }
 }

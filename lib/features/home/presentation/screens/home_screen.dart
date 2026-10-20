@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
@@ -66,7 +67,7 @@ class HomeScreen extends ConsumerWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0F1B3D),
+                    color: Marca.primario,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -117,7 +118,7 @@ class HomeScreen extends ConsumerWidget {
                     style: GoogleFonts.poppins(
                       fontSize: esMovil ? 20 : 24,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F1B3D),
+                      color: Marca.primario,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -299,7 +300,7 @@ class HomeScreen extends ConsumerWidget {
           _tarjetaResumenVenta(
             titulo: 'Venta de hoy',
             icono: Icons.today_rounded,
-            colores: const [Color(0xFF0F1B3D), Color(0xFFE53935)],
+            colores: [Marca.primario, Color(0xFFE53935)],
             monto: resumen.whenOrNull(data: (r) => r.totalDia),
             subtitulo: resumen.whenOrNull(
               data: (r) =>

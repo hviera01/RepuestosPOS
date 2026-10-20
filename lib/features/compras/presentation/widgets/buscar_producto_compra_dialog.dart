@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/utils/busqueda_producto.dart';
 import '../../../../core/widgets/filtro_vehiculo_campos.dart';
@@ -8,7 +9,6 @@ import '../../../productos/data/producto_model.dart';
 import '../../../productos/providers/productos_provider.dart';
 import '../../../productos/presentation/widgets/producto_form_dialog.dart';
 import '../../../categorias/providers/categorias_provider.dart';
-import '../../../../core/utils/texto_utils.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/widgets/imagen_zoom_dialog.dart';
 import '../../../../core/utils/mayusculas_input_formatter.dart';
@@ -309,8 +309,8 @@ class _BuscarProductoCompraDialogState
                       style: GoogleFonts.poppins(fontSize: 13),
                     ),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF0F1B3D),
-                      side: const BorderSide(color: Color(0xFF0F1B3D)),
+                      foregroundColor: Marca.primario,
+                      side: BorderSide(color: Marca.primario),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 14,
@@ -398,9 +398,9 @@ class _BuscarProductoCompraDialogState
                           ],
                         );
                       },
-                      loading: () => const Center(
+                      loading: () => Center(
                         child: CircularProgressIndicator(
-                          color: Color(0xFF0F1B3D),
+                          color: Marca.primario,
                         ),
                       ),
                       error: (e, st) => Center(
@@ -467,7 +467,7 @@ class _BuscarProductoCompraDialogState
             color: seleccionada ? const Color(0xFFFBEAEA) : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             border: seleccionada
-                ? Border.all(color: const Color(0xFF0F1B3D), width: 1.4)
+                ? Border.all(color: Marca.primario, width: 1.4)
                 : Border.all(color: Colors.transparent, width: 1.4),
           ),
           child: Row(
@@ -554,10 +554,10 @@ class _BuscarProductoCompraDialogState
                     ? null
                     : IconButton(
                         tooltip: 'Ver foto',
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.photo_outlined,
                           size: 18,
-                          color: Color(0xFF0F1B3D),
+                          color: Marca.primario,
                         ),
                         onPressed: () => _verFoto(p),
                       ),
@@ -592,7 +592,7 @@ class _BuscarProductoCompraDialogState
             color: seleccionada ? const Color(0xFFFBEAEA) : Colors.transparent,
             borderRadius: BorderRadius.circular(14),
             border: seleccionada
-                ? Border.all(color: const Color(0xFF0F1B3D), width: 1.4)
+                ? Border.all(color: Marca.primario, width: 1.4)
                 : Border.all(color: Colors.transparent, width: 1.4),
           ),
           child: Column(
@@ -660,10 +660,10 @@ class _BuscarProductoCompraDialogState
                   if (p.imagenUrl.isNotEmpty)
                     IconButton(
                       tooltip: 'Ver foto',
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.photo_outlined,
                         size: 18,
-                        color: Color(0xFF0F1B3D),
+                        color: Marca.primario,
                       ),
                       onPressed: () => _verFoto(p),
                     ),

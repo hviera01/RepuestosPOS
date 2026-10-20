@@ -1,3 +1,4 @@
+import '../theme/marca.dart';
 import 'package:flutter/material.dart';
 
 class SubModulo {
@@ -53,7 +54,7 @@ List<ModuloMenu> obtenerModulos() {
     ModuloMenu(
       titulo: 'Usuarios',
       icono: Icons.people_alt_outlined,
-      color: const Color(0xFF0F1B3D),
+      color: Marca.primario,
       subModulos: [
         SubModulo(titulo: 'Usuarios', icono: Icons.people_alt_outlined, moduleKey: 'usuarios', soloAdmin: true),
       ],

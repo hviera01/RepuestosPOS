@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -192,8 +193,8 @@ class _BuscarClienteDialogState extends ConsumerState<BuscarClienteDialog> {
                   style: GoogleFonts.poppins(fontSize: 13),
                 ),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF0F1B3D),
-                  side: const BorderSide(color: Color(0xFF0F1B3D)),
+                  foregroundColor: Marca.primario,
+                  side: BorderSide(color: Marca.primario),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 10,
@@ -285,8 +286,8 @@ class _BuscarClienteDialogState extends ConsumerState<BuscarClienteDialog> {
                     },
                   );
                 },
-                loading: () => const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF0F1B3D)),
+                loading: () => Center(
+                  child: CircularProgressIndicator(color: Marca.primario),
                 ),
                 error: (e, st) => Center(
                   child: Text(

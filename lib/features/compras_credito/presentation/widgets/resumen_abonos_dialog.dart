@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -267,7 +268,7 @@ class _ResumenAbonosDialogState extends ConsumerState<ResumenAbonosDialog> {
                     style: GoogleFonts.poppins(fontSize: 13),
                   ),
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F1B3D),
+                    backgroundColor: Marca.primario,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 18,
                       vertical: 14,
@@ -322,11 +323,11 @@ class _ResumenAbonosDialogState extends ConsumerState<ResumenAbonosDialog> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
-                color: const Color(0xFF0F1B3D),
+                color: Marca.primario,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF0F1B3D).withOpacity(0.35),
+                    color: Marca.primario.withOpacity(0.35),
                     blurRadius: 18,
                     offset: const Offset(0, 8),
                   ),
@@ -370,9 +371,9 @@ class _ResumenAbonosDialogState extends ConsumerState<ResumenAbonosDialog> {
             const SizedBox(height: 16),
             Expanded(
               child: _cargando
-                  ? const Center(
+                  ? Center(
                       child: CircularProgressIndicator(
-                        color: Color(0xFF0F1B3D),
+                        color: Marca.primario,
                       ),
                     )
                   : _error != null

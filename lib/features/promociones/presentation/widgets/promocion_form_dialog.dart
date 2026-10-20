@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -190,7 +191,7 @@ class _PromocionFormDialogState extends ConsumerState<PromocionFormDialog> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(mensaje),
-        backgroundColor: esError ? const Color(0xFF0F1B3D) : null,
+        backgroundColor: esError ? Marca.primario : null,
       ),
     );
   }
@@ -410,7 +411,7 @@ class _PromocionFormDialogState extends ConsumerState<PromocionFormDialog> {
                   contentPadding: EdgeInsets.zero,
                   controlAffinity: ListTileControlAffinity.leading,
                   dense: true,
-                  activeColor: const Color(0xFF0F1B3D),
+                  activeColor: Marca.primario,
                   title: Text(
                     'Sin fecha de fin (indefinida)',
                     style: GoogleFonts.poppins(fontSize: 12.5),
@@ -437,7 +438,7 @@ class _PromocionFormDialogState extends ConsumerState<PromocionFormDialog> {
                   value: _activo,
                   onChanged: (v) => setState(() => _activo = v),
                   contentPadding: EdgeInsets.zero,
-                  activeThumbColor: const Color(0xFF0F1B3D),
+                  activeThumbColor: Marca.primario,
                   title: Text(
                     'Promoción activa',
                     style: GoogleFonts.poppins(
@@ -459,7 +460,7 @@ class _PromocionFormDialogState extends ConsumerState<PromocionFormDialog> {
                   child: FilledButton(
                     onPressed: _guardando ? null : _guardar,
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF0F1B3D),
+                      backgroundColor: Marca.primario,
                       padding: const EdgeInsets.symmetric(vertical: 15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -525,7 +526,7 @@ class _PromocionFormDialogState extends ConsumerState<PromocionFormDialog> {
             margin: const EdgeInsets.symmetric(horizontal: 2),
             padding: const EdgeInsets.symmetric(vertical: 10),
             decoration: BoxDecoration(
-              color: activo ? const Color(0xFF0F1B3D) : const Color(0xFFF2F3F7),
+              color: activo ? Marca.primario : const Color(0xFFF2F3F7),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(

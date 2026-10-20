@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -49,7 +50,7 @@ class _DetalleClienteScreenState extends ConsumerState<DetalleClienteScreen> {
         future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFF0F1B3D)));
+            return Center(child: CircularProgressIndicator(color: Marca.primario));
           }
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}', style: GoogleFonts.poppins(color: Colors.red)));
@@ -109,7 +110,7 @@ class _DetalleClienteScreenState extends ConsumerState<DetalleClienteScreen> {
         children: [
           Row(
             children: [
-              if (icono != null) ...[Icon(icono, size: 18, color: const Color(0xFF0F1B3D)), const SizedBox(width: 8)],
+              if (icono != null) ...[Icon(icono, size: 18, color: Marca.primario), const SizedBox(width: 8)],
               Text(titulo, style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
             ],
           ),
@@ -406,7 +407,7 @@ class _DetalleClienteScreenState extends ConsumerState<DetalleClienteScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(item.nombreProducto, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600)),
-                              Text(item.codigosColor.join(', '), style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF0F1B3D), fontWeight: FontWeight.w600)),
+                              Text(item.codigosColor.join(', '), style: GoogleFonts.poppins(fontSize: 12, color: Marca.primario, fontWeight: FontWeight.w600)),
                             ],
                           ),
                         ),

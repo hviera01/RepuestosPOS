@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -143,7 +144,7 @@ class _SelectorImpresoraBluetoothState extends State<SelectorImpresoraBluetooth>
             onPressed: () => widget.onSeleccionar('', ''),
             icon: const Icon(Icons.link_off, size: 16),
             label: Text('Quitar impresora Bluetooth', style: GoogleFonts.poppins(fontSize: 12.5)),
-            style: TextButton.styleFrom(foregroundColor: const Color(0xFF0F1B3D), padding: EdgeInsets.zero, minimumSize: const Size(0, 32)),
+            style: TextButton.styleFrom(foregroundColor: Marca.primario, padding: EdgeInsets.zero, minimumSize: const Size(0, 32)),
           ),
         ],
       ],

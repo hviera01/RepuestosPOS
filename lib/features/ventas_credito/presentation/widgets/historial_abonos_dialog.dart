@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -50,7 +51,7 @@ class HistorialAbonosDialog extends ConsumerWidget {
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF0F1B3D),
+              backgroundColor: Marca.primario,
             ),
             onPressed: () => Navigator.pop(context, true),
             child: Text('Eliminar', style: GoogleFonts.poppins()),
@@ -105,10 +106,10 @@ class HistorialAbonosDialog extends ConsumerWidget {
           value: 'eliminar',
           child: Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.delete_outline,
                 size: 18,
-                color: Color(0xFF0F1B3D),
+                color: Marca.primario,
               ),
               const SizedBox(width: 10),
               Text('Eliminar', style: GoogleFonts.poppins(fontSize: 12.5)),
@@ -172,8 +173,8 @@ class HistorialAbonosDialog extends ConsumerWidget {
             const SizedBox(height: 14),
             Expanded(
               child: abonosAsync.when(
-                loading: () => const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF0F1B3D)),
+                loading: () => Center(
+                  child: CircularProgressIndicator(color: Marca.primario),
                 ),
                 error: (e, st) => Center(
                   child: Text(

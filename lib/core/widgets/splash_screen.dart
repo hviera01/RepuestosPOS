@@ -1,3 +1,4 @@
+import '../theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -52,7 +53,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1B3D),
+      backgroundColor: Marca.primario,
       body: Center(
         child: AnimatedBuilder(
           animation: _controlador,
@@ -73,9 +74,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   color: Colors.white,
                   boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 30, offset: const Offset(0, 12))],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.storefront_rounded,
-                  color: Color(0xFF0F1B3D),
+                  color: Marca.primario,
                   size: 56,
                 ),
               ),

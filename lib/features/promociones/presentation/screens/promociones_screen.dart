@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -76,7 +77,7 @@ class _PromocionesScreenState extends ConsumerState<PromocionesScreen> {
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF0F1B3D),
+              backgroundColor: Marca.primario,
             ),
             onPressed: () => Navigator.pop(context, true),
             child: Text('Eliminar', style: GoogleFonts.poppins()),
@@ -144,7 +145,7 @@ class _PromocionesScreenState extends ConsumerState<PromocionesScreen> {
                         ),
                       ),
                       style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF0F1B3D),
+                        backgroundColor: Marca.primario,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
                           vertical: 14,
@@ -205,9 +206,9 @@ class _PromocionesScreenState extends ConsumerState<PromocionesScreen> {
                             _tarjetaPromocion(lista[i]),
                       );
                     },
-                    loading: () => const Center(
+                    loading: () => Center(
                       child: CircularProgressIndicator(
-                        color: Color(0xFF0F1B3D),
+                        color: Marca.primario,
                       ),
                     ),
                     error: (e, st) => Center(
@@ -378,7 +379,7 @@ class _PromocionesScreenState extends ConsumerState<PromocionesScreen> {
                       'Eliminar',
                       style: GoogleFonts.poppins(
                         fontSize: 12.5,
-                        color: const Color(0xFF0F1B3D),
+                        color: Marca.primario,
                       ),
                     ),
                   ),
@@ -408,7 +409,7 @@ class _PromocionesScreenState extends ConsumerState<PromocionesScreen> {
             style: GoogleFonts.poppins(
               fontSize: 12.5,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF0F1B3D),
+              color: Marca.primario,
             ),
           ),
           const SizedBox(height: 4),

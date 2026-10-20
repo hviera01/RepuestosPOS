@@ -201,14 +201,14 @@ class TablaSincronizada<T> {
     final caja = _caja;
     if (caja == null) return;
     try {
-      await caja.putAll({for (final f in filas) f['id'] as String: jsonEncode(f)});
+      await caja.putAll({for (final f in filas) f['id'].toString(): jsonEncode(f)});
     } catch (e) {
       debugPrint('TablaSincronizada($tabla): no se pudo guardar en disco: $e');
     }
   }
 
   void aplicarLocal(Map<String, dynamic> fila) {
-    final id = fila['id'] as String;
+    final id = fila['id'].toString();
     final previa = _filas[id] ?? const <String, dynamic>{};
     final unida = {...previa, ...fila};
     _poner(unida);
@@ -226,7 +226,7 @@ class TablaSincronizada<T> {
   Map<String, dynamic>? filaLocal(String id) => _filas[id];
 
   void _poner(Map<String, dynamic> fila) {
-    final id = fila['id'] as String;
+    final id = fila['id'].toString();
     _filas[id] = fila;
     try {
       _modelos[id] = desdeFila(fila);

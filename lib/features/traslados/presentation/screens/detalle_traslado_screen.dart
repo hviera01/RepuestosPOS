@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import '../../../negocio/data/negocio_model.dart';
 import '../../../../core/utils/permisos_usuario.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -130,7 +131,7 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: GoogleFonts.poppins())),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
+            style: FilledButton.styleFrom(backgroundColor: Marca.primario),
             onPressed: () => Navigator.pop(context, true),
             child: Text('Confirmar', style: GoogleFonts.poppins()),
           ),
@@ -331,7 +332,7 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
           const SizedBox(height: 16),
           Expanded(
             child: _cargando
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E)))
+                ? Center(child: CircularProgressIndicator(color: Marca.primario))
                 : _error != null
                     ? Center(child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red)))
                     : _traslado == null
@@ -417,7 +418,7 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
               onPressed: _actuando ? null : _reimprimir,
               icon: const Icon(Icons.print_outlined, size: 18),
               label: Text('Reimprimir (copia)', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
-              style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF0D2B4E), side: const BorderSide(color: Color(0xFF0D2B4E)), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              style: OutlinedButton.styleFrom(foregroundColor: Marca.primario, side: BorderSide(color: Marca.primario), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             ),
             if (t.estado == 'Pendiente')
               FilledButton.icon(

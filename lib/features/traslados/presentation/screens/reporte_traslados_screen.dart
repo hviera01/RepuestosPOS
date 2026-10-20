@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -209,7 +210,7 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
                           onPressed: _cargando ? null : _buscar,
                           icon: _cargando ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.search, size: 18),
                           label: Text('Buscar', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
-                          style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 20), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                          style: FilledButton.styleFrom(backgroundColor: Marca.primario, padding: const EdgeInsets.symmetric(horizontal: 20), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                         ),
                       ),
                     ],
@@ -223,7 +224,7 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
                 child: _error != null
                     ? Center(child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red)))
                     : (_traslados == null
-                        ? const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E)))
+                        ? Center(child: CircularProgressIndicator(color: Marca.primario))
                         : _traslados!.isEmpty
                             ? Center(child: Text('No hay traslados en este rango', style: GoogleFonts.poppins(color: Colors.grey.shade500)))
                             : ListView.separated(
@@ -258,7 +259,7 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
                                         const SizedBox(width: 8),
                                         IconButton(
                                           tooltip: 'Reimprimir (copia)',
-                                          icon: const Icon(Icons.print_outlined, size: 20, color: Color(0xFF0D2B4E)),
+                                          icon: Icon(Icons.print_outlined, size: 20, color: Marca.primario),
                                           onPressed: () => _reimprimir(t),
                                         ),
                                       ],

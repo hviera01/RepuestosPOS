@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -31,7 +32,7 @@ class PromocionesVigentesDialog extends ConsumerWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.local_offer_outlined, color: Color(0xFF0F1B3D)),
+                Icon(Icons.local_offer_outlined, color: Marca.primario),
                 const SizedBox(width: 8),
                 Expanded(child: Text('Promociones Vigentes', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700))),
                 IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(context)),
@@ -62,7 +63,7 @@ class PromocionesVigentesDialog extends ConsumerWidget {
                     itemBuilder: (context, i) => _tarjeta(vigentes[i]),
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0F1B3D))),
+                loading: () => Center(child: CircularProgressIndicator(color: Marca.primario)),
                 error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
               ),
             ),
@@ -84,8 +85,8 @@ class PromocionesVigentesDialog extends ConsumerWidget {
               Expanded(child: Text(p.nombre, style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w700))),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: const Color(0xFF0F1B3D).withOpacity(0.12), borderRadius: BorderRadius.circular(8)),
-                child: Text(p.etiquetaCorta, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF0F1B3D))),
+                decoration: BoxDecoration(color: Marca.primario.withOpacity(0.12), borderRadius: BorderRadius.circular(8)),
+                child: Text(p.etiquetaCorta, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: Marca.primario)),
               ),
             ],
           ),

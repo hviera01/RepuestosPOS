@@ -1,3 +1,4 @@
+import '../theme/marca.dart';
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -21,7 +22,7 @@ class ImagenProductoNetwork extends StatefulWidget {
   // Colores del estado de carga/error: por defecto pensados para fondos
   // claros (formularios, miniaturas), pero el zoom a pantalla completa vive
   // sobre un fondo oscuro y necesita los suyos propios.
-  final Color loadingColor;
+  final Color? loadingColor;
   final Color iconColor;
   final Color textColor;
   final double iconSize;
@@ -33,7 +34,7 @@ class ImagenProductoNetwork extends StatefulWidget {
     this.width,
     this.height,
     this.fit = BoxFit.cover,
-    this.loadingColor = const Color(0xFF0F1B3D),
+    this.loadingColor,
     this.iconColor = const Color(0xFF9CA3AF),
     this.textColor = const Color(0xFF9CA3AF),
     this.iconSize = 20,
@@ -222,7 +223,7 @@ class _ImagenProductoNetworkState extends State<ImagenProductoNetwork> {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.2,
-                  color: widget.loadingColor,
+                  color: widget.loadingColor ?? Marca.primario,
                 ),
               ),
             ),

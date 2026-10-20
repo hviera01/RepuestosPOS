@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/promocion_model.dart';
@@ -57,7 +58,7 @@ class PromocionDetectadaDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       title: Row(
         children: [
-          const Icon(Icons.celebration_outlined, color: Color(0xFF0F1B3D)),
+          Icon(Icons.celebration_outlined, color: Marca.primario),
           const SizedBox(width: 10),
           Expanded(child: Text(_titulo, style: GoogleFonts.poppins(fontSize: 15.5, fontWeight: FontWeight.w700))),
         ],

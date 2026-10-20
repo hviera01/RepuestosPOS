@@ -1,3 +1,4 @@
+import '../theme/marca.dart';
 import 'dart:io' show Platform;
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -192,7 +193,7 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
                     ),
                   ),
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F1B3D),
+                    backgroundColor: Marca.primario,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),

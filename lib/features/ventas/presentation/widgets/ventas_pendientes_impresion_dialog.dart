@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -138,9 +139,9 @@ class _VentasPendientesImpresionDialogState extends ConsumerState<VentasPendient
                                 ),
                               ),
                               imprimiendo
-                                  ? const Padding(
+                                  ? Padding(
                                       padding: EdgeInsets.symmetric(horizontal: 12),
-                                      child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0F1B3D))),
+                                      child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Marca.primario)),
                                     )
                                   : IconButton(
                                       tooltip: 'Imprimir',
@@ -155,7 +156,7 @@ class _VentasPendientesImpresionDialogState extends ConsumerState<VentasPendient
                     },
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0F1B3D))),
+                loading: () => Center(child: CircularProgressIndicator(color: Marca.primario)),
                 error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
               ),
             ),

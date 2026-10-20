@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/producto_model.dart';
@@ -91,7 +92,7 @@ class _ExportarInventarioOpcionesDialogState extends State<ExportarInventarioOpc
                     label: Text(etiqueta, style: GoogleFonts.poppins(fontSize: 12)),
                     selected: _columnasSeleccionadas.contains(key),
                     selectedColor: const Color(0xFFF8D7D7),
-                    checkmarkColor: const Color(0xFF0F1B3D),
+                    checkmarkColor: Marca.primario,
                     onSelected: (v) {
                       setState(() {
                         if (v) {
@@ -115,7 +116,7 @@ class _ExportarInventarioOpcionesDialogState extends State<ExportarInventarioOpc
                   onPressed: () => setState(() {
                     _productosSeleccionados = _todosMarcados ? {} : widget.productos.map((p) => p.id).toSet();
                   }),
-                  child: Text(_todosMarcados ? 'Ninguno' : 'Todos', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF0F1B3D))),
+                  child: Text(_todosMarcados ? 'Ninguno' : 'Todos', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: Marca.primario)),
                 ),
               ],
             ),
@@ -132,7 +133,7 @@ class _ExportarInventarioOpcionesDialogState extends State<ExportarInventarioOpc
                       value: _productosSeleccionados.contains(p.id),
                       dense: true,
                       controlAffinity: ListTileControlAffinity.leading,
-                      activeColor: const Color(0xFF0F1B3D),
+                      activeColor: Marca.primario,
                       title: Text(p.nombre, style: GoogleFonts.poppins(fontSize: 12.5), maxLines: 1, overflow: TextOverflow.ellipsis),
                       subtitle: Text('${p.codigo} · ${widget.mapaCategorias[p.idCategoria] ?? '-'}', style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade500)),
                       onChanged: (v) {
@@ -165,7 +166,7 @@ class _ExportarInventarioOpcionesDialogState extends State<ExportarInventarioOpc
                             columnas: _columnasSeleccionadas,
                           ),
                         ),
-                  style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0F1B3D), padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                  style: FilledButton.styleFrom(backgroundColor: Marca.primario, padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                   child: Text('Exportar', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white)),
                 ),
               ],

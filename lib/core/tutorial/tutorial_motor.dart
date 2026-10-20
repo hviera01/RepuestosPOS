@@ -1,9 +1,10 @@
+import '../theme/marca.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'tutorial_modelos.dart';
 
-const _azulMarca = Color(0xFF0F1B3D);
+final _azulMarca = Marca.primario;
 
 /// Arranca un recorrido guiado INTERACTIVO de verdad -reemplaza al viejo
 /// mecanismo basado en el paquete tutorial_coach_mark-: resalta el widget

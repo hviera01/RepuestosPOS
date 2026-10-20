@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -112,8 +113,8 @@ class _UnirFacturasDialogState extends ConsumerState<UnirFacturasDialog> {
                   Container(
                     width: 44,
                     height: 44,
-                    decoration: BoxDecoration(color: const Color(0xFF0F1B3D).withOpacity(0.1), borderRadius: BorderRadius.circular(14)),
-                    child: const Icon(Icons.call_merge_outlined, color: Color(0xFF0F1B3D)),
+                    decoration: BoxDecoration(color: Marca.primario.withOpacity(0.1), borderRadius: BorderRadius.circular(14)),
+                    child: Icon(Icons.call_merge_outlined, color: Marca.primario),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -259,7 +260,7 @@ class _UnirFacturasDialogState extends ConsumerState<UnirFacturasDialog> {
                   FilledButton(
                     onPressed: _guardando ? null : _unir,
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF0F1B3D),
+                      backgroundColor: Marca.primario,
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),

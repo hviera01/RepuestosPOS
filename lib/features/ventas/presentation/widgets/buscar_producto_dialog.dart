@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
@@ -13,7 +14,6 @@ import '../../../productos/presentation/widgets/detalle_producto_dialog.dart';
 import '../../../categorias/providers/categorias_provider.dart';
 import '../../../promociones/data/promocion_model.dart';
 import '../../../promociones/providers/promociones_provider.dart';
-import '../../../../core/utils/texto_utils.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/utils/codigo_barras_utils.dart';
 import '../../../../core/widgets/barcode_scanner_screen.dart';
@@ -577,8 +577,8 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                       style: GoogleFonts.poppins(fontSize: 13),
                     ),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF0F1B3D),
-                      side: const BorderSide(color: Color(0xFF0F1B3D)),
+                      foregroundColor: Marca.primario,
+                      side: BorderSide(color: Marca.primario),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 14,
@@ -683,9 +683,9 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                           ],
                         );
                       },
-                      loading: () => const Center(
+                      loading: () => Center(
                         child: CircularProgressIndicator(
-                          color: Color(0xFF0F1B3D),
+                          color: Marca.primario,
                         ),
                       ),
                       error: (e, st) => Center(
@@ -722,7 +722,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
           decoration: BoxDecoration(
-            color: activo ? const Color(0xFF0F1B3D) : Colors.transparent,
+            color: activo ? Marca.primario : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
@@ -762,7 +762,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
           decoration: BoxDecoration(
-            color: activo ? const Color(0xFF0F1B3D) : Colors.transparent,
+            color: activo ? Marca.primario : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
@@ -842,7 +842,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
           Text(
             texto,
             style: activo
-                ? estilo.copyWith(color: const Color(0xFF0F1B3D))
+                ? estilo.copyWith(color: Marca.primario)
                 : estilo,
           ),
           const SizedBox(width: 3),
@@ -851,7 +851,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                 ? (_ordenAscendente ? Icons.arrow_upward : Icons.arrow_downward)
                 : Icons.unfold_more,
             size: 14,
-            color: activo ? const Color(0xFF0F1B3D) : Colors.grey.shade400,
+            color: activo ? Marca.primario : Colors.grey.shade400,
           ),
         ],
       ),
@@ -871,7 +871,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
         decoration: BoxDecoration(
-          color: const Color(0xFF0F1B3D),
+          color: Marca.primario,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -949,7 +949,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
             color: seleccionada ? const Color(0xFFFBEAEA) : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             border: seleccionada
-                ? Border.all(color: const Color(0xFF0F1B3D), width: 1.4)
+                ? Border.all(color: Marca.primario, width: 1.4)
                 : Border.all(color: Colors.transparent, width: 1.4),
           ),
           child: Row(
@@ -1033,7 +1033,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: bajoStock
-                            ? const Color(0xFF0F1B3D)
+                            ? Marca.primario
                             : const Color(0xFF1E9E5A),
                       ),
                     ),
@@ -1072,10 +1072,10 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                     ? null
                     : IconButton(
                         tooltip: 'Ver foto',
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.photo_outlined,
                           size: 18,
-                          color: Color(0xFF0F1B3D),
+                          color: Marca.primario,
                         ),
                         onPressed: () => _verFoto(p),
                       ),
@@ -1112,7 +1112,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
             color: seleccionada ? const Color(0xFFFBEAEA) : Colors.transparent,
             borderRadius: BorderRadius.circular(14),
             border: seleccionada
-                ? Border.all(color: const Color(0xFF0F1B3D), width: 1.4)
+                ? Border.all(color: Marca.primario, width: 1.4)
                 : Border.all(color: Colors.transparent, width: 1.4),
           ),
           child: Column(
@@ -1172,7 +1172,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                         fontSize: 11.5,
                         fontWeight: FontWeight.w600,
                         color: bajoStock
-                            ? const Color(0xFF0F1B3D)
+                            ? Marca.primario
                             : const Color(0xFF1E9E5A),
                       ),
                     ),
@@ -1186,10 +1186,10 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                   if (p.imagenUrl.isNotEmpty)
                     IconButton(
                       tooltip: 'Ver foto',
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.photo_outlined,
                         size: 18,
-                        color: Color(0xFF0F1B3D),
+                        color: Marca.primario,
                       ),
                       onPressed: () => _verFoto(p),
                     ),

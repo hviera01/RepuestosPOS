@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
@@ -211,7 +212,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text('No', style: GoogleFonts.poppins())),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
+            style: FilledButton.styleFrom(backgroundColor: Marca.primario),
             onPressed: () => Navigator.pop(context, true),
             child: Text('Sí, imprimir', style: GoogleFonts.poppins()),
           ),
@@ -296,7 +297,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
         builder: (context) => Scaffold(
           backgroundColor: const Color(0xFFF2F3F7),
           appBar: AppBar(
-            backgroundColor: const Color(0xFF0D2B4E),
+            backgroundColor: Marca.primario,
             title: Text('Productos del traslado', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w700)),
             iconTheme: const IconThemeData(color: Colors.white),
           ),
@@ -430,7 +431,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
+        loading: () => Center(child: CircularProgressIndicator(color: Marca.primario)),
         error: (e, st) => Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red)),
       ),
     );
@@ -449,7 +450,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
-            decoration: BoxDecoration(color: activo ? const Color(0xFF0D2B4E) : Colors.transparent, borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(color: activo ? Marca.primario : Colors.transparent, borderRadius: BorderRadius.circular(10)),
             child: Text(etiqueta, textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600, color: activo ? Colors.white : const Color(0xFF666A72))),
           ),
         ),
@@ -504,7 +505,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
                 },
                 icon: const Icon(Icons.add, size: 18),
                 label: Text('Agregar', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
-                style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                style: FilledButton.styleFrom(backgroundColor: Marca.primario, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
               ),
             ],
           ),
@@ -610,7 +611,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Color(0xFF0D2B4E)),
+                        icon: Icon(Icons.delete_outline, color: Marca.primario),
                         onPressed: () {
                           _quitarItem(index);
                           alReconstruir();
@@ -683,7 +684,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
                 ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                 : const Icon(Icons.sync_alt, size: 18),
             label: Text(_guardando ? 'Guardando...' : 'Registrar Traslado', style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w700, color: Colors.white)),
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            style: FilledButton.styleFrom(backgroundColor: Marca.primario, padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
           ),
         ],
       ),

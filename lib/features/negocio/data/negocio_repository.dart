@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/data/base_repository.dart';
+import '../../../core/data/tabla_sincronizada.dart';
 import '../../../core/utils/reintentos.dart';
 import 'negocio_model.dart';
 
@@ -31,12 +32,17 @@ class NegocioRepository with ConRedMixin {
     return sha256.convert(utf8.encode(clave)).toString();
   }
 
+  static final TablaSincronizada<NegocioModel> _tabla = TablaSincronizada<NegocioModel>(
+    tabla: 'negocio_config',
+    desdeFila: (f) => NegocioModel.fromMap(f),
+    intervaloRespaldo: const Duration(minutes: 3),
+  );
+
   Stream<NegocioModel> obtenerNegocio() {
-    return conRedStream(() => _db
-        .from('negocio_config')
-        .stream(primaryKey: ['id'])
-        .map((filas) => NegocioModel.fromMap(filas.isEmpty ? null : filas.first)));
+    return _tabla.observar().map((lista) => lista.isEmpty ? const NegocioModel() : lista.first);
   }
+
+  Future<void> sincronizarAhora() => _tabla.sincronizar();
 
   /// Lectura única (no suscripción en vivo) de la configuración del negocio.
   /// Se usa antes de acciones puntuales (registrar venta, imprimir, pedir
@@ -53,6 +59,8 @@ class NegocioRepository with ConRedMixin {
         DateTime.now().difference(cacheFecha) < _vigenciaCache) {
       return cache;
     }
+    final local = _tabla.actual;
+    if (local.isNotEmpty && _tabla.sincronizadoAlgunaVez) return local.first;
     try {
       final filas = await _db.from('negocio_config').select().limit(1).timeout(const Duration(seconds: 8));
       final negocio = NegocioModel.fromMap(filas.isEmpty ? null : filas.first);
@@ -102,7 +110,8 @@ class NegocioRepository with ConRedMixin {
 
   Future<void> _guardar(Map<String, dynamic> datos) {
     return conRed(() async {
-      await _db.from('negocio_config').upsert({'id': 1, ...datos});
+      final fila = await _db.from('negocio_config').upsert({'id': 1, ...datos}).select().single();
+      _tabla.aplicarLocal(fila);
       _invalidarCache();
     });
   }
@@ -133,6 +142,14 @@ class NegocioRepository with ConRedMixin {
       'rango_hasta': rangoHasta,
       'fecha_limite_emision': fechaLimiteEmision?.toIso8601String(),
     });
+  }
+
+  Future<void> actualizarTema(Map<String, dynamic> tema) {
+    return _guardar({'tema': tema});
+  }
+
+  Future<void> establecerTipoDocumentoDefecto(String tipo) {
+    return _guardar({'tipo_documento_defecto': tipo});
   }
 
   Future<void> guardarLogoColor(Uint8List bytes) {

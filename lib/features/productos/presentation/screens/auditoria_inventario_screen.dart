@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -235,7 +236,7 @@ class _AuditoriaInventarioScreenState
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF0F1B3D),
+              backgroundColor: Marca.primario,
             ),
             onPressed: () => Navigator.pop(context, true),
             child: Text('Ajustar todos', style: GoogleFonts.poppins()),
@@ -308,7 +309,7 @@ class _AuditoriaInventarioScreenState
         style: GoogleFonts.poppins(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF0F1B3D),
+          color: Marca.primario,
         ),
       ),
     );
@@ -353,9 +354,9 @@ class _AuditoriaInventarioScreenState
                       : productosAsync.when(
                           data: (productos) =>
                               _contenidoCategoria(productos, esMovil),
-                          loading: () => const Center(
+                          loading: () => Center(
                             child: CircularProgressIndicator(
-                              color: Color(0xFF0F1B3D),
+                              color: Marca.primario,
                             ),
                           ),
                           error: (e, st) => Center(
@@ -467,7 +468,7 @@ class _AuditoriaInventarioScreenState
               );
             },
             loading: () =>
-                const LinearProgressIndicator(color: Color(0xFF0F1B3D)),
+                LinearProgressIndicator(color: Marca.primario),
             error: (e, st) => Text(
               'No se pudieron cargar las categorías',
               style: GoogleFonts.poppins(fontSize: 12, color: Colors.red),
@@ -569,7 +570,7 @@ class _AuditoriaInventarioScreenState
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: _soloDescuadres
-              ? const Color(0xFF0F1B3D)
+              ? Marca.primario
               : const Color(0xFFE8EAF0),
           borderRadius: BorderRadius.circular(12),
         ),
@@ -687,7 +688,7 @@ class _AuditoriaInventarioScreenState
             ),
             _badge(
               'Descuadres $descuadres',
-              descuadres > 0 ? const Color(0xFF0F1B3D) : Colors.grey,
+              descuadres > 0 ? Marca.primario : Colors.grey,
             ),
             if (combosExcluidos > 0)
               _badge(
@@ -703,12 +704,12 @@ class _AuditoriaInventarioScreenState
                 ? null
                 : () => _ajustarTodosLosDescuadres(lista),
             icon: _ajustandoTodo
-                ? const SizedBox(
+                ? SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Color(0xFF0F1B3D),
+                      color: Marca.primario,
                     ),
                   )
                 : const Icon(Icons.playlist_add_check, size: 18),
@@ -717,8 +718,8 @@ class _AuditoriaInventarioScreenState
               style: GoogleFonts.poppins(fontSize: 13),
             ),
             style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF0F1B3D),
-              side: const BorderSide(color: Color(0xFF0F1B3D)),
+              foregroundColor: Marca.primario,
+              side: BorderSide(color: Marca.primario),
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -820,8 +821,8 @@ class _AuditoriaInventarioScreenState
         : _formatoCantidad(diferencia);
     return _chip(
       texto,
-      const Color(0xFF0F1B3D),
-      const Color(0xFF0F1B3D).withOpacity(0.12),
+      Marca.primario,
+      Marca.primario.withOpacity(0.12),
       icono: diferencia > 0 ? Icons.arrow_upward : Icons.arrow_downward,
     );
   }
@@ -888,7 +889,7 @@ class _AuditoriaInventarioScreenState
             ? Colors.transparent
             : diferencia == 0
             ? const Color(0xFF16A34A).withOpacity(0.05)
-            : const Color(0xFF0F1B3D).withOpacity(0.05);
+            : Marca.primario.withOpacity(0.05);
         return Container(
           color: fondo,
           padding: const EdgeInsets.symmetric(vertical: 6),
@@ -979,8 +980,8 @@ class _AuditoriaInventarioScreenState
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF0F1B3D),
+                          borderSide: BorderSide(
+                            color: Marca.primario,
                           ),
                         ),
                       ),
@@ -1023,7 +1024,7 @@ class _AuditoriaInventarioScreenState
                         Icons.tune,
                         size: 19,
                         color: (diferencia != null && diferencia != 0)
-                            ? const Color(0xFF0F1B3D)
+                            ? Marca.primario
                             : Colors.grey.shade600,
                       ),
                       onPressed: () => _abrirAjuste(p, diferencia),
@@ -1060,7 +1061,7 @@ class _AuditoriaInventarioScreenState
             ? const Color(0xFFF8F9FB)
             : diferencia == 0
             ? const Color(0xFF16A34A).withOpacity(0.06)
-            : const Color(0xFF0F1B3D).withOpacity(0.06);
+            : Marca.primario.withOpacity(0.06);
         return Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
@@ -1214,16 +1215,16 @@ class _AuditoriaInventarioScreenState
                   Expanded(
                     child: TextButton.icon(
                       onPressed: () => _abrirAjuste(p, diferencia),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.tune,
                         size: 16,
-                        color: Color(0xFF0F1B3D),
+                        color: Marca.primario,
                       ),
                       label: Text(
                         'Ajustar',
                         style: GoogleFonts.poppins(
                           fontSize: 12,
-                          color: const Color(0xFF0F1B3D),
+                          color: Marca.primario,
                         ),
                       ),
                     ),

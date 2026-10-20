@@ -1,3 +1,4 @@
+import '../theme/marca.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -33,7 +34,7 @@ Future<T?> ejecutarConReintento<T>(
           ),
           title: Row(
             children: [
-              const Icon(Icons.wifi_off_outlined, color: Color(0xFF0F1B3D)),
+              Icon(Icons.wifi_off_outlined, color: Marca.primario),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -59,7 +60,7 @@ Future<T?> ejecutarConReintento<T>(
             ),
             FilledButton(
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF0F1B3D),
+                backgroundColor: Marca.primario,
               ),
               onPressed: () => Navigator.pop(context, true),
               child: Text('Reintentar', style: GoogleFonts.poppins()),

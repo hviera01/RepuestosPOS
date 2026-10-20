@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -74,7 +75,7 @@ class _SucursalFormDialogState extends ConsumerState<SucursalFormDialog> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: GoogleFonts.poppins())),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
+            style: FilledButton.styleFrom(backgroundColor: Marca.primario),
             onPressed: () => Navigator.pop(context, true),
             child: Text('Eliminar', style: GoogleFonts.poppins()),
           ),
@@ -127,8 +128,8 @@ class _SucursalFormDialogState extends ConsumerState<SucursalFormDialog> {
                   Container(
                     width: 44,
                     height: 44,
-                    decoration: BoxDecoration(color: const Color(0xFF0D2B4E).withOpacity(0.1), borderRadius: BorderRadius.circular(14)),
-                    child: const Icon(Icons.store_mall_directory_outlined, color: Color(0xFF0D2B4E)),
+                    decoration: BoxDecoration(color: Marca.primario.withOpacity(0.1), borderRadius: BorderRadius.circular(14)),
+                    child: Icon(Icons.store_mall_directory_outlined, color: Marca.primario),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -196,15 +197,15 @@ class _SucursalFormDialogState extends ConsumerState<SucursalFormDialog> {
                   if (editando)
                     IconButton(
                       onPressed: _guardando ? null : _eliminar,
-                      icon: const Icon(Icons.delete_outline, color: Color(0xFF0D2B4E)),
-                      style: IconButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E).withOpacity(0.08), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                      icon: Icon(Icons.delete_outline, color: Marca.primario),
+                      style: IconButton.styleFrom(backgroundColor: Marca.primario.withOpacity(0.08), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                     ),
                   const Spacer(),
                   TextButton(onPressed: _guardando ? null : () => Navigator.pop(context), child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.grey.shade700))),
                   const SizedBox(width: 10),
                   FilledButton(
                     onPressed: _guardando ? null : _guardar,
-                    style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                    style: FilledButton.styleFrom(backgroundColor: Marca.primario, padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                     child: _guardando
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2))
                         : Text('Guardar', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white)),

@@ -1,3 +1,5 @@
+import '../../../ventas/providers/carrito_provider.dart';
+import '../../../../core/theme/marca.dart';
 import 'dart:async' show unawaited;
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart'
@@ -58,8 +60,8 @@ class NegocioScreen extends ConsumerWidget {
       color: const Color(0xFFF2F3F7),
       child: negocioAsync.when(
         data: (modelo) => _NegocioForm(modelo: modelo),
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF0F1B3D)),
+        loading: () => Center(
+          child: CircularProgressIndicator(color: Marca.primario),
         ),
         error: (e, st) => Center(
           child: Text(
@@ -283,7 +285,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                         }
                       },
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F1B3D),
+                  backgroundColor: Marca.primario,
                 ),
                 child: procesando
                     ? const SizedBox(
@@ -585,6 +587,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
               SliverToBoxAdapter(child: const SizedBox(height: 18)),
               SliverToBoxAdapter(child: _tarjetaImpresoras(esMovil)),
               SliverToBoxAdapter(child: const SizedBox(height: 18)),
+              SliverToBoxAdapter(child: _tarjetaApariencia()),
               SliverToBoxAdapter(child: _tarjetaFactura()),
               SliverToBoxAdapter(child: const SizedBox(height: 18)),
               SliverToBoxAdapter(child: _tarjetaTecladoCompacto()),
@@ -623,7 +626,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
   Widget _tituloSeccion(String texto, IconData icono) {
     return Row(
       children: [
-        Icon(icono, size: 19, color: const Color(0xFF0F1B3D)),
+        Icon(icono, size: 19, color: Marca.primario),
         const SizedBox(width: 8),
         Text(
           texto,
@@ -721,7 +724,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
               _error!,
               style: GoogleFonts.poppins(
                 fontSize: 12.5,
-                color: const Color(0xFF0F1B3D),
+                color: Marca.primario,
               ),
             ),
             const SizedBox(height: 12),
@@ -748,7 +751,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                 ),
               ),
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF0F1B3D),
+                backgroundColor: Marca.primario,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -951,7 +954,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                   child: OutlinedButton(
                     onPressed: _guardandoClave ? null : _quitarClave,
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF0F1B3D),
+                      foregroundColor: Marca.primario,
                       side: const BorderSide(color: Color(0xFFF3B9B9)),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 18,
@@ -1220,7 +1223,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                   child: FilledButton(
                     onPressed: _guardandoRed ? null : _guardarImpresoraRed,
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF0F1B3D),
+                      backgroundColor: Marca.primario,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -1282,8 +1285,8 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                 style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600),
               ),
               style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF0F1B3D),
-                side: const BorderSide(color: Color(0xFF0F1B3D)),
+                foregroundColor: Marca.primario,
+                side: BorderSide(color: Marca.primario),
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
@@ -1389,7 +1392,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
             child: Text('Impresora del sistema', style: GoogleFonts.poppins()),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0F1B3D)),
+            style: FilledButton.styleFrom(backgroundColor: Marca.primario),
             onPressed: () => Navigator.pop(context, 'imprimir'),
             child: Text('Bluetooth/red', style: GoogleFonts.poppins()),
           ),
@@ -1469,9 +1472,9 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: activo ? const Color(0xFF0F1B3D) : const Color(0xFFE8EAF0),
+            color: activo ? Marca.primario : const Color(0xFFE8EAF0),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: activo ? const Color(0xFF0F1B3D) : const Color(0xFFB6BCC7)),
+            border: Border.all(color: activo ? Marca.primario : const Color(0xFFB6BCC7)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1507,6 +1510,123 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
         _opcionAnchoTicket('80mm', '48 columnas · el de siempre', 80),
       ],
     );
+  }
+
+  final _colorPersonalizadoCtrl = TextEditingController();
+
+  Widget _tarjetaApariencia() {
+    final actual = Marca.primario;
+    return _tarjeta(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _tituloSeccion('Apariencia y documento por defecto', Icons.palette_outlined),
+          const SizedBox(height: 6),
+          Text(
+            'El color principal se aplica a todo el sistema en todos los equipos. Al cambiarlo, las ventanas abiertas se refrescan.',
+            style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              for (final p in Marca.paletas)
+                Tooltip(
+                  message: p.nombre,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(22),
+                    onTap: () => _aplicarColorMarca(p.color),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: p.color,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: p.color.toARGB32() == actual.toARGB32() ? const Color(0xFF1A1A1A) : Colors.transparent,
+                          width: 3,
+                        ),
+                      ),
+                      child: p.color.toARGB32() == actual.toARGB32()
+                          ? const Icon(Icons.check, color: Colors.white, size: 20)
+                          : null,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              SizedBox(
+                width: 170,
+                child: TextField(
+                  controller: _colorPersonalizadoCtrl,
+                  style: GoogleFonts.poppins(fontSize: 13),
+                  decoration: InputDecoration(
+                    labelText: 'Color propio (#RRGGBB)',
+                    labelStyle: GoogleFonts.poppins(fontSize: 12),
+                    isDense: true,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onSubmitted: (_) => _aplicarColorPersonalizado(),
+                ),
+              ),
+              const SizedBox(width: 10),
+              OutlinedButton(
+                onPressed: _aplicarColorPersonalizado,
+                child: Text('Aplicar', style: GoogleFonts.poppins(fontSize: 13)),
+              ),
+              const SizedBox(width: 10),
+              TextButton(
+                onPressed: () => _aplicarColorMarca(Marca.primarioPorDefecto),
+                child: Text('Restablecer', style: GoogleFonts.poppins(fontSize: 13)),
+              ),
+            ],
+          ),
+          Divider(color: Colors.grey.shade200, height: 32),
+          Text(
+            'Documento que aparece primero al vender',
+            style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A)),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            'Factura cobra el ISV desglosado; Venta es el ticket simple sin factura. Siempre se puede cambiar en cada venta.',
+            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 10),
+          SegmentedButton<String>(
+            segments: const [
+              ButtonSegment(value: 'Factura', label: Text('Factura'), icon: Icon(Icons.receipt_long_outlined)),
+              ButtonSegment(value: 'VentaSinFacturar', label: Text('Venta'), icon: Icon(Icons.point_of_sale_outlined)),
+            ],
+            selected: {widget.modelo.tipoDocumentoDefecto == 'VentaSinFacturar' ? 'VentaSinFacturar' : 'Factura'},
+            onSelectionChanged: (v) {
+              tipoDocumentoVentaPorDefecto = v.first;
+              ref.read(negocioRepositoryProvider).establecerTipoDocumentoDefecto(v.first);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _aplicarColorMarca(Color color) async {
+    await ref.read(negocioRepositoryProvider).actualizarTema({'primario': Marca.aHex(color)});
+    if (Marca.aplicarDesdeConfig({'primario': Marca.aHex(color)})) {
+      await Marca.guardarLocal(Marca.primario);
+      ref.read(temaVersionProvider.notifier).refrescar();
+    }
+  }
+
+  void _aplicarColorPersonalizado() {
+    final color = Marca.desdeHex(_colorPersonalizadoCtrl.text);
+    if (color == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Escribí un color válido, por ejemplo #1F5F46')));
+      return;
+    }
+    _aplicarColorMarca(color);
   }
 
   Widget _tarjetaFactura() {
@@ -1622,7 +1742,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                         ? null
                         : _guardarProximoFactura,
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF0F1B3D),
+                      backgroundColor: Marca.primario,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -1689,7 +1809,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
         children: [
           Row(
             children: [
-              const FaceIdIcon(size: 19, color: Color(0xFF0F1B3D)),
+              FaceIdIcon(size: 19, color: Marca.primario),
               const SizedBox(width: 8),
               Text(
                 'Face ID en este celular',
@@ -1738,7 +1858,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                 OutlinedButton(
                   onPressed: _olvidarFaceId,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF0F1B3D),
+                    foregroundColor: Marca.primario,
                     side: const BorderSide(color: Color(0xFFF3B9B9)),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -1763,7 +1883,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                 ),
               ),
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF0F1B3D),
+                backgroundColor: Marca.primario,
                 padding: const EdgeInsets.symmetric(
                   vertical: 14,
                   horizontal: 20,
@@ -1859,7 +1979,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
           Switch(
             value: activo,
             onChanged: !tieneClave ? null : (v) => _alternarPermiso(key, v),
-            activeThumbColor: const Color(0xFF0F1B3D),
+            activeThumbColor: Marca.primario,
           ),
         ],
       ),

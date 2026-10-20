@@ -46,6 +46,8 @@ double _subtotalLinea(
   );
 }
 
+String tipoDocumentoVentaPorDefecto = 'Factura';
+
 class CarritoVentaState {
   final String? idEnEspera;
   final List<ItemVentaModel> items;
@@ -79,7 +81,7 @@ class CarritoVentaState {
   CarritoVentaState({
     this.idEnEspera,
     this.items = const [],
-    this.tipoDocumento = 'VentaSinFacturar',
+    String? tipoDocumento,
     this.condicion = 'Contado',
     this.metodoPago = 'Efectivo',
     this.documentoCliente = '',
@@ -96,7 +98,8 @@ class CarritoVentaState {
     this.cambio = 0,
     this.descuentoGlobalPorcentaje = 0,
     this.pagosMixtos = const [],
-  }) : fecha = fecha ?? DateTime.now();
+  })  : tipoDocumento = tipoDocumento ?? tipoDocumentoVentaPorDefecto,
+        fecha = fecha ?? DateTime.now();
 
   bool get esCotizacion => tipoDocumento == 'Cotizacion';
   bool get esVentaSinFacturar => tipoDocumento == 'VentaSinFacturar';

@@ -1,9 +1,10 @@
+import '../theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'tutorial_modelos.dart';
 import 'tutorial_motor.dart';
 
-const _azulMarca = Color(0xFF0F1B3D);
+final _azulMarca = Marca.primario;
 
 /// Ícono chico y discreto de "Tutorial" -pedido explícito del dueño: la
 /// persona que va a usar el sistema no es muy ágil con computadoras, necesita
@@ -89,7 +90,7 @@ class TutorialBoton extends StatelessWidget {
                         color: const Color(0xFFE8EAF0),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.school_rounded,
                         color: _azulMarca,
                         size: 20,
@@ -243,7 +244,7 @@ class TutorialBoton extends StatelessWidget {
         ),
         title: Row(
           children: [
-            const Icon(Icons.school_rounded, color: _azulMarca),
+            Icon(Icons.school_rounded, color: _azulMarca),
             const SizedBox(width: 8),
             Expanded(
               child: Text(

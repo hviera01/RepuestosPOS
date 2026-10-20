@@ -1,3 +1,4 @@
+import '../theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -84,7 +85,7 @@ class SideMenu extends ConsumerWidget {
                   horizontal: 20,
                   vertical: 18,
                 ),
-                color: const Color(0xFF0F1B3D),
+                color: Marca.primario,
                 child: Row(
                   children: [
                     Text(

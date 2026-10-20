@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import '../../../negocio/data/negocio_model.dart';
 import '../../../../core/utils/permisos_usuario.dart';
 import 'package:flutter/material.dart';
@@ -205,7 +206,7 @@ class _DetalleCompraScreenState extends ConsumerState<DetalleCompraScreen> {
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF0F1B3D),
+              backgroundColor: Marca.primario,
             ),
             onPressed: () => Navigator.pop(context, true),
             child: Text('Anular', style: GoogleFonts.poppins()),
@@ -360,8 +361,8 @@ class _DetalleCompraScreenState extends ConsumerState<DetalleCompraScreen> {
           const SizedBox(height: 16),
           Expanded(
             child: _cargando
-                ? const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF0F1B3D)),
+                ? Center(
+                    child: CircularProgressIndicator(color: Marca.primario),
                   )
                 : _error != null
                 ? Center(
@@ -511,7 +512,7 @@ class _DetalleCompraScreenState extends ConsumerState<DetalleCompraScreen> {
                   ),
                 ),
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F1B3D),
+                  backgroundColor: Marca.primario,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 14,
@@ -534,12 +535,12 @@ class _DetalleCompraScreenState extends ConsumerState<DetalleCompraScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFFFCE4E4),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF0F1B3D)),
+        border: Border.all(color: Marca.primario),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.block_outlined, color: Color(0xFF0F1B3D)),
+          Icon(Icons.block_outlined, color: Marca.primario),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -550,7 +551,7 @@ class _DetalleCompraScreenState extends ConsumerState<DetalleCompraScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0F1B3D),
+                    color: Marca.primario,
                   ),
                 ),
                 if (compra.motivoAnulacion.isNotEmpty)
@@ -823,7 +824,7 @@ class _DetalleCompraScreenState extends ConsumerState<DetalleCompraScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F1B3D),
+              color: Marca.primario,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(

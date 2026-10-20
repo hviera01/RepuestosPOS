@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -5,9 +6,9 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../data/reporte_financiero_model.dart';
 import '../../../../core/utils/formato_moneda.dart';
 
-const colorVentasFinanciero = Color(0xFF0F1B3D);
+final colorVentasFinanciero = Marca.primario;
 const colorComprasFinanciero = Color(0xFFF59E0B);
-const _paletaUsuarios = [Color(0xFF0F1B3D), Color(0xFF0EA5A4), Color(0xFF3B82F6), Color(0xFF8B5CF6), Color(0xFFEC4899), Color(0xFF22C55E)];
+final _paletaUsuarios = [Marca.primario, Color(0xFF0EA5A4), Color(0xFF3B82F6), Color(0xFF8B5CF6), Color(0xFFEC4899), Color(0xFF22C55E)];
 const _colorOtros = Color(0xFF64748B);
 
 String formatoCantidadFinanciero(double cantidad) {
@@ -102,7 +103,7 @@ Widget seccionUtilidad(ReporteFinancieroData data, bool esMovil) {
       _flechaOperacion(Icons.remove),
       _stat('Gastos (Egresos)', data.gastosPeriodo, const Color(0xFF64748B)),
       _flechaOperacion(Icons.drag_handle),
-      _stat('Utilidad Neta', data.utilidadNeta, data.utilidadNeta >= 0 ? const Color(0xFF16A34A) : const Color(0xFF0F1B3D)),
+      _stat('Utilidad Neta', data.utilidadNeta, data.utilidadNeta >= 0 ? const Color(0xFF16A34A) : Marca.primario),
     ],
   );
 
@@ -165,7 +166,7 @@ Widget _tabaGananciaPorVenta(List<GananciaPorVenta> lista, bool esMovil) {
                 ),
                 if (!esMovil) Expanded(child: Text(formatearMoneda(v.ventas), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 12))),
                 if (!esMovil) Expanded(child: Text(formatearMoneda(v.costo), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600))),
-                Expanded(child: Text(formatearMoneda(v.ganancia), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: v.ganancia >= 0 ? const Color(0xFF16A34A) : const Color(0xFF0F1B3D)))),
+                Expanded(child: Text(formatearMoneda(v.ganancia), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: v.ganancia >= 0 ? const Color(0xFF16A34A) : Marca.primario))),
                 SizedBox(width: 55, child: Text('${v.margenPorcentaje.toStringAsFixed(0)}%', textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade600))),
               ],
             ),
@@ -207,7 +208,7 @@ Widget seccionFlujoEfectivo(ReporteFinancieroData data, bool esMovil) {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-              decoration: BoxDecoration(color: flujo.neto >= 0 ? const Color(0xFF16A34A) : const Color(0xFF0F1B3D), borderRadius: BorderRadius.circular(14)),
+              decoration: BoxDecoration(color: flujo.neto >= 0 ? const Color(0xFF16A34A) : Marca.primario, borderRadius: BorderRadius.circular(14)),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -558,7 +559,7 @@ Widget seccionBalanceGeneral(ReporteFinancieroData data, bool esMovil) {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('PASIVOS Y PATRIMONIO', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF0F1B3D), letterSpacing: 0.4)),
+        Text('PASIVOS Y PATRIMONIO', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: Marca.primario, letterSpacing: 0.4)),
         const SizedBox(height: 10),
         _filaBalance('Cuentas por pagar', b.cuentasPorPagar),
         _filaBalance('Patrimonio (estimado)', b.patrimonio),
@@ -635,7 +636,7 @@ Widget seccionInteligenciaNegocio(ReporteFinancieroData data, bool esMovil) {
 const _diasUmbralReposicionTexto = '14';
 
 Widget _tarjetaPronostico(PronosticoVentas p, ReporteFinancieroData data) {
-  final colorTendencia = p.tendenciaMensual == 0 ? Colors.grey.shade500 : (p.tendenciaAlAlza ? const Color(0xFF16A34A) : const Color(0xFF0F1B3D));
+  final colorTendencia = p.tendenciaMensual == 0 ? Colors.grey.shade500 : (p.tendenciaAlAlza ? const Color(0xFF16A34A) : Marca.primario);
   final iconoTendencia = p.tendenciaMensual == 0 ? Icons.trending_flat : (p.tendenciaAlAlza ? Icons.trending_up : Icons.trending_down);
   // Utilidad neta proyectada: aplica el margen neto real de este periodo
   // (utilidadNeta / ventasPeriodo) al monto de ventas pronosticado. Es una
@@ -731,8 +732,8 @@ Widget _comparacionVariacion(String etiqueta, double actual, double anterior, Co
           Text(formatearMoneda(actual), style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF1A1A1A))),
           if (variacion != null) ...[
             const SizedBox(width: 8),
-            Icon(subio ? Icons.arrow_upward : Icons.arrow_downward, size: 13, color: subio ? const Color(0xFF16A34A) : const Color(0xFF0F1B3D)),
-            Text('${variacion.abs().toStringAsFixed(1)}%', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: subio ? const Color(0xFF16A34A) : const Color(0xFF0F1B3D))),
+            Icon(subio ? Icons.arrow_upward : Icons.arrow_downward, size: 13, color: subio ? const Color(0xFF16A34A) : Marca.primario),
+            Text('${variacion.abs().toStringAsFixed(1)}%', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: subio ? const Color(0xFF16A34A) : Marca.primario)),
           ],
         ],
       ),
@@ -926,7 +927,7 @@ Widget _tablaSugerenciasCompra(List<SugerenciaCompra> lista, bool esMovil) {
                       child: Text(
                         '${s.diasParaAgotarse.toStringAsFixed(0)} día(s)',
                         textAlign: TextAlign.right,
-                        style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: s.diasParaAgotarse <= 3 ? const Color(0xFF0F1B3D) : const Color(0xFFF59E0B)),
+                        style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: s.diasParaAgotarse <= 3 ? Marca.primario : const Color(0xFFF59E0B)),
                       ),
                     ),
                   ],
@@ -935,14 +936,14 @@ Widget _tablaSugerenciasCompra(List<SugerenciaCompra> lista, bool esMovil) {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(s.proveedorAlDia ? Icons.check_circle_outline : Icons.warning_amber_outlined, size: 13, color: s.proveedorAlDia ? const Color(0xFF16A34A) : const Color(0xFF0F1B3D)),
+                      Icon(s.proveedorAlDia ? Icons.check_circle_outline : Icons.warning_amber_outlined, size: 13, color: s.proveedorAlDia ? const Color(0xFF16A34A) : Marca.primario),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           s.proveedorAlDia
                               ? 'Proveedor: ${s.proveedor} · al día'
                               : 'Proveedor: ${s.proveedor} · tiene cuentas vencidas por ${formatearMoneda(s.deudaVencidaProveedor)}, priorizar el pago antes de comprarle más',
-                          style: GoogleFonts.poppins(fontSize: 11, color: s.proveedorAlDia ? Colors.grey.shade600 : const Color(0xFF0F1B3D)),
+                          style: GoogleFonts.poppins(fontSize: 11, color: s.proveedorAlDia ? Colors.grey.shade600 : Marca.primario),
                         ),
                       ),
                     ],

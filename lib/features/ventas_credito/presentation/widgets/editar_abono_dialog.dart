@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -127,8 +128,8 @@ class _EditarAbonoDialogState extends ConsumerState<EditarAbonoDialog> {
                   Container(
                     width: 44,
                     height: 44,
-                    decoration: BoxDecoration(color: const Color(0xFF0F1B3D).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)),
-                    child: const Icon(Icons.edit_outlined, color: Color(0xFF0F1B3D)),
+                    decoration: BoxDecoration(color: Marca.primario.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)),
+                    child: Icon(Icons.edit_outlined, color: Marca.primario),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -261,7 +262,7 @@ class _EditarAbonoDialogState extends ConsumerState<EditarAbonoDialog> {
                   FilledButton(
                     onPressed: _guardando ? null : _guardar,
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF0F1B3D),
+                      backgroundColor: Marca.primario,
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),

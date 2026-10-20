@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../productos/data/pendiente_reposicion_model.dart';
@@ -121,7 +122,7 @@ class _VincularPendienteDialogState extends State<VincularPendienteDialog> {
                     onPressed: () => Navigator.pop(context, quitarVinculoPendiente),
                     icon: const Icon(Icons.link_off, size: 16),
                     label: Text('Quitar vínculo actual', style: GoogleFonts.poppins(fontSize: 13)),
-                    style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF0F1B3D), side: const BorderSide(color: Color(0xFFF3B9B9)), padding: const EdgeInsets.symmetric(vertical: 12)),
+                    style: OutlinedButton.styleFrom(foregroundColor: Marca.primario, side: const BorderSide(color: Color(0xFFF3B9B9)), padding: const EdgeInsets.symmetric(vertical: 12)),
                   ),
                 ),
               ),

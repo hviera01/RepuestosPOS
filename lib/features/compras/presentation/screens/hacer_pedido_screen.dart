@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -361,7 +362,7 @@ class _HacerPedidoScreenState extends ConsumerState<HacerPedidoScreen> {
                   ),
                 ),
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F1B3D),
+                  backgroundColor: Marca.primario,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 18,
                     vertical: 13,
@@ -521,10 +522,10 @@ class _HacerPedidoScreenState extends ConsumerState<HacerPedidoScreen> {
           SizedBox(
             width: 40,
             child: IconButton(
-              icon: const Icon(
+              icon: Icon(
                 Icons.delete_outline,
                 size: 18,
-                color: Color(0xFF0F1B3D),
+                color: Marca.primario,
               ),
               onPressed: () => _quitarItem(index),
             ),
@@ -570,10 +571,10 @@ class _HacerPedidoScreenState extends ConsumerState<HacerPedidoScreen> {
                 ),
               ),
               IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.delete_outline,
                   size: 18,
-                  color: Color(0xFF0F1B3D),
+                  color: Marca.primario,
                 ),
                 onPressed: () => _quitarItem(index),
               ),

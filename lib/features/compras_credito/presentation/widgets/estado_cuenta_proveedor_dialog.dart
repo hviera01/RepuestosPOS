@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -307,10 +308,10 @@ class _EstadoCuentaProveedorDialogState
                 if (!_cargando && _error == null && _movimientos.isNotEmpty)
                   IconButton(
                     tooltip: 'Descargar PDF',
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.picture_as_pdf_outlined,
                       size: 22,
-                      color: Color(0xFF0F1B3D),
+                      color: Marca.primario,
                     ),
                     onPressed: _exportarPdf,
                   ),
@@ -325,9 +326,9 @@ class _EstadoCuentaProveedorDialogState
             const SizedBox(height: 14),
             Expanded(
               child: _cargando
-                  ? const Center(
+                  ? Center(
                       child: CircularProgressIndicator(
-                        color: Color(0xFF0F1B3D),
+                        color: Marca.primario,
                       ),
                     )
                   : _error != null
@@ -404,7 +405,7 @@ class _EstadoCuentaProveedorDialogState
         _statChip(
           'SALDO PENDIENTE ACTUAL',
           formatearMoneda(_saldoActual),
-          const Color(0xFF0F1B3D),
+          Marca.primario,
         ),
       ],
     );
@@ -607,7 +608,7 @@ class _EstadoCuentaProveedorDialogState
                           style: GoogleFonts.poppins(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF0F1B3D),
+                            color: Marca.primario,
                           ),
                         ),
                       ),
@@ -696,7 +697,7 @@ class _EstadoCuentaProveedorDialogState
                       fontSize: 12.5,
                       fontWeight: FontWeight.w700,
                       color: m.esCargo
-                          ? const Color(0xFF0F1B3D)
+                          ? Marca.primario
                           : const Color(0xFF16A34A),
                     ),
                   ),

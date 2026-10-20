@@ -1,3 +1,4 @@
+import '../theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/actualizacion_service.dart';
@@ -30,7 +31,7 @@ class _ActualizacionRespaldoDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Text('No se pudo revisar automáticamente', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, color: const Color(0xFF0F1B3D))),
+      title: Text('No se pudo revisar automáticamente', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, color: Marca.primario)),
       content: SizedBox(
         width: 360,
         child: Column(
@@ -54,7 +55,7 @@ class _ActualizacionRespaldoDialog extends StatelessWidget {
       actions: [
         TextButton(onPressed: () => Navigator.pop(context), child: Text('Cerrar', style: GoogleFonts.poppins(color: Colors.grey.shade700))),
         FilledButton(
-          style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0F1B3D), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+          style: FilledButton.styleFrom(backgroundColor: Marca.primario, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
           onPressed: () {
             ActualizacionService.abrirDescargaDirecta();
             Navigator.pop(context);

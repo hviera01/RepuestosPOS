@@ -1,3 +1,4 @@
+import '../theme/marca.dart';
 import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -378,7 +379,7 @@ class _AppShellState extends ConsumerState<AppShell> {
       height: 64,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: const BoxDecoration(color: Color(0xFF0F1B3D)),
+        decoration: BoxDecoration(color: Marca.primario),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final esAngosto = constraints.maxWidth < 420;
@@ -402,9 +403,9 @@ class _AppShellState extends ConsumerState<AppShell> {
                           shape: BoxShape.circle,
                           color: Colors.white,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.storefront_rounded,
-                          color: Color(0xFF0F1B3D),
+                          color: Marca.primario,
                           size: 20,
                         ),
                       ),
@@ -514,7 +515,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                 borderRadius: BorderRadius.circular(10),
                 border: activo
                     ? Border.all(
-                        color: const Color(0xFF0F1B3D).withOpacity(0.25),
+                        color: Marca.primario.withOpacity(0.25),
                       )
                     : null,
               ),
@@ -525,7 +526,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                     tab.icono,
                     size: 16,
                     color: activo
-                        ? const Color(0xFF0F1B3D)
+                        ? Marca.primario
                         : Colors.grey.shade500,
                   ),
                   const SizedBox(width: 8),
@@ -534,7 +535,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                     style: GoogleFonts.poppins(
                       fontSize: 12.5,
                       color: activo
-                          ? const Color(0xFF0F1B3D)
+                          ? Marca.primario
                           : Colors.grey.shade600,
                       fontWeight: activo ? FontWeight.w600 : FontWeight.w400,
                     ),

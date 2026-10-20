@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -394,7 +395,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF0F1B3D),
+              backgroundColor: Marca.primario,
             ),
             onPressed: () => Navigator.pop(context, true),
             child: Text('Eliminar', style: GoogleFonts.poppins()),
@@ -638,12 +639,12 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0F1B3D).withOpacity(0.1),
+                      color: Marca.primario.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.inventory_2_outlined,
-                      color: Color(0xFF0F1B3D),
+                      color: Marca.primario,
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -725,9 +726,9 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                     IconButton(
                       key: _keyEliminar,
                       onPressed: _guardando ? null : _eliminar,
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.delete_outline,
-                        color: Color(0xFF0F1B3D),
+                        color: Marca.primario,
                       ),
                       style: IconButton.styleFrom(
                         backgroundColor: const Color(
@@ -751,7 +752,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                     key: _keyGuardar,
                     onPressed: _guardando ? null : _guardar,
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF0F1B3D),
+                      backgroundColor: Marca.primario,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 14,
@@ -1029,14 +1030,14 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                   ? Icons.remove_circle_outline
                   : Icons.add_circle_outline,
               size: 18,
-              color: const Color(0xFF0F1B3D),
+              color: Marca.primario,
             ),
             const SizedBox(width: 8),
             Text(
               'Niveles de precio adicionales',
               style: GoogleFonts.poppins(
                 fontSize: 12.5,
-                color: const Color(0xFF0F1B3D),
+                color: Marca.primario,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -1207,9 +1208,9 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                       color: Colors.grey.shade600,
                     ),
                   ),
-                  trailing: const Icon(
+                  trailing: Icon(
                     Icons.add_circle_outline,
-                    color: Color(0xFF0F1B3D),
+                    color: Marca.primario,
                   ),
                   onTap: () {
                     setState(() {
@@ -1256,10 +1257,10 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.delete_outline,
                       size: 20,
-                      color: Color(0xFF0F1B3D),
+                      color: Marca.primario,
                     ),
                     onPressed: () =>
                         setState(() => _componentesCombo.remove(c)),
@@ -1328,11 +1329,11 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(15),
               child: (_subiendoImagen || _quitandoFondo)
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 22,
                       height: 22,
                       child: CircularProgressIndicator(
-                        color: Color(0xFF0F1B3D),
+                        color: Marca.primario,
                         strokeWidth: 2.2,
                       ),
                     )
@@ -1351,8 +1352,8 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
               borderRadius: BorderRadius.circular(20),
               child: Container(
                 padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF0F1B3D),
+                decoration: BoxDecoration(
+                  color: Marca.primario,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.close, size: 14, color: Colors.white),

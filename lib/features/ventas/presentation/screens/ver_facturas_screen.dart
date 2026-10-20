@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -157,7 +158,7 @@ class _VerFacturasScreenState extends ConsumerState<VerFacturasScreen> {
             label: Text(r.$1, style: GoogleFonts.poppins(fontSize: 12.5)),
             selected: _esRangoActivo(r.$2, r.$3),
             onSelected: (_) => _aplicarRango(r.$2, r.$3),
-            selectedColor: const Color(0xFF0F1B3D),
+            selectedColor: Marca.primario,
             labelStyle: GoogleFonts.poppins(
               fontSize: 12.5,
               color: _esRangoActivo(r.$2, r.$3)
@@ -350,9 +351,9 @@ class _VerFacturasScreenState extends ConsumerState<VerFacturasScreen> {
                     ],
                   ),
                   child: _cargando
-                      ? const Center(
+                      ? Center(
                           child: CircularProgressIndicator(
-                            color: Color(0xFF0F1B3D),
+                            color: Marca.primario,
                           ),
                         )
                       : _error != null
@@ -575,7 +576,7 @@ class _VerFacturasScreenState extends ConsumerState<VerFacturasScreen> {
         style: GoogleFonts.poppins(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: anulada ? const Color(0xFF0F1B3D) : const Color(0xFF16A34A),
+          color: anulada ? Marca.primario : const Color(0xFF16A34A),
         ),
       ),
     );

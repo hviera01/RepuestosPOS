@@ -1,3 +1,4 @@
+import '../theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -110,7 +111,7 @@ void abrirSubModulo(BuildContext context, WidgetRef ref, SubModulo sub) {
                   );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0F1B3D),
+              backgroundColor: Marca.primario,
               foregroundColor: Colors.white,
             ),
             child: const Text('Abrir pestaña nueva'),

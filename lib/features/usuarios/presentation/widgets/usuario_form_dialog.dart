@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -142,7 +143,7 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF0F1B3D),
+              backgroundColor: Marca.primario,
             ),
             onPressed: () => Navigator.pop(context, true),
             child: Text('Eliminar', style: GoogleFonts.poppins()),
@@ -203,12 +204,12 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0F1B3D).withOpacity(0.1),
+                      color: Marca.primario.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.people_alt_outlined,
-                      color: Color(0xFF0F1B3D),
+                      color: Marca.primario,
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -380,9 +381,9 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                   if (editando)
                     IconButton(
                       onPressed: _guardando ? null : _eliminar,
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.delete_outline,
-                        color: Color(0xFF0F1B3D),
+                        color: Marca.primario,
                       ),
                       style: IconButton.styleFrom(
                         backgroundColor: const Color(
@@ -405,7 +406,7 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                   FilledButton(
                     onPressed: _guardando ? null : _guardar,
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF0F1B3D),
+                      backgroundColor: Marca.primario,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 14,
@@ -479,7 +480,7 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(modulo.titulo, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF0F1B3D))),
+                Text(modulo.titulo, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: Marca.primario)),
                 ...modulo.subModulos.map((sub) => _filaCheck(
                       valor: _pantallasPermitidas[sub.moduleKey] == true,
                       titulo: sub.titulo,
@@ -532,7 +533,7 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
               child: Checkbox(
                 value: valor,
                 onChanged: (v) => onChanged(v ?? false),
-                activeColor: const Color(0xFF0F1B3D),
+                activeColor: Marca.primario,
               ),
             ),
             const SizedBox(width: 6),

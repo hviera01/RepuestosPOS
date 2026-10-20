@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -113,9 +114,9 @@ class PendientesReposicionScreen extends ConsumerWidget {
                                 ? _tarjetas(context, ref, pendientes)
                                 : _tabla(context, ref, pendientes),
                           ),
-                    loading: () => const Center(
+                    loading: () => Center(
                       child: CircularProgressIndicator(
-                        color: Color(0xFF0F1B3D),
+                        color: Marca.primario,
                       ),
                     ),
                     error: (e, st) => Center(

@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import '../../../negocio/data/negocio_model.dart';
 import '../../../../core/utils/permisos_usuario.dart';
 import 'dart:async';
@@ -295,7 +296,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF0F1B3D),
+              backgroundColor: Marca.primario,
             ),
             onPressed: () => Navigator.pop(context, true),
             child: Text('Sí', style: GoogleFonts.poppins()),
@@ -1241,7 +1242,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF0F1B3D),
+                          color: Marca.primario,
                         ),
                       ),
                       Icon(
@@ -1249,7 +1250,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
                             ? Icons.expand_less
                             : Icons.expand_more,
                         size: 20,
-                        color: const Color(0xFF0F1B3D),
+                        color: Marca.primario,
                       ),
                     ],
                   ),
@@ -1464,7 +1465,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
                               ),
                             ),
                             style: FilledButton.styleFrom(
-                              backgroundColor: const Color(0xFF0F1B3D),
+                              backgroundColor: Marca.primario,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 18,
                                 vertical: 13,
@@ -1532,7 +1533,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
                         ),
                       ),
                       style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF0F1B3D),
+                        backgroundColor: Marca.primario,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 18,
                           vertical: 13,
@@ -1748,7 +1749,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
               fontSize: destacado ? 15 : 12.5,
               fontWeight: FontWeight.w800,
               color: destacado
-                  ? const Color(0xFF0F1B3D)
+                  ? Marca.primario
                   : const Color(0xFF1A1A1A),
             ),
           ),
@@ -2130,10 +2131,10 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
               SizedBox(
                 width: 40,
                 child: IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.delete_outline,
                     size: 18,
-                    color: Color(0xFF0F1B3D),
+                    color: Marca.primario,
                   ),
                   onPressed: () => _quitarItem(index),
                 ),
@@ -2254,10 +2255,10 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
               ),
               _botonVincularPendiente(index, item as ItemCompraModel),
               IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.delete_outline,
                   size: 18,
-                  color: Color(0xFF0F1B3D),
+                  color: Marca.primario,
                 ),
                 onPressed: () => _quitarItem(index),
               ),
@@ -2403,7 +2404,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F1B3D),
+              color: Marca.primario,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(

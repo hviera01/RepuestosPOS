@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart'
@@ -633,7 +634,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF0F1B3D),
+              backgroundColor: Marca.primario,
             ),
             onPressed: () => Navigator.pop(context, true),
             child: Text('Sí', style: GoogleFonts.poppins()),
@@ -2201,7 +2202,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               'Quitar',
               style: GoogleFonts.poppins(
                 fontSize: 12,
-                color: const Color(0xFF0F1B3D),
+                color: Marca.primario,
               ),
             ),
           ),
@@ -2488,7 +2489,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
             '⚠ $mensaje',
             style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
           ),
-          backgroundColor: const Color(0xFF0F1B3D),
+          backgroundColor: Marca.primario,
           duration: const Duration(seconds: 12),
           showCloseIcon: true,
           closeIconColor: Colors.white,
@@ -2938,7 +2939,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF0F1B3D),
+              backgroundColor: Marca.primario,
             ),
             onPressed: () => Navigator.pop(context, 'imprimir'),
             child: Text('Bluetooth/red', style: GoogleFonts.poppins()),
@@ -3588,7 +3589,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: activo ? const Color(0xFF0F1B3D) : const Color(0xFFE8EAF0),
+          color: activo ? Marca.primario : const Color(0xFFE8EAF0),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -3899,9 +3900,9 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       ),
       style: OutlinedButton.styleFrom(
         foregroundColor: destacado ? Colors.white : const Color(0xFF1A1A1A),
-        backgroundColor: destacado ? const Color(0xFF0F1B3D) : Colors.white,
+        backgroundColor: destacado ? Marca.primario : Colors.white,
         side: BorderSide(
-          color: destacado ? const Color(0xFF0F1B3D) : const Color(0xFFDFE1E6),
+          color: destacado ? Marca.primario : const Color(0xFFDFE1E6),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         minimumSize: Size.zero,
@@ -4208,9 +4209,9 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                               ).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.receipt_long_outlined,
-                              color: Color(0xFF0F1B3D),
+                              color: Marca.primario,
                             ),
                           ),
                           const SizedBox(width: 14),
@@ -4283,7 +4284,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                 icono: Icons.add_circle,
                 tooltip: 'Agregar Producto',
                 onPressed: _agregarProductoDesdeBusqueda,
-                color: const Color(0xFF0F1B3D),
+                color: Marca.primario,
               )
             : FilledButton.icon(
                 onPressed: _agregarProductoDesdeBusqueda,
@@ -4296,7 +4297,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                   ),
                 ),
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F1B3D),
+                  backgroundColor: Marca.primario,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
@@ -4467,7 +4468,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
           Icon(
             icono,
             size: 18,
-            color: activo ? const Color(0xFF0F1B3D) : const Color(0xFF4B4F58),
+            color: activo ? Marca.primario : const Color(0xFF4B4F58),
           ),
           const SizedBox(width: 10),
           Text(
@@ -4475,12 +4476,12 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
             style: GoogleFonts.poppins(
               fontSize: 12.5,
               fontWeight: activo ? FontWeight.w700 : FontWeight.w400,
-              color: activo ? const Color(0xFF0F1B3D) : const Color(0xFF25272B),
+              color: activo ? Marca.primario : const Color(0xFF25272B),
             ),
           ),
           if (activo) ...[
             const SizedBox(width: 8),
-            const Icon(Icons.check, size: 16, color: Color(0xFF0F1B3D)),
+            Icon(Icons.check, size: 16, color: Marca.primario),
           ],
         ],
       ),
@@ -4550,7 +4551,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                             vertical: 10,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0F1B3D),
+                            color: Marca.primario,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -4802,7 +4803,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
         children: [
           Row(
             children: [
-              Icon(icono, size: 16, color: const Color(0xFF0F1B3D)),
+              Icon(icono, size: 16, color: Marca.primario),
               const SizedBox(width: 8),
               Text(
                 titulo,
@@ -5620,7 +5621,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF0F1B3D),
+                          color: Marca.primario,
                         ),
                       ),
                       Icon(
@@ -5628,7 +5629,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                             ? Icons.expand_less
                             : Icons.expand_more,
                         size: 20,
-                        color: const Color(0xFF0F1B3D),
+                        color: Marca.primario,
                       ),
                     ],
                   ),
@@ -6008,7 +6009,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                               ),
                             ),
                             style: FilledButton.styleFrom(
-                              backgroundColor: const Color(0xFF0F1B3D),
+                              backgroundColor: Marca.primario,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 18,
                                 vertical: 13,
@@ -6179,7 +6180,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                         ),
                       ),
                       style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF0F1B3D),
+                        backgroundColor: Marca.primario,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 18,
                           vertical: 13,
@@ -6342,7 +6343,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
             vertical: compacto ? 5 : 8,
           ),
           decoration: BoxDecoration(
-            color: activo ? const Color(0xFF0F1B3D) : Colors.transparent,
+            color: activo ? Marca.primario : Colors.transparent,
             borderRadius: BorderRadius.circular(9),
           ),
           child: Text(
@@ -6550,7 +6551,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               fontSize: destacado ? 15 : 12.5,
               fontWeight: FontWeight.w800,
               color: destacado
-                  ? const Color(0xFF0F1B3D)
+                  ? Marca.primario
                   : const Color(0xFF1A1A1A),
             ),
           ),
@@ -6618,7 +6619,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               onPressed: _guardando ? null : _confirmarVenta,
               style: FilledButton.styleFrom(
                 backgroundColor: destacarTotal
-                    ? const Color(0xFF0F1B3D)
+                    ? Marca.primario
                     : const Color(0xFF1A1A1A),
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 shape: RoundedRectangleBorder(
@@ -7093,10 +7094,10 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
           SizedBox(
             width: 40,
             child: IconButton(
-              icon: const Icon(
+              icon: Icon(
                 Icons.delete_outline,
                 size: 18,
-                color: Color(0xFF0F1B3D),
+                color: Marca.primario,
               ),
               onPressed: () => _quitarItem(index),
             ),
@@ -7169,10 +7170,10 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               ),
               _botonPendienteCompra(index, item as ItemVentaModel),
               IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.delete_outline,
                   size: 18,
-                  color: Color(0xFF0F1B3D),
+                  color: Marca.primario,
                 ),
                 onPressed: () => _quitarItem(index),
               ),
@@ -7272,7 +7273,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F1B3D),
+              color: Marca.primario,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(

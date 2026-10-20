@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -142,7 +143,7 @@ class _ReporteFinancieroScreenState
             label: Text(r.$1, style: GoogleFonts.poppins(fontSize: 12.5)),
             selected: _esRangoActivo(r.$2, r.$3),
             onSelected: (_) => _aplicarRango(r.$2, r.$3),
-            selectedColor: const Color(0xFF0F1B3D),
+            selectedColor: Marca.primario,
             labelStyle: GoogleFonts.poppins(
               fontSize: 12.5,
               color: _esRangoActivo(r.$2, r.$3)
@@ -265,10 +266,10 @@ class _ReporteFinancieroScreenState
                 child: _chipsRangoRapido(),
               ),
               if (_cargando)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(vertical: 80),
                   child: Center(
-                    child: CircularProgressIndicator(color: Color(0xFF0F1B3D)),
+                    child: CircularProgressIndicator(color: Marca.primario),
                   ),
                 ),
               if (_error != null)
@@ -408,9 +409,9 @@ class _ReporteFinancieroScreenState
                     Expanded(
                       child: TabBar(
                         isScrollable: true,
-                        labelColor: const Color(0xFF0F1B3D),
+                        labelColor: Marca.primario,
                         unselectedLabelColor: Colors.grey.shade600,
-                        indicatorColor: const Color(0xFF0F1B3D),
+                        indicatorColor: Marca.primario,
                         labelStyle: GoogleFonts.poppins(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -510,7 +511,7 @@ class _ReporteFinancieroScreenState
             ),
           ),
           style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFF0F1B3D),
+            backgroundColor: Marca.primario,
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),

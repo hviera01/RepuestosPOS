@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -175,7 +176,7 @@ class _PanelBuscadorGridState extends ConsumerState<PanelBuscadorGrid> {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: seleccionada
-                ? const Color(0xFF0F1B3D)
+                ? Marca.primario
                 : const Color(0xFFE0E2E8),
             width: seleccionada ? 1.6 : 1,
           ),
@@ -222,7 +223,7 @@ class _PanelBuscadorGridState extends ConsumerState<PanelBuscadorGrid> {
                     style: GoogleFonts.poppins(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F1B3D),
+                      color: Marca.primario,
                     ),
                   ),
                   if (!p.esCombo) ...[
@@ -231,10 +232,10 @@ class _PanelBuscadorGridState extends ConsumerState<PanelBuscadorGrid> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (bajoStock)
-                          const Icon(
+                          Icon(
                             Icons.error_outline,
                             size: 12,
-                            color: Color(0xFF0F1B3D),
+                            color: Marca.primario,
                           ),
                         if (bajoStock) const SizedBox(width: 3),
                         Flexible(
@@ -244,7 +245,7 @@ class _PanelBuscadorGridState extends ConsumerState<PanelBuscadorGrid> {
                             style: GoogleFonts.poppins(
                               fontSize: 10,
                               color: bajoStock
-                                  ? const Color(0xFF0F1B3D)
+                                  ? Marca.primario
                                   : Colors.grey.shade500,
                             ),
                           ),

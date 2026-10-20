@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import '../../../negocio/data/negocio_model.dart';
 import '../../../../core/utils/permisos_usuario.dart';
 import 'package:flutter/material.dart';
@@ -68,7 +69,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF0F1B3D),
+              backgroundColor: Marca.primario,
             ),
             onPressed: () => Navigator.pop(context, true),
             child: Text('Eliminar', style: GoogleFonts.poppins()),
@@ -215,7 +216,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                           ),
                         ),
                         style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF0F1B3D),
+                          backgroundColor: Marca.primario,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 20,
                             vertical: 14,
@@ -286,8 +287,8 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
 
                     return esMovil ? _tarjetas(lista) : _tabla(lista);
                   },
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF0F1B3D)),
+                  loading: () => Center(
+                    child: CircularProgressIndicator(color: Marca.primario),
                   ),
                   error: (e, st) => Center(
                     child: Text(
@@ -583,7 +584,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: seleccionada
-                    ? const Color(0xFF0F1B3D)
+                    ? Marca.primario
                     : const Color(0xFFC7CBD3),
               ),
             ),

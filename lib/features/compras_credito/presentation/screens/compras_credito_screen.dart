@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -249,7 +250,7 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF0F1B3D),
+              backgroundColor: Marca.primario,
             ),
             onPressed: () => Navigator.pop(context, true),
             child: Text('Eliminar', style: GoogleFonts.poppins()),
@@ -561,7 +562,7 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
                               ),
                             ),
                             style: FilledButton.styleFrom(
-                              backgroundColor: const Color(0xFF0F1B3D),
+                              backgroundColor: Marca.primario,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 20,
                                 vertical: 14,
@@ -619,9 +620,9 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
                         }
                         return esMovil ? _tarjetas(lista) : _tabla(lista);
                       },
-                      loading: () => const Center(
+                      loading: () => Center(
                         child: CircularProgressIndicator(
-                          color: Color(0xFF0F1B3D),
+                          color: Marca.primario,
                         ),
                       ),
                       error: (e, st) => Center(
@@ -652,11 +653,11 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
       key: key,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F1B3D),
+        color: Marca.primario,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F1B3D).withOpacity(0.35),
+            color: Marca.primario.withOpacity(0.35),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -833,7 +834,7 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF0F1B3D),
+                color: Marca.primario,
               ),
             ),
           ),
@@ -1045,7 +1046,7 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: seleccionada
-                    ? const Color(0xFF0F1B3D)
+                    ? Marca.primario
                     : const Color(0xFFC7CBD3),
               ),
             ),

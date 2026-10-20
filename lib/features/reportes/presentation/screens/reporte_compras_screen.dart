@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -191,7 +192,7 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
             label: Text(r.$1, style: GoogleFonts.poppins(fontSize: 12.5)),
             selected: _esRangoActivo(r.$2, r.$3),
             onSelected: (_) => _aplicarRango(r.$2, r.$3),
-            selectedColor: const Color(0xFF0F1B3D),
+            selectedColor: Marca.primario,
             labelStyle: GoogleFonts.poppins(
               fontSize: 12.5,
               color: _esRangoActivo(r.$2, r.$3)
@@ -484,9 +485,9 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
                   ],
                 ),
                 child: _cargando
-                    ? const Center(
+                    ? Center(
                         child: CircularProgressIndicator(
-                          color: Color(0xFF0F1B3D),
+                          color: Marca.primario,
                         ),
                       )
                     : _error != null
@@ -624,11 +625,11 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F1B3D),
+        color: Marca.primario,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F1B3D).withOpacity(0.35),
+            color: Marca.primario.withOpacity(0.35),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),

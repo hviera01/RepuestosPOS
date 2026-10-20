@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -143,7 +144,7 @@ class _SucursalesScreenState extends ConsumerState<SucursalesScreen> {
                       },
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
+                  loading: () => Center(child: CircularProgressIndicator(color: Marca.primario)),
                   error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
                 ),
               ),
@@ -200,7 +201,7 @@ class _SucursalesScreenState extends ConsumerState<SucursalesScreen> {
       icon: const Icon(Icons.add, size: 18),
       label: Text('Nueva Sucursal', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
       style: FilledButton.styleFrom(
-        backgroundColor: const Color(0xFF0D2B4E),
+        backgroundColor: Marca.primario,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),

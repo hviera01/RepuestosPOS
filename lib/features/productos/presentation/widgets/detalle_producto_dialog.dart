@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/producto_model.dart';
@@ -181,7 +182,7 @@ class DetalleProductoDialog extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0F1B3D),
+                    color: Marca.primario,
                   ),
                 ),
                 if (stockComponente != null) ...[

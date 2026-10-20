@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../providers/dashboard_admin_provider.dart';
 
-const _azulMarca = Color(0xFF0F1B3D);
+final _azulMarca = Marca.primario;
 
 /// Dashboard de un vistazo que SOLO ve el Administrador en Inicio -pedido
 /// explícito del dueño-: ventas de la semana + un par de métricas más para

@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -403,7 +404,7 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(mensaje),
-        backgroundColor: esError ? const Color(0xFF0F1B3D) : null,
+        backgroundColor: esError ? Marca.primario : null,
       ),
     );
   }
@@ -415,8 +416,8 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
         Container(
           color: const Color(0xFFF2F3F7),
           child: _cargando
-              ? const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF0F1B3D)),
+              ? Center(
+                  child: CircularProgressIndicator(color: Marca.primario),
                 )
               : LayoutBuilder(
                   builder: (context, constraints) {
@@ -643,7 +644,7 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
             'Gran total',
             _granTotal,
             negrita: true,
-            color: const Color(0xFF0F1B3D),
+            color: Marca.primario,
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -758,7 +759,7 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
                     fontWeight: FontWeight.w700,
                     color: _diferencia == 0
                         ? const Color(0xFF16A34A)
-                        : const Color(0xFF0F1B3D),
+                        : Marca.primario,
                   ),
                 ),
               ],
@@ -823,7 +824,7 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
                 ),
               ),
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF0F1B3D),
+                backgroundColor: Marca.primario,
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

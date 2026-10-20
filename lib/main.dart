@@ -4,6 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/config/supabase_config.dart';
+import 'core/theme/marca.dart';
+import 'features/negocio/providers/negocio_provider.dart';
+import 'features/negocio/data/negocio_model.dart';
+import 'features/ventas/providers/carrito_provider.dart';
 import 'core/data/almacen_local.dart';
 import 'core/data/operaciones_service.dart';
 import 'features/auth/providers/auth_provider.dart';
@@ -41,16 +45,27 @@ Future<void> main() async {
   // el usuario abra no tenga que pagar el costo de la primera conexión
   // (la más lenta: resolver el dominio + saludo de seguridad).
   await AlmacenLocal.iniciar();
+  await Marca.cargarGuardado();
   await OperacionesService.instancia.iniciar();
   ImagenProductoNetwork.precalentar();
   runApp(const ProviderScope(child: RepuestosApp()));
 }
 
-class RepuestosApp extends StatelessWidget {
+class RepuestosApp extends ConsumerWidget {
   const RepuestosApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(temaVersionProvider);
+    ref.listen<AsyncValue<NegocioModel>>(negocioStreamProvider, (previo, siguiente) {
+      final negocio = siguiente.value;
+      if (negocio == null) return;
+      tipoDocumentoVentaPorDefecto = negocio.tipoDocumentoDefecto;
+      if (Marca.aplicarDesdeConfig(negocio.tema)) {
+        Marca.guardarLocal(Marca.primario);
+        ref.read(temaVersionProvider.notifier).refrescar();
+      }
+    });
     // El QR que muestra la PC para usar el celular como lector de código de
     // barras (ver EscanearRemotoDialog) apunta a esta misma URL con
     // "?escanear=CODIGO". Si viene ese parámetro, se salta el login por
@@ -62,7 +77,7 @@ class RepuestosApp extends StatelessWidget {
       title: 'Repuestos POS',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF0F1B3D),
+        colorSchemeSeed: Marca.primario,
         useMaterial3: true,
       ),
       locale: const Locale('es'),
@@ -85,11 +100,12 @@ class AuthGate extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
+    final versionTema = ref.watch(temaVersionProvider);
 
     if (authState.usuario == null) {
-      return const LoginScreen();
+      return KeyedSubtree(key: ValueKey('login$versionTema'), child: const LoginScreen());
     }
 
-    return const AppShell();
+    return KeyedSubtree(key: ValueKey('shell$versionTema'), child: const AppShell());
   }
 }

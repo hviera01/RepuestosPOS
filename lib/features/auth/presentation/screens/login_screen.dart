@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'dart:ui';
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
@@ -173,8 +174,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             height: 108,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: const Color(0xFF0F1B3D),
-                              border: Border.all(color: const Color(0xFF0F1B3D), width: 3),
+                              color: Marca.primario,
+                              border: Border.all(color: Marca.primario, width: 3),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.2),
@@ -195,7 +196,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 28,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF0F1B3D),
+                              color: Marca.primario,
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -283,7 +284,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: ElevatedButton(
                               onPressed: authState.cargando ? null : _iniciarSesion,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF0F1B3D),
+                                backgroundColor: Marca.primario,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                 elevation: 0,
                               ),
@@ -313,12 +314,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       child: Padding(
                                         padding: const EdgeInsets.all(14),
                                         child: _verificandoFaceId
-                                            ? const SizedBox(
+                                            ? SizedBox(
                                                 width: 26,
                                                 height: 26,
-                                                child: CircularProgressIndicator(strokeWidth: 2.4, color: Color(0xFF0F1B3D)),
+                                                child: CircularProgressIndicator(strokeWidth: 2.4, color: Marca.primario),
                                               )
-                                            : const FaceIdIcon(size: 26, color: Color(0xFF0F1B3D)),
+                                            : FaceIdIcon(size: 26, color: Marca.primario),
                                       ),
                                     ),
                                   ),

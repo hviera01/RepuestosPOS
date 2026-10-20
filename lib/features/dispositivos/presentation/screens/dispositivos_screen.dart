@@ -1,3 +1,4 @@
+import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -138,8 +139,8 @@ class _DispositivosScreenState extends ConsumerState<DispositivosScreen> {
                       },
                     );
                   },
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF0F1B3D)),
+                  loading: () => Center(
+                    child: CircularProgressIndicator(color: Marca.primario),
                   ),
                   error: (e, st) => Center(
                     child: Text(
