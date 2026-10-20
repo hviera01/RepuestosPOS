@@ -1,3 +1,5 @@
+import '../../../negocio/data/negocio_model.dart';
+import '../../../../core/utils/permisos_usuario.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -108,12 +110,14 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
         icono: Icons.visibility_outlined,
         texto: 'Ver detalle',
       ),
-      _opcionMenu(valor: 'editar', icono: Icons.edit_outlined, texto: 'Editar'),
-      _opcionMenu(
-        valor: 'eliminar',
-        icono: Icons.delete_outline,
-        texto: 'Eliminar',
-      ),
+      if (puedeRealizarAccion(ref, PermisosEspeciales.clientesEditar))
+        _opcionMenu(valor: 'editar', icono: Icons.edit_outlined, texto: 'Editar'),
+      if (puedeRealizarAccion(ref, PermisosEspeciales.clientesEliminar))
+        _opcionMenu(
+          valor: 'eliminar',
+          icono: Icons.delete_outline,
+          texto: 'Eliminar',
+        ),
     ];
   }
 
@@ -199,6 +203,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                           ),
                         ),
                       ),
+                      if (puedeRealizarAccion(ref, PermisosEspeciales.clientesCrear))
                       FilledButton.icon(
                         onPressed: () => _abrirFormulario(),
                         icon: const Icon(Icons.add, size: 18),

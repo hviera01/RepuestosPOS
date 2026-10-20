@@ -87,7 +87,7 @@ class ProductoModel {
     );
   }
 
-  String get textoBusqueda => '$codigo $codigoBarras $nombre $descripcion';
+  String get textoBusqueda => '$codigo $codigoBarras $nombre $descripcion $textoVehiculos';
 
   String get textoVehiculos => compatibilidad.map((c) => c.textoCompleto).join(' ');
 

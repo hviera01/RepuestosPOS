@@ -153,6 +153,7 @@ class VentaRepository with ConRedMixin {
     required String envioDireccion,
     required String envioTelefono,
   }) {
+    _invalidarVenta(id);
     return conRed(() => _db.from('ventas').update({
           'es_envio': true,
           'envio_nombre': envioNombre,
@@ -203,15 +204,31 @@ class VentaRepository with ConRedMixin {
         .map((filas) => filas.map((d) => VentaModel.fromMap(d['id'] as String, d, const [])).toList()));
   }
 
+  static final Map<String, ({DateTime en, VentaModel venta})> _cacheVentas = {};
+  static const _vigenciaCacheVenta = Duration(seconds: 45);
+
+  VentaModel _ventaDesdeFilaConItems(Map<String, dynamic> fila) {
+    final itemsCrudos = ((fila['venta_items'] as List?) ?? const [])
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .toList()
+      ..sort((a, b) => ((a['orden'] ?? 0) as num).compareTo((b['orden'] ?? 0) as num));
+    return VentaModel.fromMap(fila['id'] as String, fila, itemsCrudos.map(ItemVentaModel.fromRow).toList());
+  }
+
+  void _invalidarVenta(String id) => _cacheVentas.remove(id);
+
   Future<VentaModel?> obtenerVentaPorId(String id) {
+    final cacheada = _cacheVentas[id];
+    if (cacheada != null && DateTime.now().difference(cacheada.en) < _vigenciaCacheVenta) {
+      return Future.value(cacheada.venta);
+    }
     return conRed(() async {
-      final futureVenta = _db.from('ventas').select().eq('id', id).limit(1);
-      final futureDetalle = _db.from('venta_items').select().eq('id_venta', id).order('orden');
-      final filas = await futureVenta;
-      if (filas.isEmpty) return null;
-      final detalleFilas = await futureDetalle;
-      final items = detalleFilas.map((d) => ItemVentaModel.fromRow(d)).toList();
-      return VentaModel.fromMap(id, filas.first, items);
+      final fila = await _db.from('ventas').select('*, venta_items(*)').eq('id', id).maybeSingle();
+      if (fila == null) return null;
+      final venta = _ventaDesdeFilaConItems(fila);
+      if (_cacheVentas.length > 60) _cacheVentas.remove(_cacheVentas.keys.first);
+      _cacheVentas[id] = (en: DateTime.now(), venta: venta);
+      return venta;
     });
   }
 
@@ -219,8 +236,8 @@ class VentaRepository with ConRedMixin {
   /// principal.
   Future<List<ItemVentaModel>> obtenerDetalleVenta(String id) {
     return conRed(() async {
-      final filas = await _db.from('venta_items').select().eq('id_venta', id).order('orden');
-      return filas.map((d) => ItemVentaModel.fromRow(d)).toList();
+      final venta = await obtenerVentaPorId(id);
+      return venta?.detalle ?? <ItemVentaModel>[];
     });
   }
 
@@ -228,12 +245,9 @@ class VentaRepository with ConRedMixin {
     return conRed(() async {
       final texto = numeroDocumento.trim();
       if (texto.isEmpty) return null;
-      final filas = await _db.from('ventas').select().eq('numero_documento', texto).limit(1);
-      if (filas.isEmpty) return null;
-      final fila = filas.first;
-      final detalleFilas = await _db.from('venta_items').select().eq('id_venta', fila['id']).order('orden');
-      final items = detalleFilas.map((d) => ItemVentaModel.fromRow(d)).toList();
-      return VentaModel.fromMap(fila['id'] as String, fila, items);
+      final fila = await _db.from('ventas').select('*, venta_items(*)').eq('numero_documento', texto).limit(1).maybeSingle();
+      if (fila == null) return null;
+      return _ventaDesdeFilaConItems(fila);
     });
   }
 
@@ -250,15 +264,16 @@ class VentaRepository with ConRedMixin {
         candidatos.add(limpio.padLeft(4, '0'));
       }
 
-      final listasFilas = await Future.wait(candidatos.map((c) => _db.from('ventas').select().eq('numero_documento', c)));
-      final filas = listasFilas.expand((f) => f).toList();
+      final filas = await _db
+          .from('ventas')
+          .select('*, venta_items(*)')
+          .inFilter('numero_documento', candidatos.toList())
+          .limit(50);
 
       final resultados = <VentaModel>[];
       for (final fila in filas) {
         if (tipoDocumento != null && tipoDocumento.isNotEmpty && fila['tipo_documento'] != tipoDocumento) continue;
-        final detalleFilas = await _db.from('venta_items').select().eq('id_venta', fila['id']).order('orden');
-        final items = detalleFilas.map((d) => ItemVentaModel.fromRow(d)).toList();
-        resultados.add(VentaModel.fromMap(fila['id'] as String, fila, items));
+        resultados.add(_ventaDesdeFilaConItems(fila));
       }
       resultados.sort((a, b) => (b.fechaRegistro ?? DateTime(0)).compareTo(a.fechaRegistro ?? DateTime(0)));
       return resultados;
@@ -275,6 +290,7 @@ class VentaRepository with ConRedMixin {
   }) {
     return conRed(() async {
       try {
+        _invalidarVenta(id);
         await OperacionesService.instancia.rpc('anular_venta', {'p_id': id, 'p_usuario': usuario, 'p_motivo': motivo});
       } on PostgrestException catch (e) {
         if (e.code == 'PGRST116' || (e.message.toLowerCase().contains('no se encontró'))) {

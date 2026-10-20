@@ -1162,7 +1162,7 @@ begin
   -- bug de "dos líneas del mismo producto" que documenta el código Dart
   -- original: acá no puede pasar porque se agrupa ANTES de tocar nada).
   v_cantidades := calcular_cantidades_descuento(payload->'items');
-  for v_id_producto_txt in select jsonb_object_keys(v_cantidades) loop
+  for v_id_producto_txt in select k from jsonb_object_keys(v_cantidades) k order by k loop
     v_cantidad := (v_cantidades->>v_id_producto_txt)::numeric;
     select stock, precio_compra into v_stock_actual, v_precio_compra from productos where id = v_id_producto_txt::uuid for update;
     v_costo := consumir_fifo_lotes(v_id_producto_txt::uuid, v_cantidad, coalesce(v_precio_compra, 0), v_id_venta);
@@ -1225,7 +1225,7 @@ begin
     v_idx := v_idx + 1;
   end loop;
 
-  for v_id_producto_txt in select jsonb_object_keys(v_cantidades) loop
+  for v_id_producto_txt in select k from jsonb_object_keys(v_cantidades) k order by k loop
     perform sincronizar_precio_compra_activo(v_id_producto_txt::uuid);
   end loop;
 
@@ -1316,7 +1316,7 @@ begin
     v_totales := jsonb_set(v_totales, array[v_id_producto_txt], jsonb_build_object('cantidad', v_cantidad_total, 'costoTotal', v_costo_total));
   end loop;
 
-  for v_id_producto_txt in select jsonb_object_keys(v_totales) loop
+  for v_id_producto_txt in select k from jsonb_object_keys(v_totales) k order by k loop
     v_cantidad_total := (v_totales->v_id_producto_txt->>'cantidad')::numeric;
     v_costo_total := (v_totales->v_id_producto_txt->>'costoTotal')::numeric;
     v_costo_promedio := case when v_cantidad_total > 0 then v_costo_total / v_cantidad_total else 0 end;
@@ -1446,6 +1446,7 @@ declare
   v_motivo text;
   v_precio_venta_nuevo numeric;
   v_idx integer := 0;
+  v_fila_item record;
 begin
   v_numero := incrementar_contador('compra');
   v_numero_documento := lpad(v_numero::text, 8, '0');
@@ -1479,7 +1480,12 @@ begin
     );
   end if;
 
-  for item in select * from jsonb_array_elements(payload->'items') loop
+  for v_fila_item in
+    select t.i as item_json, t.n as ord from jsonb_array_elements(payload->'items') with ordinality as t(i, n)
+    order by t.i->>'idProducto', t.n
+  loop
+    item := v_fila_item.item_json;
+    v_idx := (v_fila_item.ord - 1)::integer;
     v_id_producto := nullif(item->>'idProducto', '')::uuid;
     v_id_categoria := nullif(item->>'idCategoria', '')::uuid;
     v_precio_venta_nuevo := nullif(item->>'precioVentaNuevo', '')::numeric;
@@ -1494,7 +1500,6 @@ begin
       (item->>'cantidad')::numeric, (item->>'subtotal')::numeric, coalesce((item->>'descuentoPorcentaje')::numeric, 0),
       v_precio_venta_nuevo, v_id_vinculado, item->>'numeroDocumentoVentaVinculada', item->>'nombreProductoVentaVinculada', v_idx
     );
-    v_idx := v_idx + 1;
 
     v_precio_final := round((item->>'precioCompra')::numeric * (1 - coalesce((item->>'descuentoPorcentaje')::numeric, 0) / 100) * (1 + v_isv_porcentaje / 100), 2);
 

@@ -26,6 +26,7 @@ class TablaSincronizada<T> {
 
   final _db = Supabase.instance.client;
   final Map<String, Map<String, dynamic>> _filas = {};
+  final Map<String, T> _modelos = {};
   final _controlador = StreamController<List<T>>.broadcast();
   Box<String>? _caja;
   Box<String>? _meta;
@@ -74,7 +75,7 @@ class TablaSincronizada<T> {
           ? await compute(_decodificarLote, textos)
           : _decodificarLote(textos);
       for (final f in decodificadas) {
-        _filas[f['id'] as String] = f;
+        _poner(f);
       }
     }
     _cargadoLocal = true;
@@ -153,7 +154,7 @@ class TablaSincronizada<T> {
         if (pagina.isEmpty) break;
         for (final f in pagina) {
           final fila = Map<String, dynamic>.from(f);
-          _filas[fila['id'] as String] = fila;
+          _poner(fila);
           final u = fila['updated_at'] as String?;
           if (u != null && u.compareTo(mayor) > 0) mayor = u;
         }
@@ -186,7 +187,7 @@ class TablaSincronizada<T> {
     final ids = <String>[];
     for (final f in filas) {
       final id = f['id_fila'] as String;
-      _filas.remove(id);
+      _quitar(id);
       ids.add(id);
       final e = f['eliminado_en'] as String;
       if (e.compareTo(mayor) > 0) mayor = e;
@@ -209,13 +210,14 @@ class TablaSincronizada<T> {
   void aplicarLocal(Map<String, dynamic> fila) {
     final id = fila['id'] as String;
     final previa = _filas[id] ?? const <String, dynamic>{};
-    _filas[id] = {...previa, ...fila};
-    unawaited(_guardarFilas([_filas[id]!]));
+    final unida = {...previa, ...fila};
+    _poner(unida);
+    unawaited(_guardarFilas([unida]));
     _emitir();
   }
 
   void quitarLocal(String id) {
-    _filas.remove(id);
+    _quitar(id);
     final caja = _caja;
     if (caja != null) unawaited(caja.delete(id));
     _emitir();
@@ -223,8 +225,24 @@ class TablaSincronizada<T> {
 
   Map<String, dynamic>? filaLocal(String id) => _filas[id];
 
+  void _poner(Map<String, dynamic> fila) {
+    final id = fila['id'] as String;
+    _filas[id] = fila;
+    try {
+      _modelos[id] = desdeFila(fila);
+    } catch (e) {
+      debugPrint('TablaSincronizada($tabla): fila invalida $id: $e');
+      _modelos.remove(id);
+    }
+  }
+
+  void _quitar(String id) {
+    _filas.remove(id);
+    _modelos.remove(id);
+  }
+
   void _emitir() {
-    final lista = _filas.values.map(desdeFila).toList();
+    final lista = _modelos.values.toList();
     if (orden != null) lista.sort(orden);
     _ultimaLista = lista;
     if (!_controlador.isClosed) _controlador.add(lista);
@@ -234,6 +252,7 @@ class TablaSincronizada<T> {
     _cursor = '';
     _cursorEliminados = '';
     _filas.clear();
+    _modelos.clear();
     await _caja?.clear();
     await _meta?.delete('cursor_$tabla');
     await _meta?.delete('cursor_elim_$tabla');

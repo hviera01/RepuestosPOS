@@ -1,3 +1,5 @@
+import '../../../negocio/data/negocio_model.dart';
+import '../../../../core/utils/permisos_usuario.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -488,7 +490,7 @@ class _DetalleCompraScreenState extends ConsumerState<DetalleCompraScreen> {
                 ),
               ),
             ),
-            if (!compra.estaAnulada)
+            if (!compra.estaAnulada && puedeRealizarAccion(ref, PermisosEspeciales.comprasEliminar))
               FilledButton.icon(
                 onPressed: _anulando ? null : _anular,
                 icon: _anulando

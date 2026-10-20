@@ -1,3 +1,4 @@
+import '../../../../core/utils/permisos_usuario.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -1285,6 +1286,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                           ),
                         ),
                       ),
+                      if (puedeRealizarAccion(ref, PermisosEspeciales.inventarioCrearProducto))
                       FilledButton.icon(
                         key: _keyBotonNuevoProducto,
                         onPressed: () => _abrirFormulario(),

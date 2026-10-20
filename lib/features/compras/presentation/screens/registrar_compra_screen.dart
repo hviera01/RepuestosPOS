@@ -1,3 +1,5 @@
+import '../../../negocio/data/negocio_model.dart';
+import '../../../../core/utils/permisos_usuario.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
@@ -1768,6 +1770,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
           const SizedBox(width: 20),
           total('Total a pagar', carrito.totalAPagar, destacado: true),
           const Spacer(),
+          if (puedeRealizarAccion(ref, PermisosEspeciales.comprasCrear))
           SizedBox(
             height: 38,
             child: FilledButton(
@@ -2426,6 +2429,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
             ),
           ),
           const SizedBox(height: 16),
+          if (puedeRealizarAccion(ref, PermisosEspeciales.comprasCrear))
           SizedBox(
             width: double.infinity,
             child: FilledButton(

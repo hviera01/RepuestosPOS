@@ -20,6 +20,7 @@ class PermisosEspeciales {
   static const clientesEditar = 'clientes_editar';
   static const clientesEliminar = 'clientes_eliminar';
   static const ventasEliminar = 'ventas_eliminar';
+  static const trasladosAnular = 'traslados_anular';
 
   static const Map<String, String> etiquetas = {
     inventarioEditarProducto: 'Editar productos en Inventario',
@@ -37,6 +38,7 @@ class PermisosEspeciales {
     clientesEditar: 'Editar clientes',
     clientesEliminar: 'Eliminar clientes',
     ventasEliminar: 'Anular ventas',
+    trasladosAnular: 'Anular traslados',
   };
 
   static const Map<String, String> descripciones = {
@@ -61,6 +63,7 @@ class PermisosEspeciales {
     clientesEditar: 'Permite editar los datos de un cliente existente.',
     clientesEliminar: 'Permite eliminar un cliente.',
     ventasEliminar: 'Permite anular una venta ya registrada.',
+    trasladosAnular: 'Permite anular un traslado ya registrado.',
   };
 }
 

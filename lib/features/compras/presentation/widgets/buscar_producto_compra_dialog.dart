@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/busqueda_producto.dart';
+import '../../../../core/widgets/filtro_vehiculo_campos.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -26,6 +28,10 @@ class BuscarProductoCompraDialog extends ConsumerStatefulWidget {
 class _BuscarProductoCompraDialogState
     extends ConsumerState<BuscarProductoCompraDialog> {
   final _busquedaController = TextEditingController();
+  final _vehiculoCtrl = TextEditingController();
+  final _anioCtrl = TextEditingController();
+  FiltroVehiculo _vehiculo = const FiltroVehiculo();
+  FiltroVehiculo? _vehiculoCacheado;
   final _focusNodeLista = FocusNode();
   // Sin `autofocus`: en Windows, pedir el foco durante el primer build (que
   // es lo que hace `autofocus`) compite con la animación de apertura de
@@ -65,24 +71,30 @@ class _BuscarProductoCompraDialogState
     _busquedaController.dispose();
     _focusNodeLista.dispose();
     _focusBusqueda.dispose();
+    _vehiculoCtrl.dispose();
+    _anioCtrl.dispose();
     super.dispose();
   }
 
   List<ProductoModel> _filtrar(List<ProductoModel> productos) {
     if (identical(productos, _productosCacheados) &&
+        identical(_vehiculoCacheado, _vehiculo) &&
         _busquedaFiltroCacheada == _busquedaAplicada) {
       return _listaActual;
     }
     _productosCacheados = productos;
     _busquedaFiltroCacheada = _busquedaAplicada;
-    return productos
+    _vehiculoCacheado = _vehiculo;
+    var lista = productos
         .where(
           (p) =>
               p.estado &&
               !p.esCombo &&
-              coincideFuzzy(p.textoBusqueda, _busquedaAplicada),
+              coincideProductoEstricto(p, _busquedaAplicada),
         )
         .toList();
+    lista = ordenarPorCodigoPrimero(lista, _busquedaAplicada);
+    return filtrarPorVehiculo(lista, _vehiculo);
   }
 
   void _moverSeleccion(int delta) {
@@ -155,6 +167,7 @@ class _BuscarProductoCompraDialogState
     final texto = _busquedaController.text.trim();
     setState(() {
       _busquedaAplicada = texto;
+      _vehiculo = filtroDesdeCampos(_vehiculoCtrl, _anioCtrl);
       _filaSeleccionada = null;
       _clavesFila.clear();
     });
@@ -287,6 +300,7 @@ class _BuscarProductoCompraDialogState
                       ),
                     ),
                   ),
+                  FiltroVehiculoCampos(vehiculoCtrl: _vehiculoCtrl, anioCtrl: _anioCtrl, onBuscar: _buscar),
                   OutlinedButton.icon(
                     onPressed: _crearProductoNuevo,
                     icon: const Icon(Icons.add_circle_outline, size: 18),
@@ -323,7 +337,7 @@ class _BuscarProductoCompraDialogState
                     onKeyEvent: _manejarTeclado,
                     child: productosAsync.when(
                       data: (productos) {
-                        if (_busquedaAplicada.isEmpty) {
+                        if (_busquedaAplicada.isEmpty && !_vehiculo.activo) {
                           _listaActual = [];
                           return Center(
                             child: Column(

@@ -91,26 +91,3 @@ String generarNombreProducto(String base, List<CompatibilidadModel> lista, {int 
   final sufijo = resto > 0 ? ' +$resto' : '';
   return '$limpio ${partes.join(', ')}$sufijo'.trim();
 }
-
-class FiltroVehiculo {
-  final String marca;
-  final String modelo;
-  final int? anio;
-
-  const FiltroVehiculo({this.marca = '', this.modelo = '', this.anio});
-
-  bool get vacio => marca.trim().isEmpty && modelo.trim().isEmpty && anio == null;
-
-  bool aplica(List<CompatibilidadModel> compatibilidad, String Function(String) normalizar) {
-    if (vacio) return true;
-    final m = normalizar(marca);
-    final mo = normalizar(modelo);
-    for (final c in compatibilidad) {
-      if (m.isNotEmpty && !normalizar(c.marca).contains(m)) continue;
-      if (mo.isNotEmpty && !normalizar(c.modelo).contains(mo)) continue;
-      if (anio != null && !c.cubreAnio(anio!)) continue;
-      return true;
-    }
-    return false;
-  }
-}

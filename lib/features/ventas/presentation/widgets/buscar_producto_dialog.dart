@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
+import '../../../../core/utils/busqueda_producto.dart';
+import '../../../../core/widgets/filtro_vehiculo_campos.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -59,6 +61,10 @@ class BuscarProductoDialog extends ConsumerStatefulWidget {
 
 class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   final _busquedaController = TextEditingController();
+  final _vehiculoCtrl = TextEditingController();
+  final _anioCtrl = TextEditingController();
+  FiltroVehiculo _vehiculo = const FiltroVehiculo();
+  FiltroVehiculo? _vehiculoCacheado;
   final _focusNodeLista = FocusNode();
   // Sin `autofocus`: en Windows, pedir el foco durante el primer build (que
   // es lo que hace `autofocus`) compite con la animación de apertura de
@@ -138,6 +144,8 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     _busquedaController.dispose();
     _focusNodeLista.dispose();
     _focusBusqueda.dispose();
+    _vehiculoCtrl.dispose();
+    _anioCtrl.dispose();
     super.dispose();
   }
 
@@ -147,6 +155,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   ) {
     if (identical(productos, _productosCacheados) &&
         _busquedaFiltroCacheada == _busquedaAplicada &&
+        identical(_vehiculoCacheado, _vehiculo) &&
         _exactaFiltroCacheada == _busquedaExacta &&
         _columnaOrdenCacheada == _columnaOrden &&
         _ordenAscendenteCacheado == _ordenAscendente &&
@@ -155,11 +164,12 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     }
     _productosCacheados = productos;
     _busquedaFiltroCacheada = _busquedaAplicada;
+    _vehiculoCacheado = _vehiculo;
     _exactaFiltroCacheada = _busquedaExacta;
     _columnaOrdenCacheada = _columnaOrden;
     _ordenAscendenteCacheado = _ordenAscendente;
     _verCombosCacheado = _verCombos;
-    final lista = productos
+    var lista = productos
         .where(
           (p) =>
               p.estado &&
@@ -167,6 +177,8 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
               _coincide(p, _busquedaAplicada),
         )
         .toList();
+    if (!_busquedaExacta) lista = ordenarPorCodigoPrimero(lista, _busquedaAplicada);
+    lista = filtrarPorVehiculo(lista, _vehiculo);
     if (_columnaOrden == 'existencia') {
       double existencia(ProductoModel p) =>
           _verCombos ? p.stockDisponibleCombo(mapaProductos) : p.stock;
@@ -328,6 +340,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     }
     setState(() {
       _busquedaAplicada = texto;
+      _vehiculo = exacta ? const FiltroVehiculo() : filtroDesdeCampos(_vehiculoCtrl, _anioCtrl);
       _filaSeleccionada = null;
       _busquedaExacta = exacta;
       _clavesFila.clear();
@@ -349,7 +362,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
 
   bool _coincide(ProductoModel p, String texto) {
     if (_busquedaExacta) return _coincideExacto(p, texto);
-    return coincideFuzzy(p.textoBusqueda, texto);
+    return coincideProductoEstricto(p, texto);
   }
 
   Future<void> _crearProductoNuevo() async {
@@ -528,6 +541,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                       ),
                     ),
                   ),
+                  FiltroVehiculoCampos(vehiculoCtrl: _vehiculoCtrl, anioCtrl: _anioCtrl, onBuscar: _buscar, compacto: esMovil),
                   _selectorSeccion(),
                   _selectorNivelPrecio(),
                   // Escanear con la cámara solo tiene sentido en el celular
@@ -594,7 +608,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                         final mapaProductos = {
                           for (final p in productos) p.id: p,
                         };
-                        if (_busquedaAplicada.isEmpty && !_verCombos) {
+                        if (_busquedaAplicada.isEmpty && !_vehiculo.activo && !_verCombos) {
                           _listaActual = [];
                           return Center(
                             child: Column(

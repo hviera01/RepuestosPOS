@@ -1,3 +1,5 @@
+import '../../../negocio/data/negocio_model.dart';
+import '../../../../core/utils/permisos_usuario.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
@@ -434,7 +436,7 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
             // Se puede anular en cualquier estado (incluido Entregado): el
             // stock se resta desde el registro, así que anular siempre
             // tiene sentido salvo que ya esté Anulado.
-            if (t.estado != 'Anulado')
+            if (t.estado != 'Anulado' && puedeRealizarAccion(ref, PermisosEspeciales.trasladosAnular))
               OutlinedButton.icon(
                 onPressed: _actuando ? null : _anular,
                 icon: const Icon(Icons.block_outlined, size: 18),

@@ -1,3 +1,4 @@
+import '../../../../core/utils/permisos_usuario.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
@@ -1278,7 +1279,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
                   ),
                 ),
               ),
-            if (!esCotizacion && !venta.estaAnulada)
+            if (!esCotizacion && !venta.estaAnulada && puedeRealizarAccion(ref, PermisosEspeciales.ventasEliminar))
               FilledButton.icon(
                 onPressed: _anulando ? null : _anular,
                 icon: _anulando
