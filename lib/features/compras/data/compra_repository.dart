@@ -1,3 +1,4 @@
+import '../../../core/data/operaciones_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/data/base_repository.dart';
 import 'compra_en_espera_model.dart';
@@ -58,7 +59,7 @@ class CompraRepository with ConRedMixin {
     required String usuario,
   }) {
     return conRed(() async {
-      final resultado = await _db.rpc('registrar_compra', params: {
+      final resultado = await OperacionesService.instancia.rpc('registrar_compra', {
         'payload': {
           'noFactura': noFactura,
           'idProveedor': idProveedor.isEmpty ? null : idProveedor,
@@ -155,7 +156,7 @@ class CompraRepository with ConRedMixin {
   }) {
     return conRed(() async {
       try {
-        await _db.rpc('anular_compra', params: {'p_id': id, 'p_usuario': usuario, 'p_motivo': motivo});
+        await OperacionesService.instancia.rpc('anular_compra', {'p_id': id, 'p_usuario': usuario, 'p_motivo': motivo});
       } on PostgrestException catch (e) {
         throw Exception(e.message);
       }

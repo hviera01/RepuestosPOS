@@ -1,3 +1,4 @@
+import '../../../core/data/operaciones_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/data/base_repository.dart';
 import 'venta_credito_model.dart';
@@ -115,7 +116,7 @@ class VentaCreditoRepository with ConRedMixin {
       if (montoAbonado > saldoAnterior + interes + 0.01) {
         throw Exception('El abono (${formatearMoneda(montoAbonado)}) supera el saldo disponible en este crédito (${formatearMoneda(saldoAnterior + interes)})');
       }
-      await _db.rpc('registrar_abono_venta_credito', params: {
+      await OperacionesService.instancia.rpc('registrar_abono_venta_credito', {
         'payload': {
           'idCredito': idCredito,
           'saldoAnterior': saldoAnterior,
@@ -131,7 +132,7 @@ class VentaCreditoRepository with ConRedMixin {
   }
 
   Future<void> eliminarAbono({required String idCredito, required String idAbono, required double montoTotal}) {
-    return conRed(() => _db.rpc('eliminar_abono_venta_credito', params: {
+    return conRed(() => OperacionesService.instancia.rpc('eliminar_abono_venta_credito', {
           'p_id_credito': idCredito,
           'p_id_abono': idAbono,
           'p_monto_total': montoTotal,
@@ -148,7 +149,7 @@ class VentaCreditoRepository with ConRedMixin {
     required String metodoPago,
     required String numeroRecibo,
   }) {
-    return conRed(() => _db.rpc('editar_abono_venta_credito', params: {
+    return conRed(() => OperacionesService.instancia.rpc('editar_abono_venta_credito', {
           'payload': {
             'idCredito': idCredito,
             'idAbono': idAbono,

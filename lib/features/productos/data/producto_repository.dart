@@ -1,3 +1,4 @@
+import '../../../core/data/operaciones_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/data/base_repository.dart';
 import 'producto_model.dart';
@@ -269,7 +270,7 @@ class ProductoRepository with ConRedMixin {
     String motivo = '',
   }) {
     if (cantidad <= 0) throw Exception('La cantidad debe ser mayor a 0');
-    return conRed(() => _db.rpc('registrar_ingreso_stock', params: {
+    return conRed(() => OperacionesService.instancia.rpc('registrar_ingreso_stock', {
           'payload': {'id': id, 'cantidad': cantidad, 'costoUnitario': costoUnitario, 'usuario': usuario, 'motivo': motivo},
         }));
   }
@@ -282,7 +283,7 @@ class ProductoRepository with ConRedMixin {
     String motivo = '',
   }) {
     if (cantidad <= 0) throw Exception('La cantidad debe ser mayor a 0');
-    return conRed(() => _db.rpc('registrar_salida_stock', params: {
+    return conRed(() => OperacionesService.instancia.rpc('registrar_salida_stock', {
           'payload': {'id': id, 'cantidad': cantidad, 'idLote': idLote, 'usuario': usuario, 'motivo': motivo},
         }));
   }
@@ -296,7 +297,7 @@ class ProductoRepository with ConRedMixin {
     required String motivo,
   }) async {
     try {
-      await _db.rpc('descontar_stock', params: {
+      await OperacionesService.instancia.rpc('descontar_stock', {
         'payload': {'id': id, 'cantidad': cantidad, 'usuario': usuario, 'motivo': motivo},
       }).timeout(const Duration(seconds: 12));
       return true;

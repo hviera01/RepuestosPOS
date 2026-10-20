@@ -18,6 +18,10 @@ import '../../features/dispositivos/providers/dispositivos_provider.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/negocio/providers/negocio_provider.dart';
 import '../utils/device_id.dart';
+import '../../features/productos/providers/productos_provider.dart';
+import '../../features/traslados/data/impresion_en_vivo_traslado_service.dart';
+import '../../features/traslados/data/traslado_model.dart';
+import '../../features/traslados/providers/traslados_provider.dart';
 import '../../features/ventas/data/impresion_en_vivo_service.dart';
 import '../../features/ventas/data/venta_model.dart';
 import '../../features/ventas/providers/ventas_provider.dart';
@@ -53,6 +57,8 @@ class _AppShellState extends ConsumerState<AppShell> {
   Timer? _actualizacionTimer;
   final _servicioImpresionEnVivo = ImpresionEnVivoService();
   final _idsSolicitudEnProceso = <String>{};
+  final _servicioImpresionEnVivoTraslado = ImpresionEnVivoTrasladoService();
+  final _idsSolicitudTrasladoEnProceso = <String>{};
 
   @override
   void initState() {
@@ -255,6 +261,43 @@ class _AppShellState extends ConsumerState<AppShell> {
     }
   }
 
+  Future<void> _procesarSolicitudImpresionEnVivoTraslado(TrasladoModel traslado) async {
+    if (_idsSolicitudTrasladoEnProceso.contains(traslado.id)) return;
+    _idsSolicitudTrasladoEnProceso.add(traslado.id);
+    try {
+      final trasladoRepo = ref.read(trasladoRepositoryProvider);
+      unawaited(trasladoRepo.marcarSolicitudImpresionEnVivo(traslado.id, false));
+      final futureCompleto = trasladoRepo.obtenerPorId(traslado.id);
+      final futureNegocio = ref.read(negocioRepositoryProvider).obtenerNegocioActual();
+      if (ref.read(productosStreamProvider).value == null) {
+        try {
+          await ref.read(productosStreamProvider.future);
+        } catch (_) {}
+      }
+      final productos = ref.read(productosStreamProvider).value ?? [];
+      final codigos = {for (final p in productos) p.id: p.codigo};
+      final trasladoCompleto = await futureCompleto;
+      final negocio = await futureNegocio;
+      if (trasladoCompleto == null) return;
+      final ok = await _servicioImpresionEnVivoTraslado.imprimirSilencioso(
+        trasladoCompleto,
+        negocio,
+        codigos,
+        forzarCopia: traslado.solicitudImpresionEsCopia,
+      );
+      if (!ok && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Traslado ${trasladoCompleto.numero} recibido desde el celular: no se pudo imprimir automáticamente.'),
+            duration: const Duration(seconds: 8),
+          ),
+        );
+      }
+    } finally {
+      _idsSolicitudTrasladoEnProceso.remove(traslado.id);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final tabsState = ref.watch(tabsProvider);
@@ -267,6 +310,14 @@ class _AppShellState extends ConsumerState<AppShell> {
         (previous, next) {
           for (final venta in next.value ?? const <VentaModel>[]) {
             unawaited(_procesarSolicitudImpresionEnVivo(venta));
+          }
+        },
+      );
+      ref.listen<AsyncValue<List<TrasladoModel>>>(
+        trasladosConSolicitudImpresionEnVivoStreamProvider,
+        (previous, next) {
+          for (final traslado in next.value ?? const <TrasladoModel>[]) {
+            unawaited(_procesarSolicitudImpresionEnVivoTraslado(traslado));
           }
         },
       );

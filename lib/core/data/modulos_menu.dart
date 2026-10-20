@@ -112,6 +112,23 @@ List<ModuloMenu> obtenerModulos() {
     // completo a pedido del dueño: no aplica a este negocio, así que no
     // existe ni como módulo de menú ni como flag dentro de Clientes.
     ModuloMenu(
+      titulo: 'Sucursales',
+      icono: Icons.store_mall_directory_outlined,
+      color: const Color(0xFF475569),
+      subModulos: [
+        SubModulo(titulo: 'Sucursales', icono: Icons.store_mall_directory_outlined, moduleKey: 'sucursales', soloAdmin: true),
+      ],
+    ),
+    ModuloMenu(
+      titulo: 'Traslados',
+      icono: Icons.sync_alt_outlined,
+      color: const Color(0xFF0E7490),
+      subModulos: [
+        SubModulo(titulo: 'Registrar Traslado', icono: Icons.add_box_outlined, moduleKey: 'traslados_registrar'),
+        SubModulo(titulo: 'Ver Detalle', icono: Icons.receipt_long_outlined, moduleKey: 'traslados_detalle'),
+      ],
+    ),
+    ModuloMenu(
       titulo: 'Créditos',
       icono: Icons.credit_card_outlined,
       color: const Color(0xFFEC4899),
@@ -127,6 +144,7 @@ List<ModuloMenu> obtenerModulos() {
       subModulos: [
         SubModulo(titulo: 'Reporte de Ventas', icono: Icons.trending_up_outlined, moduleKey: 'reporte_ventas'),
         SubModulo(titulo: 'Reporte de Compras', icono: Icons.trending_down_outlined, moduleKey: 'reporte_compras'),
+        SubModulo(titulo: 'Traslados', icono: Icons.sync_alt_outlined, moduleKey: 'reporte_traslados'),
         SubModulo(titulo: 'Reporte Financiero', icono: Icons.account_balance_outlined, moduleKey: 'reporte_financiero', soloAdmin: true),
         SubModulo(titulo: 'Cierre de Caja', icono: Icons.point_of_sale_outlined, moduleKey: 'cierre_caja'),
         SubModulo(titulo: 'Ingresos-Egresos', icono: Icons.swap_vert_outlined, moduleKey: 'ingresos_egresos'),

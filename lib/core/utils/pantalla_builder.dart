@@ -1,3 +1,7 @@
+import '../../features/sucursales/presentation/screens/sucursales_screen.dart';
+import '../../features/traslados/presentation/screens/registrar_traslado_screen.dart';
+import '../../features/traslados/presentation/screens/detalle_traslado_screen.dart';
+import '../../features/traslados/presentation/screens/reporte_traslados_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/placeholder_screen.dart';
@@ -179,6 +183,14 @@ Widget _construirContenidoPantalla(
         ],
         child: const ComprasCreditoScreen(),
       );
+    case 'sucursales':
+      return const SucursalesScreen();
+    case 'traslados_registrar':
+      return const RegistrarTrasladoScreen();
+    case 'traslados_detalle':
+      return const DetalleTrasladoScreen(esDialogo: false);
+    case 'reporte_traslados':
+      return const ReporteTrasladosScreen();
     case 'reporte_ventas':
       return const ReporteVentasScreen();
     case 'reporte_compras':

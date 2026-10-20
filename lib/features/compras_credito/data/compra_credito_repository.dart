@@ -1,3 +1,4 @@
+import '../../../core/data/operaciones_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/data/base_repository.dart';
 import 'compra_credito_model.dart';
@@ -84,7 +85,7 @@ class CompraCreditoRepository with ConRedMixin {
       if (montoAbonado > saldoAnterior + interes + 0.01) {
         throw Exception('El abono (${formatearMoneda(montoAbonado)}) supera el saldo disponible en esa factura (${formatearMoneda(saldoAnterior + interes)})');
       }
-      await _db.rpc('registrar_abono_compra_credito', params: {
+      await OperacionesService.instancia.rpc('registrar_abono_compra_credito', {
         'payload': {
           'idCompra': idCompra,
           'idProveedor': idProveedor.isEmpty ? null : idProveedor,
@@ -102,7 +103,7 @@ class CompraCreditoRepository with ConRedMixin {
   }
 
   Future<void> eliminarAbono({required String idCompra, required String idAbono, required double montoTotal}) {
-    return conRed(() => _db.rpc('eliminar_abono_compra_credito', params: {
+    return conRed(() => OperacionesService.instancia.rpc('eliminar_abono_compra_credito', {
           'p_id_compra': idCompra,
           'p_id_abono': idAbono,
           'p_monto_total': montoTotal,
@@ -119,7 +120,7 @@ class CompraCreditoRepository with ConRedMixin {
     required String metodoPago,
     required String numeroRecibo,
   }) {
-    return conRed(() => _db.rpc('editar_abono_compra_credito', params: {
+    return conRed(() => OperacionesService.instancia.rpc('editar_abono_compra_credito', {
           'payload': {
             'idCompra': idCompra,
             'idAbono': idAbono,
@@ -240,7 +241,7 @@ class CompraCreditoRepository with ConRedMixin {
           throw Exception('El monto asignado a la factura ${item.compra.noFactura} supera su saldo pendiente');
         }
       }
-      await _db.rpc('registrar_abono_general_compra_credito', params: {
+      await OperacionesService.instancia.rpc('registrar_abono_general_compra_credito', {
         'payload': {
           'metodoPago': metodoPago,
           'usuario': usuario,

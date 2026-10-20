@@ -1,3 +1,4 @@
+import '../../../core/data/operaciones_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/data/base_repository.dart';
 import '../../../core/utils/texto_utils.dart';
@@ -71,7 +72,7 @@ class VentaRepository with ConRedMixin {
     String envioTelefono = '',
   }) {
     return conRed(() async {
-      final resultado = await _db.rpc('registrar_venta', params: {
+      final resultado = await OperacionesService.instancia.rpc('registrar_venta', {
         'payload': {
           'tipoDocumento': tipoDocumento,
           'condicion': condicion,
@@ -274,7 +275,7 @@ class VentaRepository with ConRedMixin {
   }) {
     return conRed(() async {
       try {
-        await _db.rpc('anular_venta', params: {'p_id': id, 'p_usuario': usuario, 'p_motivo': motivo});
+        await OperacionesService.instancia.rpc('anular_venta', {'p_id': id, 'p_usuario': usuario, 'p_motivo': motivo});
       } on PostgrestException catch (e) {
         if (e.code == 'PGRST116' || (e.message.toLowerCase().contains('no se encontró'))) {
           throw Exception('No se pudo anular: la venta ya no existe en el servidor (puede que se haya borrado desde otro dispositivo)');
@@ -379,7 +380,7 @@ class VentaRepository with ConRedMixin {
   /// reserva/suelta stock atómicamente, igual que la Transaction de Firestore.
   Future<String> guardarVentaEnEsperaManual(VentaEnEsperaModel sesion, {required String usuario, Set<String> categoriasSinControlStock = const {}}) {
     return conRed(() async {
-      final resultado = await _db.rpc('guardar_venta_en_espera_manual', params: {
+      final resultado = await OperacionesService.instancia.rpc('guardar_venta_en_espera_manual', {
         'payload': {
           'id': sesion.id,
           ...sesion.toMap(),
@@ -409,6 +410,6 @@ class VentaRepository with ConRedMixin {
   /// Elimina una venta en espera (manual o perdida). Si tenía una reserva de
   /// stock activa, la suelta primero — ver `eliminar_venta_en_espera`.
   Future<void> eliminarVentaEnEspera(String id, {String usuario = ''}) {
-    return conRed(() => _db.rpc('eliminar_venta_en_espera', params: {'p_id': id, 'p_usuario': usuario}));
+    return conRed(() => OperacionesService.instancia.rpc('eliminar_venta_en_espera', {'p_id': id, 'p_usuario': usuario}));
   }
 }

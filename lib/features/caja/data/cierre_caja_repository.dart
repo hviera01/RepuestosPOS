@@ -1,3 +1,4 @@
+import '../../../core/data/operaciones_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/data/base_repository.dart';
 import 'cierre_caja_model.dart';
@@ -94,7 +95,7 @@ class CierreCajaRepository with ConRedMixin {
     // negocios en otro huso horario), y se manda ya resuelto al RPC.
     final finCierre = cierre.fechaFin;
     final siguientePeriodo = DateTime(finCierre.year, finCierre.month, finCierre.day);
-    return conRed(() => _db.rpc('registrar_cierre_caja', params: {
+    return conRed(() => OperacionesService.instancia.rpc('registrar_cierre_caja', {
           'payload': {
             'fechaInicio': cierre.fechaInicio.toIso8601String(),
             'fechaFin': cierre.fechaFin.toIso8601String(),
