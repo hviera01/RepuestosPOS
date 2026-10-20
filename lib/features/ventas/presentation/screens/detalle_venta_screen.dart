@@ -1498,22 +1498,6 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      if (item.codigosColor.isNotEmpty)
-                        Text(
-                          'Código: ${item.codigosColor.join(', ')}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 10.5,
-                            color: Marca.primario,
-                          ),
-                        ),
-                      if (item.reembasado)
-                        Text(
-                          'Reembasado',
-                          style: GoogleFonts.poppins(
-                            fontSize: 10.5,
-                            color: Colors.grey.shade400,
-                          ),
-                        ),
                       if (item.descuentoPorcentaje > 0)
                         Text(
                           'Descuento ${_formatoCantidad(item.descuentoPorcentaje)}%',
@@ -1571,21 +1555,9 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                if (item.codigosColor.isNotEmpty)
+                if (item.descuentoPorcentaje > 0)
                   Text(
-                    'Código: ${item.codigosColor.join(', ')}',
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      color: Marca.primario,
-                    ),
-                  ),
-                if (item.reembasado || item.descuentoPorcentaje > 0)
-                  Text(
-                    [
-                      if (item.reembasado) 'Reembasado',
-                      if (item.descuentoPorcentaje > 0)
-                        'Descuento ${_formatoCantidad(item.descuentoPorcentaje)}%',
-                    ].join(' · '),
+                    'Descuento ${_formatoCantidad(item.descuentoPorcentaje)}%',
                     style: GoogleFonts.poppins(
                       fontSize: 11,
                       color: Colors.grey.shade500,

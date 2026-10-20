@@ -847,7 +847,6 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
   Future<void> _agregarProductoConPromos(
     ProductoModel producto, {
     required double precioSeleccionado,
-    bool reembasado = false,
     bool esEscaneo = false,
   }) async {
     final carritoAntes = ref.read(carritoVentaProvider);
@@ -865,7 +864,6 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
         .agregarOFusionarProductoDirecto(
           producto,
           precioSeleccionado: precioSeleccionado,
-          reembasado: reembasado,
           fusionarSiYaExiste: fusionarSiYaExiste,
         );
     if (!mounted) return;
@@ -1399,10 +1397,10 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       if (index < carrito.items.length) {
         final item = carrito.items[index];
         final precioBase = item.precioVenta;
-        final precioPorCuartoMostrado = _mostrarPrecioConIsv
+        final precioUnitarioMostrado = _mostrarPrecioConIsv
             ? redondearMoneda(precioBase * 1.15)
             : precioBase;
-        _ctrlPrecio[index]?.text = precioPorCuartoMostrado.toStringAsFixed(2);
+        _ctrlPrecio[index]?.text = precioUnitarioMostrado.toStringAsFixed(2);
       }
       return;
     }
@@ -1424,8 +1422,8 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
         if (ctrl == null) continue;
         final item = carrito.items[i];
         final base = item.precioVenta;
-        final precioPorCuarto = conIsv ? redondearMoneda(base * 1.15) : base;
-        ctrl.text = precioPorCuarto.toStringAsFixed(2);
+        final precioUnitario = conIsv ? redondearMoneda(base * 1.15) : base;
+        ctrl.text = precioUnitario.toStringAsFixed(2);
       }
     });
   }
@@ -5670,14 +5668,6 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
             onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           ),
         ),
-        if (item.reembasado as bool)
-          Text(
-            'Reembasado',
-            style: GoogleFonts.poppins(
-              fontSize: 10.5,
-              color: Colors.grey.shade400,
-            ),
-          ),
       ],
     );
   }
@@ -5690,10 +5680,10 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
   ) {
     final producto = mapaProductos[item.idProducto as String];
     final precioSinIsv = item.precioVenta as double;
-    final precioPorCuartoMostrado = _mostrarPrecioConIsv
+    final precioUnitarioMostrado = _mostrarPrecioConIsv
         ? redondearMoneda(precioSinIsv * 1.15)
         : precioSinIsv;
-    final precioMostrado = precioPorCuartoMostrado;
+    final precioMostrado = precioUnitarioMostrado;
     final importe = _importeMostrado(item);
 
     final ctrlCantidad = _ctrlCantidad.putIfAbsent(
@@ -5811,10 +5801,10 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
   ) {
     final producto = mapaProductos[item.idProducto as String];
     final precioSinIsv = item.precioVenta as double;
-    final precioPorCuartoMostrado = _mostrarPrecioConIsv
+    final precioUnitarioMostrado = _mostrarPrecioConIsv
         ? redondearMoneda(precioSinIsv * 1.15)
         : precioSinIsv;
-    final precioMostrado = precioPorCuartoMostrado;
+    final precioMostrado = precioUnitarioMostrado;
     final importe = _importeMostrado(item);
 
     final ctrlCantidad = _ctrlCantidad.putIfAbsent(

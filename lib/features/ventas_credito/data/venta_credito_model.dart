@@ -30,9 +30,7 @@ class VentaCreditoModel {
 
   final String telefono;
 
-  final bool solicitudAvisoWhatsApp;
 
-  final String? errorAvisoWhatsApp;
 
   final bool sinVentaOrigen;
 
@@ -52,8 +50,6 @@ class VentaCreditoModel {
     this.sinVentaOrigen = false,
     this.facturasOrigen = const [],
     this.telefono = '',
-    this.solicitudAvisoWhatsApp = false,
-    this.errorAvisoWhatsApp,
   });
 
   bool get liquidada => saldoPendiente <= 0;
@@ -80,8 +76,6 @@ class VentaCreditoModel {
           .map((f) => FacturaOrigenModel.fromMap(Map<String, dynamic>.from(f as Map)))
           .toList(),
       telefono: data['telefono'] ?? '',
-      solicitudAvisoWhatsApp: data['solicitud_aviso_whatsapp'] ?? false,
-      errorAvisoWhatsApp: data['error_aviso_whatsapp'] as String?,
     );
   }
 

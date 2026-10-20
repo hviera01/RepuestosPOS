@@ -33,19 +33,17 @@ class HistorialStockModel {
     if (motivo.startsWith('Venta ')) return TipoMovimientoStock.venta;
     if (motivo.startsWith('Anulación de compra')) return TipoMovimientoStock.anulacionCompra;
     if (motivo.startsWith('Compra ')) return TipoMovimientoStock.compra;
-    if (motivo.startsWith('Reembasado')) return TipoMovimientoStock.reembasado;
     return delta >= 0 ? TipoMovimientoStock.ajusteEntrada : TipoMovimientoStock.ajusteSalida;
   }
 }
 
-enum TipoMovimientoStock { venta, anulacionVenta, compra, anulacionCompra, reembasado, ajusteEntrada, ajusteSalida }
+enum TipoMovimientoStock { venta, anulacionVenta, compra, anulacionCompra, ajusteEntrada, ajusteSalida }
 
 const etiquetasTipoMovimientoStock = {
   TipoMovimientoStock.venta: 'Venta',
   TipoMovimientoStock.anulacionVenta: 'Anulación de venta',
   TipoMovimientoStock.compra: 'Compra',
   TipoMovimientoStock.anulacionCompra: 'Anulación de compra',
-  TipoMovimientoStock.reembasado: 'Reembasado',
   TipoMovimientoStock.ajusteEntrada: 'Ajuste (entrada)',
   TipoMovimientoStock.ajusteSalida: 'Ajuste (salida)',
 };

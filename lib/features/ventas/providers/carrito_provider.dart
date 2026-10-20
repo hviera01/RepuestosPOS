@@ -217,7 +217,6 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     ProductoModel producto, {
     double? precioSeleccionado,
     double precioCompraUsado = 0,
-    bool reembasado = false,
   }) {
     final precio = (precioSeleccionado ?? producto.precioVenta) / state.factorIsv;
     final item = ItemVentaModel(
@@ -230,7 +229,6 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
       precioCompraUsado: precioCompraUsado > 0
           ? precioCompraUsado
           : producto.precioCompra,
-      reembasado: reembasado,
     );
     state = state.copyWith(items: [...state.items, item]);
   }
@@ -239,7 +237,6 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     ProductoModel producto, {
     double? precioSeleccionado,
     double precioCompraUsado = 0,
-    bool reembasado = false,
     bool fusionarSiYaExiste = false,
   }) {
     if (fusionarSiYaExiste) {
@@ -255,7 +252,6 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
       producto,
       precioSeleccionado: precioSeleccionado,
       precioCompraUsado: precioCompraUsado,
-      reembasado: reembasado,
     );
     return state.items.length - 1;
   }
@@ -312,7 +308,6 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     double? cantidad,
     double? precioNuevo,
     double? descuentoPorcentaje,
-    bool? reembasado,
   }) {
     final actual = state.items[index];
     final nuevaCantidad = cantidad ?? actual.cantidad;
@@ -327,11 +322,9 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
       cantidad: nuevaCantidad,
       subtotal: _subtotalLinea(nuevoPrecio, nuevaCantidad, nuevoDescuento),
       precioCompraUsado: actual.precioCompraUsado,
-      reembasado: reembasado ?? actual.reembasado,
       descuentoPorcentaje: nuevoDescuento,
       componentes: actual.componentes,
       pendienteCompra: actual.pendienteCompra,
-      codigosColor: actual.codigosColor,
     );
     state = state.copyWith(items: nuevos);
   }
@@ -347,12 +340,6 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     if (texto.isEmpty) return;
     final nuevos = [...state.items];
     nuevos[index] = nuevos[index].copyWith(nombreProducto: texto);
-    state = state.copyWith(items: nuevos);
-  }
-
-  void actualizarCodigosColor(int index, List<String> nuevosCodigos) {
-    final nuevos = [...state.items];
-    nuevos[index] = nuevos[index].copyWith(codigosColor: nuevosCodigos);
     state = state.copyWith(items: nuevos);
   }
 
@@ -465,7 +452,6 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
               precioCompraUsado: item.precioCompraUsado,
               descuentoPorcentaje: item.descuentoPorcentaje,
               componentes: item.componentes,
-              codigosColor: item.codigosColor,
             ),
           )
           .toList(),

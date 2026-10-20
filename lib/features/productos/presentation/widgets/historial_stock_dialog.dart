@@ -57,7 +57,6 @@ class _HistorialStockDialogState extends ConsumerState<HistorialStockDialog> {
       case TipoMovimientoStock.compra:
       case TipoMovimientoStock.anulacionCompra:
         return RegExp(r'\d+').firstMatch(r.motivo)?.group(0);
-      case TipoMovimientoStock.reembasado:
       case TipoMovimientoStock.ajusteEntrada:
       case TipoMovimientoStock.ajusteSalida:
         return null;
@@ -267,7 +266,6 @@ class _HistorialStockDialogState extends ConsumerState<HistorialStockDialog> {
       TipoMovimientoStock.anulacionVenta => (Marca.primario, Icons.undo),
       TipoMovimientoStock.compra => (const Color(0xFF2B6CB0), Icons.local_shipping_outlined),
       TipoMovimientoStock.anulacionCompra => (Marca.primario, Icons.undo),
-      TipoMovimientoStock.reembasado => (const Color(0xFF9333EA), Icons.opacity),
       TipoMovimientoStock.ajusteEntrada => (const Color(0xFF6B7280), Icons.tune),
       TipoMovimientoStock.ajusteSalida => (const Color(0xFF6B7280), Icons.tune),
     };

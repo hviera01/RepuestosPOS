@@ -9,7 +9,6 @@ import '../../ventas_credito/data/venta_credito_model.dart';
 import '../../ventas_credito/data/venta_credito_repository.dart';
 
 const _maxVentasRecientes = 10;
-const _maxHistorialColores = 20;
 const _maxProductosTop = 3;
 
 class ClienteHistorialRepository with ConRedMixin {
@@ -150,9 +149,6 @@ class ClienteHistorialRepository with ConRedMixin {
               (lote) => _db.from('venta_items').select().inFilter('id_venta', lote).order('id'),
             );
 
-      final numeroDocumentoPorVenta = {
-        for (final v in ventasMap.values) v.id: v.numeroDocumento,
-      };
       final lineas = detalleFilas.map((d) {
         final item = ItemVentaModel.fromRow(d);
         final idVenta = d['id_venta'] as String?;
@@ -161,28 +157,6 @@ class ClienteHistorialRepository with ConRedMixin {
             : null;
         return (item: item, fecha: fecha, idVenta: idVenta);
       }).toList();
-
-      final historialColores =
-          lineas
-              .where((l) => l.item.codigosColor.isNotEmpty)
-              .map(
-                (l) => ColorHistorialItem(
-                  fecha: l.fecha,
-                  nombreProducto: l.item.nombreProducto,
-                  codigosColor: l.item.codigosColor,
-                  numeroDocumento:
-                      (l.idVenta != null
-                          ? numeroDocumentoPorVenta[l.idVenta]
-                          : null) ??
-                      '',
-                ),
-              )
-              .toList()
-            ..sort(
-              (a, b) => (b.fecha ?? DateTime(2000)).compareTo(
-                a.fecha ?? DateTime(2000),
-              ),
-            );
 
       final cantidadPorProducto = <String, double>{};
       for (final l in lineas) {
@@ -241,7 +215,6 @@ class ClienteHistorialRepository with ConRedMixin {
         ventasRecientes: ventasRecientes,
         metodoPagoPreferido: metodoPagoPreferido,
         productosTop: productosTop.take(_maxProductosTop).toList(),
-        historialColores: historialColores.take(_maxHistorialColores).toList(),
         hayVentasEmparejadasPorNombre: hayEmparejadasPorNombre,
       );
     });

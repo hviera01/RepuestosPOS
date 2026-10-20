@@ -20,20 +20,6 @@ class VentaResumenCliente {
   });
 }
 
-class ColorHistorialItem {
-  final DateTime? fecha;
-  final String nombreProducto;
-  final List<String> codigosColor;
-  final String numeroDocumento;
-
-  ColorHistorialItem({
-    required this.fecha,
-    required this.nombreProducto,
-    required this.codigosColor,
-    required this.numeroDocumento,
-  });
-}
-
 class ProductoTopCliente {
   final String nombreProducto;
   final double cantidad;
@@ -56,7 +42,6 @@ class ClienteHistorialData {
 
   final List<ProductoTopCliente> productosTop;
 
-  final List<ColorHistorialItem> historialColores;
 
   final bool hayVentasEmparejadasPorNombre;
 
@@ -72,7 +57,6 @@ class ClienteHistorialData {
     required this.ventasRecientes,
     required this.metodoPagoPreferido,
     required this.productosTop,
-    required this.historialColores,
     required this.hayVentasEmparejadasPorNombre,
   });
 

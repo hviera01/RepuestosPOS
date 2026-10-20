@@ -1009,19 +1009,6 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
                     ),
                   ),
                 ),
-                if (credito.errorAvisoWhatsApp != null)
-                  Tooltip(
-                    message:
-                        'Aviso de WhatsApp falló: ${credito.errorAvisoWhatsApp}',
-                    child: const Padding(
-                      padding: EdgeInsets.only(left: 4),
-                      child: Icon(
-                        Icons.error_outline,
-                        size: 14,
-                        color: Color(0xFFB91C1C),
-                      ),
-                    ),
-                  ),
               ],
             ),
             InkWell(
@@ -1182,42 +1169,11 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
                     _chipEstado(credito),
                   ],
                 ),
-                if (credito.errorAvisoWhatsApp != null) ...[
-                  const SizedBox(height: 8),
-                  _avisoErrorWhatsApp(credito.errorAvisoWhatsApp!),
-                ],
               ],
             ),
           ),
         );
       },
-    );
-  }
-
-  Widget _avisoErrorWhatsApp(String error) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFCEAEA),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFB91C1C).withOpacity(0.3)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.error_outline, size: 15, color: Color(0xFFB91C1C)),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              'Aviso de WhatsApp falló: $error',
-              style: GoogleFonts.poppins(
-                fontSize: 11,
-                color: const Color(0xFFB91C1C),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 

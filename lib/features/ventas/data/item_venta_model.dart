@@ -40,11 +40,9 @@ class ItemVentaModel {
   final double cantidad;
   final double subtotal;
   final double precioCompraUsado;
-  final bool reembasado;
   final double descuentoPorcentaje;
   final List<ComponenteComboSnapshot> componentes;
   final bool pendienteCompra;
-  final List<String> codigosColor;
 
   ItemVentaModel({
     required this.idProducto,
@@ -54,11 +52,9 @@ class ItemVentaModel {
     required this.cantidad,
     required this.subtotal,
     required this.precioCompraUsado,
-    this.reembasado = false,
     this.descuentoPorcentaje = 0,
     this.componentes = const [],
     this.pendienteCompra = false,
-    this.codigosColor = const [],
   });
 
   bool get esCombo => componentes.isNotEmpty;
@@ -72,13 +68,11 @@ class ItemVentaModel {
       cantidad: (data['cantidad'] ?? 0).toDouble(),
       subtotal: (data['subtotal'] ?? 0).toDouble(),
       precioCompraUsado: (data['precioCompraUsado'] ?? 0).toDouble(),
-      reembasado: data['reembasado'] ?? false,
       descuentoPorcentaje: (data['descuentoPorcentaje'] ?? 0).toDouble(),
       componentes: (data['componentes'] as List<dynamic>? ?? [])
           .map((c) => ComponenteComboSnapshot.fromMap(Map<String, dynamic>.from(c)))
           .toList(),
       pendienteCompra: data['pendienteCompra'] ?? false,
-      codigosColor: (data['codigosColor'] as List<dynamic>? ?? []).map((c) => c.toString()).toList(),
     );
   }
 
@@ -91,13 +85,11 @@ class ItemVentaModel {
       cantidad: (data['cantidad'] ?? 0).toDouble(),
       subtotal: (data['subtotal'] ?? 0).toDouble(),
       precioCompraUsado: (data['precio_compra_usado'] ?? 0).toDouble(),
-      reembasado: data['reembasado'] ?? false,
       descuentoPorcentaje: (data['descuento_porcentaje'] ?? 0).toDouble(),
       componentes: (data['componentes'] as List<dynamic>? ?? [])
           .map((c) => ComponenteComboSnapshot.fromMap(Map<String, dynamic>.from(c)))
           .toList(),
       pendienteCompra: data['pendiente_compra'] ?? false,
-      codigosColor: (data['codigos_color'] as List<dynamic>? ?? []).map((c) => c.toString()).toList(),
     );
   }
 
@@ -110,11 +102,9 @@ class ItemVentaModel {
       'cantidad': cantidad,
       'subtotal': subtotal,
       'precioCompraUsado': precioCompraUsado,
-      'reembasado': reembasado,
       'descuentoPorcentaje': descuentoPorcentaje,
       'componentes': componentes.map((c) => c.toMap()).toList(),
       'pendienteCompra': pendienteCompra,
-      'codigosColor': codigosColor,
     };
   }
 
@@ -127,7 +117,6 @@ class ItemVentaModel {
     double? precioCompraUsado,
     List<ComponenteComboSnapshot>? componentes,
     bool? pendienteCompra,
-    List<String>? codigosColor,
   }) {
     return ItemVentaModel(
       idProducto: idProducto,
@@ -137,11 +126,9 @@ class ItemVentaModel {
       cantidad: cantidad ?? this.cantidad,
       subtotal: subtotal ?? this.subtotal,
       precioCompraUsado: precioCompraUsado ?? this.precioCompraUsado,
-      reembasado: reembasado,
       descuentoPorcentaje: descuentoPorcentaje ?? this.descuentoPorcentaje,
       componentes: componentes ?? this.componentes,
       pendienteCompra: pendienteCompra ?? this.pendienteCompra,
-      codigosColor: codigosColor ?? this.codigosColor,
     );
   }
 }

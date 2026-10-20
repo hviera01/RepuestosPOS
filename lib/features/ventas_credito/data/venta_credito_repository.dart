@@ -89,13 +89,6 @@ class VentaCreditoRepository with ConRedMixin {
     return conRed(() => _db.from('ventas_credito').update({'telefono': telefono.trim()}).eq('id', id));
   }
 
-  Future<void> solicitarAvisoWhatsApp(String idCredito) {
-    return conRed(() => _db.from('ventas_credito').update({
-          'solicitud_aviso_whatsapp': true,
-          'error_aviso_whatsapp': null,
-        }).eq('id', idCredito));
-  }
-
   Future<void> registrarAbono({
     required String idCredito,
     required double saldoAnterior,

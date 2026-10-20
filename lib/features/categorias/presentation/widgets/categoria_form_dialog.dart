@@ -255,7 +255,7 @@ class _CategoriaFormDialogState extends ConsumerState<CategoriaFormDialog> {
             Text(
               _controlaStock
                   ? 'Al vender, se descuenta del inventario y se avisa si no hay existencia suficiente.'
-                  : 'No se descuenta del inventario ni se bloquea la venta por existencia 0. Usalo para servicios o productos preparados al momento (ej. pintura preparada).',
+                  : 'No se descuenta del inventario ni se bloquea la venta por existencia 0. Úselo para servicios o mano de obra (por ejemplo instalación o alineado).',
               style: GoogleFonts.poppins(
                 fontSize: 11.5,
                 color: Colors.grey.shade500,
