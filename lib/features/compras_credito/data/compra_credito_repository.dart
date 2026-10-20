@@ -1,5 +1,7 @@
 import '../../../core/data/operaciones_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/data/tabla_sincronizada.dart';
+import '../../../core/data/consulta_paginada.dart';
 import '../../../core/data/base_repository.dart';
 import 'compra_credito_model.dart';
 import 'abono_compra_model.dart';
@@ -29,13 +31,13 @@ class CompraCreditoRepository with ConRedMixin {
     return ahora.substring(ahora.length - 8);
   }
 
-  Stream<List<CompraCreditoModel>> obtenerCompras() {
-    return conRedStream(() => _db
-        .from('compras_credito')
-        .stream(primaryKey: ['id'])
-        .order('fecha_registro', ascending: false)
-        .map((filas) => filas.map((d) => CompraCreditoModel.fromMap(d['id'] as String, d)).toList()));
-  }
+  static final TablaSincronizada<CompraCreditoModel> _tabla = TablaSincronizada<CompraCreditoModel>(
+    tabla: 'compras_credito',
+    desdeFila: (f) => CompraCreditoModel.fromMap(f['id'] as String, f),
+    orden: (a, b) => (b.fechaRegistro ?? DateTime(0)).compareTo(a.fechaRegistro ?? DateTime(0)),
+  );
+
+  Stream<List<CompraCreditoModel>> obtenerCompras() => _tabla.observar();
 
   Stream<List<AbonoCompraModel>> obtenerAbonos(String idCompra) {
     return conRedStream(() => _db
@@ -261,11 +263,15 @@ class CompraCreditoRepository with ConRedMixin {
 
   Future<List<AbonoCompraModel>> obtenerAbonosPorRango(DateTime inicio, DateTime finInclusive) {
     return conRed(() async {
-      final filas = await _db
-          .from('compra_credito_abonos')
-          .select()
-          .gte('fecha', inicio.toIso8601String())
-          .lte('fecha', finInclusive.toIso8601String());
+      final filas = await traerTodo(
+        () => _db
+            .from('compra_credito_abonos')
+            .select()
+            .gte('fecha', inicio.toIso8601String())
+            .lte('fecha', finInclusive.toIso8601String())
+            .order('fecha')
+            .order('id'),
+      );
       return filas.map((d) => AbonoCompraModel.fromMap(d['id'] as String, d)).toList();
     });
   }

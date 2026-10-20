@@ -1,3 +1,5 @@
+import 'compatibilidad_model.dart';
+
 /// Un componente de la receta de un producto tipo combo/kit: apunta a un
 /// producto individual real (con su propio stock/lotes) y cuántas unidades
 /// de ese producto lleva cada unidad del combo.
@@ -33,6 +35,9 @@ class ProductoModel {
   final String imagenUrl;
   final bool esCombo;
   final List<ComponenteProductoModel> componentes;
+  final String nombreBase;
+  final bool nombreAutomatico;
+  final List<CompatibilidadModel> compatibilidad;
 
   ProductoModel({
     required this.id,
@@ -50,6 +55,9 @@ class ProductoModel {
     this.imagenUrl = '',
     this.esCombo = false,
     this.componentes = const [],
+    this.nombreBase = '',
+    this.nombreAutomatico = false,
+    this.compatibilidad = const [],
   });
 
   factory ProductoModel.fromMap(String id, Map<String, dynamic> data) {
@@ -71,10 +79,17 @@ class ProductoModel {
       componentes: (data['componentes'] as List<dynamic>? ?? [])
           .map((c) => ComponenteProductoModel.fromMap(Map<String, dynamic>.from(c)))
           .toList(),
+      nombreBase: data['nombre_base'] ?? '',
+      nombreAutomatico: data['nombre_automatico'] ?? false,
+      compatibilidad: (data['compatibilidad'] as List<dynamic>? ?? [])
+          .map((c) => CompatibilidadModel.fromMap(Map<String, dynamic>.from(c as Map)))
+          .toList(),
     );
   }
 
   String get textoBusqueda => '$codigo $codigoBarras $nombre $descripcion';
+
+  String get textoVehiculos => compatibilidad.map((c) => c.textoCompleto).join(' ');
 
   /// Existencia estimada del combo según lo que hay disponible de cada
   /// componente (mínimo entre todos, dividido por la cantidad que lleva cada

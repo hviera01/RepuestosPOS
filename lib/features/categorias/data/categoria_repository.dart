@@ -1,17 +1,18 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/data/base_repository.dart';
+import '../../../core/data/tabla_sincronizada.dart';
 import 'categoria_model.dart';
 
 class CategoriaRepository with ConRedMixin {
   final _db = Supabase.instance.client;
 
-  Stream<List<CategoriaModel>> obtenerCategorias() {
-    return conRedStream(() => _db
-        .from('categorias')
-        .stream(primaryKey: ['id'])
-        .order('descripcion')
-        .map((filas) => filas.map((d) => CategoriaModel.fromMap(d['id'] as String, d)).toList()));
-  }
+  static final TablaSincronizada<CategoriaModel> _tabla = TablaSincronizada<CategoriaModel>(
+    tabla: 'categorias',
+    desdeFila: (f) => CategoriaModel.fromMap(f['id'] as String, f),
+    orden: (a, b) => a.descripcion.compareTo(b.descripcion),
+  );
+
+  Stream<List<CategoriaModel>> obtenerCategorias() => _tabla.observar();
 
   Future<void> crear(String descripcion, bool estado, {bool controlaStock = true}) {
     return conRed(() async {
@@ -19,11 +20,12 @@ class CategoriaRepository with ConRedMixin {
       if (existe.isNotEmpty) {
         throw Exception('Ya existe una categoría con esa descripción');
       }
-      await _db.from('categorias').insert({
+      final fila = await _db.from('categorias').insert({
         'descripcion': descripcion,
         'estado': estado,
         'controla_stock': controlaStock,
-      });
+      }).select().single();
+      _tabla.aplicarLocal(fila);
     });
   }
 
@@ -34,11 +36,12 @@ class CategoriaRepository with ConRedMixin {
       if (duplicado) {
         throw Exception('Ya existe una categoría con esa descripción');
       }
-      await _db.from('categorias').update({
+      final fila = await _db.from('categorias').update({
         'descripcion': descripcion,
         'estado': estado,
         'controla_stock': controlaStock,
-      }).eq('id', id);
+      }).eq('id', id).select().single();
+      _tabla.aplicarLocal(fila);
     });
   }
 
@@ -49,6 +52,7 @@ class CategoriaRepository with ConRedMixin {
         throw Exception('La categoría se encuentra relacionada a un producto');
       }
       await _db.from('categorias').delete().eq('id', id);
+      _tabla.quitarLocal(id);
     });
   }
 }

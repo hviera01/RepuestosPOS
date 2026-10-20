@@ -1,5 +1,7 @@
 import '../../../core/data/operaciones_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/data/tabla_sincronizada.dart';
+import '../../../core/data/consulta_paginada.dart';
 import '../../../core/data/base_repository.dart';
 import 'venta_credito_model.dart';
 import 'abono_model.dart';
@@ -14,13 +16,13 @@ class VentaCreditoRepository with ConRedMixin {
     return ahora.substring(ahora.length - 8);
   }
 
-  Stream<List<VentaCreditoModel>> obtenerCreditos() {
-    return conRedStream(() => _db
-        .from('ventas_credito')
-        .stream(primaryKey: ['id'])
-        .order('fecha_registro', ascending: false)
-        .map((filas) => filas.map((d) => VentaCreditoModel.fromMap(d['id'] as String, d)).toList()));
-  }
+  static final TablaSincronizada<VentaCreditoModel> _tabla = TablaSincronizada<VentaCreditoModel>(
+    tabla: 'ventas_credito',
+    desdeFila: (f) => VentaCreditoModel.fromMap(f['id'] as String, f),
+    orden: (a, b) => (b.fechaRegistro ?? DateTime(0)).compareTo(a.fechaRegistro ?? DateTime(0)),
+  );
+
+  Stream<List<VentaCreditoModel>> obtenerCreditos() => _tabla.observar();
 
   /// El registro de `ventas_credito` de una venta a crédito se crea con el
   /// mismo id que la venta (ver `registrar_venta` en supabase/schema.sql).
@@ -223,11 +225,15 @@ class VentaCreditoRepository with ConRedMixin {
 
   Future<List<AbonoModel>> obtenerAbonosPorRango(DateTime inicio, DateTime finInclusive) {
     return conRed(() async {
-      final filas = await _db
-          .from('venta_credito_abonos')
-          .select()
-          .gte('fecha', inicio.toIso8601String())
-          .lte('fecha', finInclusive.toIso8601String());
+      final filas = await traerTodo(
+        () => _db
+            .from('venta_credito_abonos')
+            .select()
+            .gte('fecha', inicio.toIso8601String())
+            .lte('fecha', finInclusive.toIso8601String())
+            .order('fecha')
+            .order('id'),
+      );
       return filas.map((d) => AbonoModel.fromMap(d['id'] as String, d)).toList();
     });
   }

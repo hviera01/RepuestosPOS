@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/config/supabase_config.dart';
+import 'core/data/almacen_local.dart';
+import 'core/data/operaciones_service.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'core/widgets/app_shell.dart';
@@ -38,6 +40,8 @@ Future<void> main() async {
   // Calienta la conexión a Cloudinary desde ya, para que la primera foto que
   // el usuario abra no tenga que pagar el costo de la primera conexión
   // (la más lenta: resolver el dominio + saludo de seguridad).
+  await AlmacenLocal.iniciar();
+  await OperacionesService.instancia.iniciar();
   ImagenProductoNetwork.precalentar();
   runApp(const ProviderScope(child: RepuestosApp()));
 }

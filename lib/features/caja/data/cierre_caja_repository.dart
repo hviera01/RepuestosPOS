@@ -1,5 +1,6 @@
 import '../../../core/data/operaciones_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/data/tabla_sincronizada.dart';
 import '../../../core/data/base_repository.dart';
 import 'cierre_caja_model.dart';
 import '../../egresos/data/egreso_repository.dart';
@@ -117,11 +118,11 @@ class CierreCajaRepository with ConRedMixin {
         }));
   }
 
-  Stream<List<CierreCajaModel>> obtenerHistorial() {
-    return conRedStream(() => _db
-        .from('cierres_caja')
-        .stream(primaryKey: ['id'])
-        .order('fecha_fin', ascending: false)
-        .map((filas) => filas.map((d) => CierreCajaModel.fromMap(d['id'] as String, d)).toList()));
-  }
+  static final TablaSincronizada<CierreCajaModel> _tabla = TablaSincronizada<CierreCajaModel>(
+    tabla: 'cierres_caja',
+    desdeFila: (f) => CierreCajaModel.fromMap(f['id'] as String, f),
+    orden: (a, b) => b.fechaFin.compareTo(a.fechaFin),
+  );
+
+  Stream<List<CierreCajaModel>> obtenerHistorial() => _tabla.observar();
 }

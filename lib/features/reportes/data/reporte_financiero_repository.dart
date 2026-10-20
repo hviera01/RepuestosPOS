@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/data/base_repository.dart';
+import '../../../core/data/consulta_paginada.dart';
 import 'reporte_repository.dart';
 import 'reporte_financiero_model.dart';
 import 'reporte_venta_model.dart';
@@ -52,20 +53,20 @@ class ReporteFinancieroRepository with ConRedMixin {
   double? _efectivoEstimadoCache;
   DateTime? _efectivoEstimadoCacheEn;
 
-  /// Detalle (venta_items) de todas las ventas ACTUALES (no históricas) cuyo
-  /// id está en [idsVenta], agrupado por id de venta en una sola consulta
-  /// `IN (...)` -antes era un collectionGroup sobre la subcolección
-  /// 'detalle' filtrado por fecha; venta_items no tiene su propia columna de
-  /// fecha (no hace falta: ya se sabe qué ventas del rango son, por
-  /// [ReporteRepository.obtenerReporteVentas])-.
-  Future<Map<String, List<ItemVentaModel>>> _detalleVentasPorIds(
-    List<String> idsVenta,
+  Future<Map<String, List<ItemVentaModel>>> _detalleVentasPorRango(
+    DateTime inicio,
+    DateTime finInclusive,
   ) async {
-    if (idsVenta.isEmpty) return {};
-    final filas = await _db
-        .from('venta_items')
-        .select()
-        .inFilter('id_venta', idsVenta);
+    final filas = await traerTodo(
+      () => _db
+          .from('venta_items')
+          .select('*, ventas!inner(fecha_registro, estado, tipo_documento)')
+          .gte('ventas.fecha_registro', inicio.toIso8601String())
+          .lte('ventas.fecha_registro', finInclusive.toIso8601String())
+          .eq('ventas.estado', 'Activa')
+          .neq('ventas.tipo_documento', 'Cotizacion')
+          .order('id'),
+    );
     final resultado = <String, List<ItemVentaModel>>{};
     for (final fila in filas) {
       resultado
@@ -75,15 +76,19 @@ class ReporteFinancieroRepository with ConRedMixin {
     return resultado;
   }
 
-  /// Mismo criterio que [_detalleVentasPorIds], para compra_items.
-  Future<Map<String, List<ItemCompraModel>>> _detalleComprasPorIds(
-    List<String> idsCompra,
+  Future<Map<String, List<ItemCompraModel>>> _detalleComprasPorRango(
+    DateTime inicio,
+    DateTime finInclusive,
   ) async {
-    if (idsCompra.isEmpty) return {};
-    final filas = await _db
-        .from('compra_items')
-        .select()
-        .inFilter('id_compra', idsCompra);
+    final filas = await traerTodo(
+      () => _db
+          .from('compra_items')
+          .select('*, compras!inner(fecha_registro, estado)')
+          .gte('compras.fecha_registro', inicio.toIso8601String())
+          .lte('compras.fecha_registro', finInclusive.toIso8601String())
+          .eq('compras.estado', 'Activa')
+          .order('id'),
+    );
     final resultado = <String, List<ItemCompraModel>>{};
     for (final fila in filas) {
       resultado
@@ -212,19 +217,19 @@ class ReporteFinancieroRepository with ConRedMixin {
         inicio,
         finInclusive,
       );
-      final productosFuture = _db.from('productos').select();
+      final detalleVentaFuture = _detalleVentasPorRango(inicio, finInclusive);
+      final detalleCompraFuture = _detalleComprasPorRango(inicio, finInclusive);
+      final productosFuture = traerTodo(() => _db.from('productos').select().order('id'));
       // Solo interesan para sumar saldoPendiente (cuentas por cobrar/pagar), así
       // que se filtran del lado del servidor los créditos ya saldados en vez de
       // traer la tabla completa (con historial largo, la mayoría termina
       // pagada) y descartarlos recién en el cliente.
-      final ventasCreditoFuture = _db
-          .from('ventas_credito')
-          .select()
-          .gt('saldo_pendiente', 0);
-      final comprasCreditoFuture = _db
-          .from('compras_credito')
-          .select()
-          .gt('saldo_pendiente', 0);
+      final ventasCreditoFuture = traerTodo(
+        () => _db.from('ventas_credito').select().gt('saldo_pendiente', 0).order('id'),
+      );
+      final comprasCreditoFuture = traerTodo(
+        () => _db.from('compras_credito').select().gt('saldo_pendiente', 0).order('id'),
+      );
       final serieMensualFuture = _obtenerSerieMensual();
       final efectivoEstimadoFuture = _efectivoEstimado();
       final hace3Meses = DateTime(
@@ -238,10 +243,9 @@ class ReporteFinancieroRepository with ConRedMixin {
       // baja) no tiene sentido incluirlo en "clientes inactivos" -eso es para
       // clientes vigentes que se dejaron de aparecer, no para los ya dados de
       // baja a propósito-. Filtro simple de un solo campo, sin índice extra.
-      final clientesActivosFuture = _db
-          .from('clientes')
-          .select()
-          .eq('estado', true);
+      final clientesActivosFuture = traerTodo(
+        () => _db.from('clientes').select().eq('estado', true).order('id'),
+      );
 
       final ventasHeaders = await ventasHeadersFuture;
       final comprasHeaders = await comprasHeadersFuture;
@@ -261,12 +265,8 @@ class ReporteFinancieroRepository with ConRedMixin {
           .toList();
       final comprasValidas = comprasHeaders.where((c) => c.esActiva).toList();
 
-      final detalleVentaPorId = await _detalleVentasPorIds(
-        ventasValidas.map((v) => v.id).toList(),
-      );
-      final detalleCompraPorId = await _detalleComprasPorIds(
-        comprasValidas.map((c) => c.id).toList(),
-      );
+      final detalleVentaPorId = await detalleVentaFuture;
+      final detalleCompraPorId = await detalleCompraFuture;
 
       final detalleVentasPorVenta = [
         for (final v in ventasValidas)

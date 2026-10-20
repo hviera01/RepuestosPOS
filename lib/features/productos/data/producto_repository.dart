@@ -1,6 +1,10 @@
 import '../../../core/data/operaciones_service.dart';
+import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/data/base_repository.dart';
+import '../../../core/data/tabla_sincronizada.dart';
+import '../../../core/data/consulta_paginada.dart';
+import 'compatibilidad_model.dart';
 import 'producto_model.dart';
 import 'producto_import_service.dart';
 import 'historial_stock_model.dart';
@@ -18,12 +22,19 @@ class ResumenImportacionProductos {
 class ProductoRepository with ConRedMixin {
   final _db = Supabase.instance.client;
 
-  Stream<List<ProductoModel>> obtenerProductos() {
-    return conRedStream(() => _db
-        .from('productos')
-        .stream(primaryKey: ['id'])
-        .order('nombre')
-        .map((filas) => filas.map((d) => ProductoModel.fromMap(d['id'] as String, d)).toList()));
+  static final TablaSincronizada<ProductoModel> _tabla = TablaSincronizada<ProductoModel>(
+    tabla: 'productos',
+    desdeFila: (f) => ProductoModel.fromMap(f['id'] as String, f),
+    orden: (a, b) => a.nombre.compareTo(b.nombre),
+  );
+
+  Stream<List<ProductoModel>> obtenerProductos() => _tabla.observar();
+
+  Future<void> sincronizarAhora() => _tabla.sincronizar();
+
+  Exception _traducirDuplicado(PostgrestException e) {
+    if (e.code == '23505') return Exception('Ya existe un producto con ese código');
+    return Exception(e.message);
   }
 
   String _generarCodigo() {
@@ -62,19 +73,21 @@ class ProductoRepository with ConRedMixin {
     String imagenUrl = '',
     bool esCombo = false,
     List<ComponenteProductoModel> componentes = const [],
+    String nombreBase = '',
+    bool nombreAutomatico = false,
+    List<CompatibilidadModel> compatibilidad = const [],
   }) {
     return conRed(() async {
       var codigoFinal = codigo.trim();
       if (codigoFinal.isEmpty) {
         codigoFinal = _generarCodigo();
-      } else {
-        final existe = await _db.from('productos').select('id').eq('codigo', codigoFinal).limit(1);
-        if (existe.isNotEmpty) {
-          throw Exception('Ya existe un producto con ese código');
-        }
+      } else if (_tabla.actual.any((p) => p.codigo.toLowerCase() == codigoFinal.toLowerCase())) {
+        throw Exception('Ya existe un producto con ese código');
       }
       final codigoBarrasFinal = codigoBarras.trim().isEmpty ? _generarCodigoBarras() : codigoBarras.trim();
-      final fila = await _db.from('productos').insert({
+      final Map<String, dynamic> fila;
+      try {
+        fila = await _db.from('productos').insert({
         'codigo': codigoFinal,
         'codigo_barras': codigoBarrasFinal,
         'nombre': nombre.trim(),
@@ -89,8 +102,15 @@ class ProductoRepository with ConRedMixin {
         'imagen_url': imagenUrl,
         'es_combo': esCombo,
         'componentes': componentes.map((c) => c.toMap()).toList(),
+        'nombre_base': nombreBase.trim(),
+        'nombre_automatico': nombreAutomatico,
+        'compatibilidad': compatibilidad.map((c) => c.toMap()).toList(),
       }).select().single();
+      } on PostgrestException catch (e) {
+        throw _traducirDuplicado(e);
+      }
       final id = fila['id'] as String;
+      _tabla.aplicarLocal(fila);
 
       // Si el producto se crea con existencia inicial, esa cantidad también
       // necesita su propio lote de costo — si no, al venderla no hay lote
@@ -122,6 +142,9 @@ class ProductoRepository with ConRedMixin {
         imagenUrl: imagenUrl,
         esCombo: esCombo,
         componentes: componentes,
+        nombreBase: nombreBase.trim(),
+        nombreAutomatico: nombreAutomatico,
+        compatibilidad: compatibilidad,
       );
     });
   }
@@ -143,12 +166,13 @@ class ProductoRepository with ConRedMixin {
     // se puede cambiar después de creado, pero la receta de componentes sí.
     bool? esCombo,
     List<ComponenteProductoModel>? componentes,
+    String? nombreBase,
+    bool? nombreAutomatico,
+    List<CompatibilidadModel>? compatibilidad,
   }) {
     return conRed(() async {
       final codigoFinal = codigo.trim().isEmpty ? _generarCodigo() : codigo.trim();
-      final existe = await _db.from('productos').select('id').eq('codigo', codigoFinal).limit(2);
-      final duplicado = existe.any((d) => d['id'] != id);
-      if (duplicado) {
+      if (_tabla.actual.any((p) => p.id != id && p.codigo.toLowerCase() == codigoFinal.toLowerCase())) {
         throw Exception('Ya existe un producto con ese código');
       }
       final datos = <String, dynamic>{
@@ -166,12 +190,25 @@ class ProductoRepository with ConRedMixin {
       };
       if (esCombo != null) datos['es_combo'] = esCombo;
       if (componentes != null) datos['componentes'] = componentes.map((c) => c.toMap()).toList();
-      await _db.from('productos').update(datos).eq('id', id);
+      if (nombreBase != null) datos['nombre_base'] = nombreBase.trim();
+      if (nombreAutomatico != null) datos['nombre_automatico'] = nombreAutomatico;
+      if (compatibilidad != null) datos['compatibilidad'] = compatibilidad.map((c) => c.toMap()).toList();
+      _tabla.aplicarLocal({'id': id, ...datos});
+      try {
+        final fila = await _db.from('productos').update(datos).eq('id', id).select().single();
+        _tabla.aplicarLocal(fila);
+      } on PostgrestException catch (e) {
+        unawaited(_tabla.sincronizar());
+        throw _traducirDuplicado(e);
+      }
     });
   }
 
   Future<void> eliminar(String id) {
-    return conRed(() => _db.from('productos').delete().eq('id', id));
+    return conRed(() async {
+      await _db.from('productos').delete().eq('id', id);
+      _tabla.quitarLocal(id);
+    });
   }
 
   /// Crea o actualiza en lote los productos de una importación desde Excel.
@@ -308,21 +345,21 @@ class ProductoRepository with ConRedMixin {
 
   Future<List<HistorialStockModel>> obtenerHistorialStock(String idProducto) {
     return conRed(() async {
-      final filas = await _db.from('producto_historial_stock').select().eq('id_producto', idProducto).order('fecha', ascending: false);
+      final filas = await traerTodo(() => _db.from('producto_historial_stock').select().eq('id_producto', idProducto).order('fecha', ascending: false).order('id'));
       return filas.map((d) => HistorialStockModel.fromMap(d['id'] as String, d)).toList();
     });
   }
 
   Future<List<HistorialPrecioCompraModel>> obtenerHistorialPreciosCompra(String idProducto) {
     return conRed(() async {
-      final filas = await _db.from('producto_historial_precios_compra').select().eq('id_producto', idProducto).order('fecha');
+      final filas = await traerTodo(() => _db.from('producto_historial_precios_compra').select().eq('id_producto', idProducto).order('fecha').order('id'));
       return filas.map((d) => HistorialPrecioCompraModel.fromMap(d['id'] as String, d)).toList();
     });
   }
 
   Future<List<HistorialVentaProductoModel>> obtenerHistorialVentas(String idProducto) {
     return conRed(() async {
-      final filas = await _db.from('producto_historial_ventas').select().eq('id_producto', idProducto).order('fecha');
+      final filas = await traerTodo(() => _db.from('producto_historial_ventas').select().eq('id_producto', idProducto).order('fecha').order('id'));
       return filas.map((d) => HistorialVentaProductoModel.fromMap(d['id'] as String, d)).toList();
     });
   }

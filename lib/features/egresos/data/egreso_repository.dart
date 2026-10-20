@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../../core/data/consulta_paginada.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/data/base_repository.dart';
 import 'egreso_model.dart';
@@ -26,12 +27,15 @@ class EgresoRepository with ConRedMixin {
 
   Future<List<EgresoModel>> obtenerEgresosPorRango(DateTime inicio, DateTime finInclusive) {
     return conRed(() async {
-      final filas = await _db
-          .from('egresos')
-          .select()
-          .gte('fecha', inicio.toIso8601String())
-          .lte('fecha', finInclusive.toIso8601String())
-          .order('fecha', ascending: false);
+      final filas = await traerTodo(
+        () => _db
+            .from('egresos')
+            .select()
+            .gte('fecha', inicio.toIso8601String())
+            .lte('fecha', finInclusive.toIso8601String())
+            .order('fecha', ascending: false)
+            .order('id'),
+      );
       return filas.map((d) => EgresoModel.fromMap(d['id'] as String, d)).toList();
     });
   }

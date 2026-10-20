@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/data/consulta_paginada.dart';
 import '../../../core/data/base_repository.dart';
 import 'cliente_model.dart';
 import 'cliente_historial_model.dart';
@@ -31,26 +32,24 @@ class ClienteHistorialRepository with ConRedMixin {
       final dni = cliente.dni.trim();
 
       // Todo lo que no depende de nada más se dispara junto.
-      final ventasPorIdFuture = _db
-          .from('ventas')
-          .select()
-          .eq('id_cliente', cliente.id);
+      final ventasPorIdFuture = traerTodo(
+        () => _db.from('ventas').select().eq('id_cliente', cliente.id).order('id'),
+      );
       final ventasPorNombreFuture = nombre.isEmpty
           ? null
-          : _db.from('ventas').select().eq('nombre_cliente', nombre);
+          : traerTodo(() => _db.from('ventas').select().eq('nombre_cliente', nombre).order('id'));
       // Créditos: por idCliente (confiable, el mismo vínculo real que ventas) +
       // respaldo por DNI para créditos viejos que hayan quedado sin idCliente.
       // Antes esto SOLO buscaba por DNI -si el cliente no tenía DNI cargado
       // (frecuente, es un campo opcional), la pantalla de Detalle de Cliente
       // mostraba "no tiene historial de crédito" aunque sí tuviera, como pasó
       // con un cliente real al probarlo-.
-      final creditosPorIdFuture = _db
-          .from('ventas_credito')
-          .select()
-          .eq('id_cliente', cliente.id);
+      final creditosPorIdFuture = traerTodo(
+        () => _db.from('ventas_credito').select().eq('id_cliente', cliente.id).order('id'),
+      );
       final creditosPorDniFuture = dni.isEmpty || dni == 'N/A'
           ? null
-          : _db.from('ventas_credito').select().eq('documento_cliente', dni);
+          : traerTodo(() => _db.from('ventas_credito').select().eq('documento_cliente', dni).order('id'));
 
       final ventasPorIdFilas = await ventasPorIdFuture;
       final ventasPorNombreFilas = ventasPorNombreFuture == null
@@ -176,10 +175,10 @@ class ClienteHistorialRepository with ConRedMixin {
       final idsVenta = ventasMap.keys.toList();
       final detalleFilas = idsVenta.isEmpty
           ? const <Map<String, dynamic>>[]
-          : await _db
-                .from('venta_items')
-                .select()
-                .inFilter('id_venta', idsVenta);
+          : await traerPorLotes(
+              idsVenta,
+              (lote) => _db.from('venta_items').select().inFilter('id_venta', lote).order('id'),
+            );
 
       final numeroDocumentoPorVenta = {
         for (final v in ventasMap.values) v.id: v.numeroDocumento,
