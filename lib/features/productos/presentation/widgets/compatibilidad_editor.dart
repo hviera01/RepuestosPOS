@@ -284,14 +284,6 @@ class _CompatibilidadEditorState extends ConsumerState<CompatibilidadEditor> {
             ),
           if (_usar) ...[
             const SizedBox(height: 10),
-            TextField(
-              controller: widget.nombreBaseCtrl,
-              textCapitalization: TextCapitalization.characters,
-              style: GoogleFonts.poppins(fontSize: 13),
-              decoration: _deco('Nombre del repuesto (ej. PASTILLAS DE FRENO DELANTERAS)'),
-              onChanged: (_) => _notificar(),
-            ),
-            const SizedBox(height: 12),
             for (var i = 0; i < _filas.length; i++) _filaWidget(i, sug),
             Align(
               alignment: Alignment.centerLeft,
@@ -309,7 +301,7 @@ class _CompatibilidadEditorState extends ConsumerState<CompatibilidadEditor> {
               onChanged: widget.alCambiarAutomatico,
               title: Text('Armar el nombre automáticamente', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
               subtitle: Text(
-                'Une el nombre del repuesto con los vehículos. Puedes editar el nombre a mano cuando quieras.',
+                'Pone al final del Nombre de arriba los vehículos compatibles. Si prefiere escribir todo el nombre a mano, apague esta opción.',
                 style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade600),
               ),
             ),

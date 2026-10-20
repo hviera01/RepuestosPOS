@@ -53,7 +53,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
   final _nombreController = TextEditingController();
   final _nombreBaseController = TextEditingController();
   List<CompatibilidadModel> _compat = [];
-  bool _nombreAuto = false;
+  bool _nombreAuto = true;
   bool _escribiendoNombre = false;
   final _descripcionController = TextEditingController();
   final _stockController = TextEditingController(text: '0');
@@ -134,9 +134,16 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
         _codigoController.text = widget.codigoInicial!;
       if (widget.nombreInicial != null)
         _nombreController.text = widget.nombreInicial!;
+      _nombreBaseController.text = (widget.nombreInicial ?? '').trim();
     }
     _nombreController.addListener(() {
-      if (!_escribiendoNombre && _nombreAuto) setState(() => _nombreAuto = false);
+      if (_escribiendoNombre) return;
+      final texto = _nombreController.text;
+      final sufijo = generarNombreProducto('', _compat);
+      final base = _nombreAuto && sufijo.isNotEmpty && texto.endsWith(sufijo)
+          ? texto.substring(0, texto.length - sufijo.length)
+          : texto;
+      _nombreBaseController.text = base.trim();
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _focusNombre.requestFocus();
