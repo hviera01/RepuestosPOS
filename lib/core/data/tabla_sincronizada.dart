@@ -33,6 +33,7 @@ class TablaSincronizada<T> {
   RealtimeChannel? _canal;
   Timer? _temporizador;
   Timer? _antirrebote;
+  Timer? _reintento;
   Future<void>? _inicio;
   Future<void>? _sincronizando;
   bool _pendienteOtraVuelta = false;
@@ -87,7 +88,7 @@ class TablaSincronizada<T> {
       }
     }
     _cargadoLocal = true;
-    _emitir();
+    if (_modelos.isNotEmpty) _emitir();
     unawaited(sincronizar());
     _suscribirRealtime();
     _temporizador = Timer.periodic(intervaloRespaldo, (_) => sincronizar());
@@ -178,12 +179,15 @@ class TablaSincronizada<T> {
       await _sincronizarEliminados();
       _sincronizadoAlgunaVez = true;
       ultimoError = null;
+      _reintento?.cancel();
       await _meta?.put('ultima_$tabla', DateTime.now().toIso8601String());
       _emitir();
     } catch (e) {
       ultimoError = e;
       debugPrint('TablaSincronizada($tabla): $e');
-      if (!_sincronizadoAlgunaVez && _cargadoLocal) _emitir();
+      if (_modelos.isEmpty && !_controlador.isClosed) _controlador.addError(e);
+      _reintento?.cancel();
+      _reintento = Timer(const Duration(seconds: 8), () => sincronizar());
     }
   }
 
@@ -228,14 +232,14 @@ class TablaSincronizada<T> {
     final unida = {...previa, ...fila};
     _poner(unida);
     unawaited(_guardarFilas([unida]));
-    _emitir();
+    if (_cargadoLocal) _emitir();
   }
 
   void quitarLocal(String id) {
     _quitar(id);
     final caja = _caja;
     if (caja != null) unawaited(caja.delete(id));
-    _emitir();
+    if (_cargadoLocal) _emitir();
   }
 
   Map<String, dynamic>? filaLocal(String id) => _filas[id];
@@ -278,6 +282,7 @@ class TablaSincronizada<T> {
   Future<void> cerrar() async {
     _temporizador?.cancel();
     _antirrebote?.cancel();
+    _reintento?.cancel();
     final canal = _canal;
     if (canal != null) await _db.removeChannel(canal);
   }

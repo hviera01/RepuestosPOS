@@ -79,3 +79,5 @@ node_modules/
 # de esa cuenta de WhatsApp en el celular vinculado y volver a vincular
 # cuando haga falta usar el tool de nuevo-.
 tool/reporte_whatsapp/auth_info/
+
+/dist/

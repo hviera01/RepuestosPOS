@@ -395,7 +395,7 @@ code { background: var(--pri-claro); border-radius: 3px; padding: 0 1.5mm; font-
 <p>Cada compra o ingreso crea un <b>lote</b> con su costo. Al vender, el sistema descuenta de los lotes más antiguos y calcula el costo real de la venta, así la utilidad de los reportes es exacta. En la ficha del repuesto puede ver:</p>
 <ul>
   <li>Los lotes con su cantidad restante (y reordenarlos si necesita que salga primero uno distinto).</li>
-  <li>El historial de existencias, de precios de compra, de ventas y de traslados del repuesto.</li>
+  <li>El historial de existencias (donde también aparece cada traslado con su número), el de precios de compra y el de ventas del repuesto.</li>
 </ul>
 
 <h3>Importar y exportar</h3>
@@ -573,7 +573,7 @@ code { background: var(--pri-claro); border-radius: 3px; padding: 0 1.5mm; font-
 <p>En <b>Traslados ▸ Ver Detalle</b> busque por número (puede escribir solo <code>123</code> en lugar de <code>TRAS-000123</code>). Desde el detalle se imprime el comprobante como original o copia y, si su usuario tiene permiso, se <b>anula</b> (en cualquier estado excepto si ya está anulado). Al anular, las unidades regresan al inventario y queda anotado en el historial de cada repuesto.</p>
 
 <h3>Reporte de traslados</h3>
-<p>En <b>Reportes ▸ Traslados</b> filtre por rango de fechas, estado y sucursal, y exporte a PDF o Excel. También se puede ver en la ficha de cada repuesto su historial de traslados.</p>
+<p>En <b>Reportes ▸ Traslados</b> filtre por rango de fechas, estado y sucursal, y exporte a PDF o Excel. En el historial de existencias de cada repuesto aparece cada traslado como «Traslado TRAS-000123 a SUCURSAL 2».</p>
 
 <h2 class="capitulo" id="cap11"><span class="num">11</span>Caja, ingresos y egresos</h2>
 <h3>Cierre de caja</h3>

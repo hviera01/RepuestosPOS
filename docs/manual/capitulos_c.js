@@ -71,7 +71,7 @@ ${datos(['Estado', 'Significado'], [
 <p>En <b>Traslados ▸ Ver Detalle</b> busque por número (puede escribir solo <code>123</code> en lugar de <code>TRAS-000123</code>). Desde el detalle se imprime el comprobante como original o copia y, si su usuario tiene permiso, se <b>anula</b> (en cualquier estado excepto si ya está anulado). Al anular, las unidades regresan al inventario y queda anotado en el historial de cada repuesto.</p>
 
 <h3>Reporte de traslados</h3>
-<p>En <b>Reportes ▸ Traslados</b> filtre por rango de fechas, estado y sucursal, y exporte a PDF o Excel. También se puede ver en la ficha de cada repuesto su historial de traslados.</p>
+<p>En <b>Reportes ▸ Traslados</b> filtre por rango de fechas, estado y sucursal, y exporte a PDF o Excel. En el historial de existencias de cada repuesto aparece cada traslado como «Traslado TRAS-000123 a SUCURSAL 2».</p>
 `;
 
 const cap11 = `

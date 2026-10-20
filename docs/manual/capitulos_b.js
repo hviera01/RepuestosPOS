@@ -96,7 +96,7 @@ ${pasos([
 <p>Cada compra o ingreso crea un <b>lote</b> con su costo. Al vender, el sistema descuenta de los lotes más antiguos y calcula el costo real de la venta, así la utilidad de los reportes es exacta. En la ficha del repuesto puede ver:</p>
 <ul>
   <li>Los lotes con su cantidad restante (y reordenarlos si necesita que salga primero uno distinto).</li>
-  <li>El historial de existencias, de precios de compra, de ventas y de traslados del repuesto.</li>
+  <li>El historial de existencias (donde también aparece cada traslado con su número), el de precios de compra y el de ventas del repuesto.</li>
 </ul>
 
 <h3>Importar y exportar</h3>
