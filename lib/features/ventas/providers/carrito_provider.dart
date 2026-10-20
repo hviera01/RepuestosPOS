@@ -40,6 +40,18 @@ double _subtotalLinea(
 
 String tipoDocumentoVentaPorDefecto = 'Factura';
 
+bool tipoAplicaIsv(String tipo) => tipo == 'Factura' || tipo == 'Boleta';
+
+List<ItemVentaModel> convertirPreciosItems(List<ItemVentaModel> items, double factor) {
+  return [
+    for (final i in items)
+      i.copyWith(
+        precioVenta: i.precioVenta * factor,
+        subtotal: _subtotalLinea(i.precioVenta * factor, i.cantidad, i.descuentoPorcentaje),
+      ),
+  ];
+}
+
 class CarritoVentaState {
   final String? idEnEspera;
   final List<ItemVentaModel> items;
@@ -90,6 +102,10 @@ class CarritoVentaState {
   bool get esPagoMixto => metodoPago == 'Mixto';
 
   bool get _aplicaIsv => tipoDocumento == 'Factura' || tipoDocumento == 'Boleta';
+
+  bool get aplicaIsv => _aplicaIsv;
+
+  double get factorIsv => _aplicaIsv ? 1.15 : 1.0;
 
   double get _subtotalLineasSinDescuentoGlobal =>
       items.fold<double>(0, (s, i) => s + i.subtotal);
@@ -196,7 +212,7 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     double precioCompraUsado = 0,
     bool reembasado = false,
   }) {
-    final precio = precioSeleccionado ?? producto.precioVenta;
+    final precio = (precioSeleccionado ?? producto.precioVenta) / state.factorIsv;
     final item = ItemVentaModel(
       idProducto: producto.id,
       idCategoria: producto.idCategoria,
@@ -242,7 +258,7 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     required Map<String, ProductoModel> mapaProductos,
     double? precioSeleccionado,
   }) {
-    final precio = precioSeleccionado ?? combo.precioVenta;
+    final precio = (precioSeleccionado ?? combo.precioVenta) / state.factorIsv;
     final componentesSnapshot = combo.componentes.map((c) {
       final productoComponente = mapaProductos[c.idProducto];
       return ComponenteComboSnapshot(
@@ -336,8 +352,16 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
   void establecerDescuentoGlobal(double v) =>
       state = state.copyWith(descuentoGlobalPorcentaje: v);
 
-  void establecerTipoDocumento(String v) =>
+  void establecerTipoDocumento(String v) {
+    final antes = state.aplicaIsv;
+    final despues = tipoAplicaIsv(v);
+    if (antes == despues) {
       state = state.copyWith(tipoDocumento: v);
+      return;
+    }
+    final factor = despues ? 1 / 1.15 : 1.15;
+    state = state.copyWith(tipoDocumento: v, items: convertirPreciosItems(state.items, factor));
+  }
 
   void establecerCondicion(String v) {
     state = state.copyWith(
@@ -414,8 +438,9 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
   }
 
   void cargarDesdeVenta(VentaModel venta, {bool forzarFactura = false}) {
+    final aFactura = forzarFactura && venta.tipoDocumento == 'Cotizacion';
     state = CarritoVentaState(
-      items: venta.detalle
+      items: (aFactura ? convertirPreciosItems(venta.detalle, 1 / 1.15) : venta.detalle)
           .map(
             (item) => ItemVentaModel(
               idProducto: item.idProducto,

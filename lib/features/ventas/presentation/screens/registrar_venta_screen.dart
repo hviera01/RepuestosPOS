@@ -901,7 +901,10 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
         } else {
           ref
               .read(carritoVentaProvider.notifier)
-              .actualizarLinea(indiceNuevo, precioNuevo: promoPrecio.valor);
+              .actualizarLinea(
+                indiceNuevo,
+                precioNuevo: promoPrecio.valor / ref.read(carritoVentaProvider).factorIsv,
+              );
         }
         _mostrarMensaje('Promoción "${promoPrecio.nombre}" aplicada.');
         return;
@@ -1027,7 +1030,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       );
       final totalNormal = indices.fold<double>(0, (s, i) {
         final item = carrito.items[i];
-        return s + redondearMoneda(item.precioVenta) * item.cantidad;
+        return s + redondearMoneda(item.precioVenta * carrito.factorIsv) * item.cantidad;
       });
       if (totalNormal <= 0) return;
       final extra = (cantidadTotal - promo.cantidadRequerida).clamp(
@@ -1056,7 +1059,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
 
       final totalNormal = indices.fold<double>(0, (s, i) {
         final item = carrito.items[i];
-        return s + redondearMoneda(item.precioVenta) * item.cantidad;
+        return s + redondearMoneda(item.precioVenta * carrito.factorIsv) * item.cantidad;
       });
       if (totalNormal <= 0) return;
 
@@ -1072,7 +1075,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
         );
         final normalProd = indicesProd.fold<double>(0, (s, i) {
           final item = carrito.items[i];
-          return s + redondearMoneda(item.precioVenta) * item.cantidad;
+          return s + redondearMoneda(item.precioVenta * carrito.factorIsv) * item.cantidad;
         });
         final extraCantidad = (cantidadProd - 1).clamp(0, double.infinity);
         if (cantidadProd > 0)
@@ -1108,7 +1111,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                 ? coincidencias.first.idCategoria
                 : '',
             nombreProducto: '$nombreRegalo (regalo · ${promo.nombre})',
-            precioVenta: precioRegalo,
+            precioVenta: precioRegalo / ref.read(carritoVentaProvider).factorIsv,
             cantidad: promo.cantidadRegalo.toDouble(),
             subtotal: 0,
             precioCompraUsado: coincidencias.isNotEmpty
