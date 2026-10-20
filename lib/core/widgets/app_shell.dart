@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:printing/printing.dart';
 import '../providers/actualizacion_provider.dart';
+import 'logo_generico.dart';
 import '../providers/tabs_provider.dart';
 import '../models/tab_item.dart';
 import '../services/actualizacion_service.dart';
@@ -332,28 +333,15 @@ class _AppShellState extends ConsumerState<AppShell> {
                             setState(() => _menuAbierto = !_menuAbierto),
                       ),
                       const SizedBox(width: 4),
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
-                        ),
-                        child: Icon(
-                          Icons.storefront_rounded,
-                          color: Marca.primario,
-                          size: 20,
-                        ),
-                      ),
-                      if (!esAngosto) ...[
+                      const LogoGenerico(tamano: 34, color: Colors.white),
+                      if (!esAngosto && (ref.watch(negocioStreamProvider).value?.nombre ?? '').isNotEmpty) ...[
                         const SizedBox(width: 12),
                         Text(
-                          'CK',
+                          ref.watch(negocioStreamProvider).value!.nombre,
                           style: GoogleFonts.poppins(
                             color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],

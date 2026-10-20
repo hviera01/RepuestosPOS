@@ -30,19 +30,20 @@ body { margin: 0; }
 
 .portada {
   height: 297mm;
-  background: var(--pri);
-  color: #fff;
-  padding: 28mm 22mm;
+  background: #fff;
+  color: var(--texto);
+  padding: 0 24mm;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
+  align-items: flex-start;
   page-break-after: always;
 }
-.portada .marca { display: flex; align-items: center; gap: 14px; font-size: 13pt; letter-spacing: 3px; text-transform: uppercase; opacity: .85; }
-.portada h1 { font-size: 40pt; line-height: 1.05; margin: 0 0 14px; font-weight: 700; letter-spacing: -1px; }
-.portada .sub { font-size: 15pt; max-width: 120mm; opacity: .85; }
-.portada .pie { font-size: 10pt; opacity: .7; display: flex; justify-content: space-between; }
-.engranaje { width: 54px; height: 54px; }
+.portada .engranaje { width: 22mm; height: 22mm; margin-bottom: 14mm; }
+.portada h1 { font-size: 34pt; line-height: 1.1; margin: 0 0 4mm; font-weight: 700; letter-spacing: -.5px; color: var(--pri); }
+.portada .linea { width: 26mm; height: 3px; background: var(--pri); margin: 0 0 6mm; }
+.portada .sub { font-size: 14pt; color: #4b4f58; }
+.portada .pie { margin-top: 70mm; font-size: 10pt; color: #6b7280; }
 
 h2.capitulo {
   font-size: 22pt;
@@ -154,7 +155,7 @@ table.mini td.num, table.mini th.num { text-align: right; }
 .paso { display: flex; gap: 4mm; margin: 2mm 0 3mm; break-inside: avoid; }
 .paso .n { flex: 0 0 8mm; height: 8mm; border-radius: 50%; background: var(--pri); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: .5mm; }
 .paso .t { flex: 1; }
-.paso .t b { display: block; }
+.paso .t > b:first-child { display: block; }
 
 .dos-col { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
 .sin-corte { break-inside: avoid; }
@@ -162,11 +163,13 @@ code { background: var(--pri-claro); border-radius: 3px; padding: 0 1.5mm; font-
 .pt { display: block; page-break-after: always; }
 </style></head><body>
 <section class="portada">
-  <div class="marca"><svg class="engranaje" viewBox="-50 -50 100 100"><g fill="#fff"><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(0)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(36)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(72)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(108)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(144)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(180)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(216)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(252)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(288)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(324)"/><circle r="31"/></g><circle r="14" fill="#303846"/></svg><span>Repuestos POS</span></div>
-  <div><h1>Manual<br>de usuario</h1><div class="sub">Ventas, compras, inventario por vehículo, créditos, traslados y reportes.</div></div>
-  <div class="pie"><span>Versión del manual: octubre de 2026</span><span>Para administradores y personal de mostrador</span></div>
+  <svg class="engranaje" viewBox="-50 -50 100 100"><g fill="#303846"><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(0)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(36)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(72)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(108)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(144)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(180)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(216)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(252)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(288)"/><rect x="-5.5" y="-47" width="11" height="22" transform="rotate(324)"/><circle r="31"/></g><circle r="14" fill="#fff"/></svg>
+  <h1>Manual de usuario</h1>
+  <div class="linea"></div>
+  <div class="sub">Repuestos POS</div>
+  <div class="pie">octubre de 2026</div>
 </section>
-<div class="toc"><h2>Contenido</h2><ol><li><b>1</b><a href="#cap1">Bienvenida</a></li><li><b>2</b><a href="#cap2">Primeros pasos</a></li><li><b>3</b><a href="#cap3">Configuración del negocio</a></li><li><b>4</b><a href="#cap4">Usuarios, roles y permisos</a></li><li><b>5</b><a href="#cap5">Inventario y vehículos compatibles</a></li><li><b>6</b><a href="#cap6">Clientes y proveedores</a></li><li><b>7</b><a href="#cap7">Ventas</a></li><li><b>8</b><a href="#cap8">Compras</a></li><li><b>9</b><a href="#cap9">Créditos y cobros</a></li><li><b>10</b><a href="#cap10">Sucursales y traslados</a></li><li><b>11</b><a href="#cap11">Caja, ingresos y egresos</a></li><li><b>12</b><a href="#cap12">Reportes</a></li><li><b>13</b><a href="#cap13">Impresión</a></li><li><b>14</b><a href="#cap14">Varios equipos, internet y actualizaciones</a></li><li><b>15</b><a href="#cap15">Problemas frecuentes y buenas prácticas</a></li></ol></div>
+<div class="toc"><h2>Contenido</h2><ol><li><b>1</b><a href="#cap1">Bienvenida</a></li><li><b>2</b><a href="#cap2">Primeros pasos</a></li><li><b>3</b><a href="#cap3">Configuración del negocio</a></li><li><b>4</b><a href="#cap4">Usuarios, roles y permisos</a></li><li><b>5</b><a href="#cap5">Inventario y vehículos compatibles</a></li><li><b>6</b><a href="#cap6">Clientes y proveedores</a></li><li><b>7</b><a href="#cap7">Ventas</a></li><li><b>8</b><a href="#cap8">Compras</a></li><li><b>9</b><a href="#cap9">Créditos y cobros</a></li><li><b>10</b><a href="#cap10">Sucursales y traslados</a></li><li><b>11</b><a href="#cap11">Caja, ingresos y egresos</a></li><li><b>12</b><a href="#cap12">Reportes</a></li><li><b>13</b><a href="#cap13">Impresión e impresión remota</a></li><li><b>14</b><a href="#cap14">Escanear con el celular</a></li><li><b>15</b><a href="#cap15">Varios equipos, internet y actualizaciones</a></li><li><b>16</b><a href="#cap16">Instalación, seguridad y respaldo</a></li><li><b>17</b><a href="#cap17">Problemas frecuentes y buenas prácticas</a></li></ol></div>
 <h2 class="capitulo" id="cap1"><span class="num">1</span>Bienvenida</h2>
 <p><b>Repuestos POS</b> es el sistema con el que su negocio registra ventas, compras, inventario, créditos, traslados entre sucursales y cierres de caja. Funciona en computadoras con Windows, en celulares y tabletas Android y desde el navegador web. Todos los equipos trabajan sobre la misma información: lo que se registra en uno aparece en los demás en pocos segundos.</p>
 
@@ -183,7 +186,7 @@ code { background: var(--pri-claro); border-radius: 3px; padding: 0 1.5mm; font-
 
 <h3>Equipos y requisitos</h3>
 <table class="datos"><thead><tr><th>Equipo</th><th>Cómo se usa</th><th>Notas</th></tr></thead><tbody><tr><td>Computadora con Windows 10 u 11</td><td>Programa instalado desde el archivo <code>RepuestosPOS.exe</code></td><td>Recomendado para la caja principal; es el que conecta la impresora de tickets.</td></tr><tr><td>Celular o tableta Android</td><td>Aplicación instalada desde <code>RepuestosPOS.apk</code></td><td>Sirve para vender, consultar inventario y escanear códigos de barras con la cámara.</td></tr><tr><td>Navegador web</td><td>Dirección web del sistema (la entrega quien le instaló el sistema)</td><td>Chrome o Edge actualizados. No necesita instalar nada.</td></tr></tbody></table>
-<p>Todos los equipos necesitan internet. Si la conexión se interrumpe un momento, el sistema vuelve a intentar solo y avisa cuando una operación quedó pendiente (ver capítulo 14).</p>
+<p>Todos los equipos necesitan internet. Si la conexión se interrumpe un momento, el sistema vuelve a intentar solo y avisa cuando una operación quedó pendiente (ver capítulo 15).</p>
 
 <h3>Cómo está organizado este manual</h3>
 <p>Los capítulos siguen el orden en que normalmente se empieza a trabajar: ingresar, configurar el negocio, crear usuarios, cargar inventario, vender y comprar, y finalmente los reportes. Dentro del sistema, cada pantalla importante tiene un botón de ayuda con el ícono de un birrete: al tocarlo se abre una guía paso a paso sobre esa pantalla.</p>
@@ -277,7 +280,7 @@ code { background: var(--pri-claro); border-radius: 3px; padding: 0 1.5mm; font-
 <p>Aunque haya elegido uno por defecto, en cada venta puede cambiar el tipo antes de registrarla.</p>
 
 <h3>Impresión de tickets y facturas</h3>
-<p>En la tarjeta <b>Impresoras</b> y en <b>Factura</b> se configura todo lo relacionado con la impresión:</p>
+<p>En la tarjeta <b>Impresoras</b> y en <b>Factura</b> se configura todo lo relacionado con la impresión (el capítulo 13 explica en detalle cómo funciona, incluida la impresión remota):</p>
 <table class="datos"><thead><tr><th>Opción</th><th>Para qué sirve</th></tr></thead><tbody><tr><td>Imprimir facturas automáticamente</td><td>Interruptor general. Apáguelo si todavía no tiene impresora.</td></tr><tr><td>Imprimir copia además del original</td><td>Si lo apaga, solo sale la hoja ORIGINAL y se ahorra papel.</td></tr><tr><td>Mostrar precios con ISV incluido</td><td>El precio de cada línea del ticket se muestra con el impuesto incluido.</td></tr><tr><td>Ancho del rollo (58 o 80 mm)</td><td>Elija el ancho de su impresora térmica.</td></tr><tr><td>Modo de impresión</td><td>«Preguntar» muestra una vista previa; «Directo» imprime sin preguntar.</td></tr><tr><td>Impresora térmica de Windows</td><td>Elija la impresora instalada en el equipo.</td></tr><tr><td>Impresora de red (IP y puerto)</td><td>Para impresoras con cable de red; el puerto habitual es 9100.</td></tr><tr><td>Impresora Bluetooth (Android)</td><td>Empareje la impresora en el celular y elíjala aquí.</td></tr><tr><td>Usar driver de Windows</td><td>Actívelo si su impresora no acepta impresión directa (algunas Star, por ejemplo).</td></tr><tr><td>PC principal</td><td>Marque el equipo que tiene la impresora conectada para que imprima los tickets pedidos desde otros equipos.</td></tr></tbody></table>
 <p>El botón <b>Imprimir ticket de prueba</b> genera un ticket de prueba sin registrar ninguna venta real.</p>
 
@@ -621,21 +624,94 @@ code { background: var(--pri-claro); border-radius: 3px; padding: 0 1.5mm; font-
 <p>La <b>utilidad bruta</b> usa el costo real de cada repuesto vendido, tomado del lote del que salió (primero que entra, primero que sale). La <b>utilidad neta</b> resta además los egresos registrados. Por eso es importante registrar todas las compras con su costo correcto.</p>
 <div class="consejo"><b>Consejo</b>En ventas con muchos meses de datos, elija rangos de un mes o menos: el reporte carga más rápido y es más fácil de revisar.</div>
 
-<h2 class="capitulo" id="cap13"><span class="num">13</span>Impresión</h2>
-<p>El sistema imprime tickets en impresoras térmicas de 58 o 80 mm y también genera PDF. La configuración está en <b>Negocio</b> (capítulo 3).</p>
-<table class="datos"><thead><tr><th>Situación</th><th>Qué hace el sistema</th></tr></thead><tbody><tr><td>Computadora de la caja con impresora conectada</td><td>Imprime directo (o muestra vista previa, según el modo elegido).</td></tr><tr><td>Celular, tableta o navegador sin impresora</td><td>Pide a la PC principal que imprima el ticket. Sale en la caja automáticamente.</td></tr><tr><td>Impresora de red</td><td>Se configura con la IP y el puerto (normalmente 9100).</td></tr><tr><td>Impresora Bluetooth en Android</td><td>Se empareja en el celular y se elige en Negocio.</td></tr><tr><td>Impresora que no acepta impresión directa</td><td>Active «Usar driver de Windows» para imprimir por el controlador de la impresora.</td></tr></tbody></table>
-<h3>Si un ticket no sale</h3>
-<ol>
-  <li>Revise que la impresora esté encendida, con papel y bien conectada.</li>
-  <li>Entre a <b>Ventas ▸ Registrar Venta ▸ Pendientes de Impresión</b>: allí queda el ticket para reintentar.</li>
-  <li>Use el botón <b>Imprimir ticket de prueba</b> en Negocio para comprobar la impresora sin registrar una venta.</li>
-  <li>Si la impresora gasta papel en blanco sin cortar, pruebe «Usar driver de Windows».</li>
-  <li>Revise que la <b>PC principal</b> esté marcada y encendida si imprime desde otros equipos.</li>
-</ol>
-<h3>Facturas con CAI</h3>
-<p>Las facturas llevan el RTN, el CAI, el rango autorizado y la fecha límite del negocio, y la numeración correlativa. Configure estos datos antes de la primera factura y revise la fecha límite cada cierto tiempo: cuando se acerca el vencimiento o el final del rango, solicite el nuevo.</p>
+<h2 class="capitulo" id="cap13"><span class="num">13</span>Impresión e impresión remota</h2>
+<p>El sistema imprime tickets y facturas en impresoras térmicas de 58 o 80 mm, y también puede generar PDF. Lo más importante de entender es que <b>no todos los equipos pueden hablar con una impresora</b>: la computadora de la caja sí, pero un celular o un navegador normalmente no. Para resolverlo existe la <b>impresión remota</b>: cualquier equipo puede pedirle a la <b>PC principal</b> que imprima por él.</p>
 
-<h2 class="capitulo" id="cap14"><span class="num">14</span>Varios equipos, internet y actualizaciones</h2>
+<h3>Qué pasa al registrar una venta, según el equipo</h3>
+<table class="datos"><thead><tr><th>Equipo desde el que se vende</th><th>Qué hace el sistema al registrar</th></tr></thead><tbody><tr><td><b>PC con Windows y la impresora configurada</b></td><td>Con el modo «Directo» imprime sin preguntar. Con el modo «Preguntar» muestra la vista previa con los botones Imprimir, Descargar y Cerrar. Si la impresora no responde, la orden pasa sola a la PC principal.</td></tr><tr><td><b>PC con Windows sin impresora configurada</b></td><td>Envía la orden de impresión a la PC principal.</td></tr><tr><td><b>Celular o tableta Android</b></td><td>Muestra la pregunta «¿Qué quiere hacer con el ticket?» con tres opciones: <b>Bluetooth/red</b> (imprime en la impresora configurada), <b>Impresora del sistema</b> (abre el diálogo de impresión de Android) o <b>Dejar pendiente</b>.</td></tr><tr><td><b>Navegador en celular o tableta</b></td><td>Envía la orden a la PC principal. Si la PC principal está apagada, la venta queda como pendiente de impresión.</td></tr><tr><td><b>Navegador en una PC</b></td><td>Abre el diálogo de impresión del navegador con el ticket en PDF, para elegir cualquier impresora instalada en esa PC.</td></tr><tr><td><b>iPhone o iPad</b></td><td>Imprime en la impresora de red configurada.</td></tr></tbody></table>
+<p>Si el interruptor <b>Imprimir facturas automáticamente</b> está apagado en Negocio, no se imprime nada al vender; la venta se guarda igual.</p>
+
+<h3>La impresión remota: cómo funciona</h3>
+<div class="figura"><div style="display:flex;align-items:center;gap:1mm;margin:2mm 0"><div style="flex:1;border:1.5px solid #b6bcc7;background:#fff;color:#1a1a1a;border-radius:8px;padding:3mm;text-align:center;font-size:8.5pt"><b style="display:block;font-size:9.5pt">Celular o navegador</b>Registra la venta y pide imprimir</div><div style="flex:0 0 18mm;text-align:center;font-size:7.5pt;color:#6b7280">orden<div style="font-size:15pt;line-height:1;color:#303846">➜</div></div><div style="flex:1;border:1.5px solid #b6bcc7;background:#fff;color:#1a1a1a;border-radius:8px;padding:3mm;text-align:center;font-size:8.5pt"><b style="display:block;font-size:9.5pt">Servidor</b>Marca la venta con «imprimir en vivo»</div><div style="flex:0 0 18mm;text-align:center;font-size:7.5pt;color:#6b7280">aviso<div style="font-size:15pt;line-height:1;color:#303846">➜</div></div><div style="flex:1;border:1.5px solid #303846;background:#303846;color:#fff;border-radius:8px;padding:3mm;text-align:center;font-size:8.5pt"><b style="display:block;font-size:9.5pt">PC principal</b>Detecta la orden y la procesa sola</div><div style="flex:0 0 18mm;text-align:center;font-size:7.5pt;color:#6b7280">ticket<div style="font-size:15pt;line-height:1;color:#303846">➜</div></div><div style="flex:1;border:1.5px solid #b6bcc7;background:#fff;color:#1a1a1a;border-radius:8px;padding:3mm;text-align:center;font-size:8.5pt"><b style="display:block;font-size:9.5pt">Impresora</b>Sale el ticket en la caja</div></div><div class="pie">Recorrido de una orden de impresión remota.</div></div><ol class="leyenda"><li><span>El celular termina la venta y, en vez de imprimir, deja la orden de impresión en el servidor.</span></li><li><span>La PC principal está siempre escuchando; al ver la orden imprime el ticket sin mostrar ninguna ventana y sin que nadie toque nada.</span></li><li><span>La orden se borra sola al imprimir, para que no se imprima dos veces.</span></li></ol>
+<div class="paso"><div class="n">1</div><div class="t"><b>La PC principal avisa que está viva.</b>Cada 25 segundos manda una señal de presencia al servidor. Si la última señal tiene menos de 40 segundos, el sistema considera que la PC principal está conectada.</div></div><div class="paso"><div class="n">2</div><div class="t"><b>El otro equipo comprueba esa señal.</b>Al terminar una venta (o un traslado), antes de pedir la impresión revisa si la PC principal está conectada.</div></div><div class="paso"><div class="n">3</div><div class="t"><b>Si está conectada, envía la orden.</b>Aparece el mensaje «Se envió la orden de impresión a la caja principal». El ticket sale en pocos segundos.</div></div><div class="paso"><div class="n">4</div><div class="t"><b>Si no está conectada, la venta queda pendiente.</b>Aparece «La venta quedó pendiente de impresión». Nada se pierde: se puede imprimir después desde <b>Pendientes de Impresión</b>.</div></div>
+<div class="aviso"><b>Condición</b>La impresión remota solo funciona si la PC principal tiene el sistema abierto y con la sesión iniciada. Si la apaga o cierra el programa, las órdenes se acumulan como pendientes.</div>
+
+<h3>Elegir y configurar la PC principal</h3>
+<p>Por defecto, <b>cualquier computadora de escritorio</b> que tenga el sistema abierto actúa como PC principal. Si tiene más de una PC y solo una tiene la impresora, márquela para que las demás no intenten imprimir órdenes ajenas.</p>
+<div class="figura">
+  <div class="pantalla">
+    <div class="barra"><span>Repuestos POS</span><span>Dispositivos</span><span>Administrador ▾</span></div>
+    <div class="cuerpo" style="min-height:66mm">
+      <div class="menu"><div class="">Usuarios</div><div class="">Mantenedor</div><div class="sub ">Categorías</div><div class="sub ">Inventario</div><div class="sub ">Auditoría de Inventario</div><div class="sub ">Pendientes de Reposición</div><div class="sub ">Negocio</div><div class="sub act">Dispositivos</div><div class="sub ">Descuentos y Promociones</div><div class="">Ventas</div><div class="">Compras</div><div class="">Clientes</div><div class="">Proveedores</div><div class="">Sucursales</div><div class="">Traslados</div><div class="">Créditos</div><div class="">Reportes</div></div>
+      <div class="contenido"><h5>Dispositivos</h5>
+    <p style="color:#6b7280;margin:0 0 2mm">Última versión publicada: v2</p>
+    <table class="mini"><thead><tr><th class="">Dispositivo</th><th class="">Plataforma</th><th class="">Versión</th><th class="">Último usuario</th><th class="">Última conexión</th><th class=""></th></tr></thead><tbody><tr><td class="">CAJA-PRINCIPAL</td><td class="">windows</td><td class="">v2</td><td class="">MARÍA LÓPEZ</td><td class="">20/10/2026 09:12 a.m.</td><td class=""><span class="chip ok">PC principal</span></td></tr><tr><td class="">OFICINA-PC</td><td class="">windows</td><td class="">v2</td><td class="">JOSÉ PÉREZ</td><td class="">20/10/2026 08:40 a.m.</td><td class=""><span class="btn sec">Marcar como PC principal</span></td></tr><tr><td class="">SM-A546E</td><td class="">android</td><td class="">v1</td><td class="">ANA RIVERA</td><td class="">17/10/2026 05:02 p.m.</td><td class=""><span class="chip aviso">Desactualizado</span></td></tr></tbody></table></div>
+    </div>
+    <span class="marca-num" style="left:22%;top:20%">1</span><span class="marca-num" style="left:92%;top:42%">2</span><span class="marca-num" style="left:40%;top:56%">3</span>
+  </div><div class="pie">Pantalla Dispositivos, donde se marca la PC principal.</div></div><ol class="leyenda"><li><span>La PC principal actual: es la única que imprime las órdenes remotas.</span></li><li><span>Para cambiar de PC principal toque «Marcar como PC principal» en la fila de la computadora que tiene la impresora (puede hacerlo desde cualquier equipo). Tocar la marca de nuevo la quita y vuelve al comportamiento de siempre.</span></li><li><span>Un equipo con versión vieja aparece como desactualizado.</span></li></ol>
+
+<h3>Configurar la impresora de la PC principal</h3>
+<div class="paso"><div class="n">1</div><div class="t"><b>Instale la impresora en Windows.</b>Con su controlador y papel del ancho correcto. Imprima una página de prueba de Windows para confirmar.</div></div><div class="paso"><div class="n">2</div><div class="t"><b>Abra Mantenedor ▸ Negocio ▸ Impresoras.</b>En «Impresora térmica» elija la impresora instalada.</div></div><div class="paso"><div class="n">3</div><div class="t"><b>Elija el ancho del rollo.</b>58 mm o 80 mm, según su rollo.</div></div><div class="paso"><div class="n">4</div><div class="t"><b>Elija el modo de impresión.</b>«Directo» imprime al instante; «Preguntar» muestra primero la vista previa.</div></div><div class="paso"><div class="n">5</div><div class="t"><b>Presione «Imprimir ticket de prueba».</b>Sale un ticket marcado como prueba. No se registra ninguna venta ni se gasta numeración.</div></div><div class="paso"><div class="n">6</div><div class="t"><b>Marque la PC como principal.</b>En Dispositivos, en la fila de esa computadora, si tiene varias.</div></div>
+<div class="consejo"><b>Consejo</b>Deje la PC de la caja siempre encendida y con el sistema abierto durante el horario de atención. Si el programa se cierra, el celular lo notará en menos de un minuto y dejará las ventas como pendientes.</div>
+
+<h3>Pendientes de Impresión</h3>
+<p>Dentro de <b>Registrar Venta</b> está el botón <b>Pendientes de Impresión</b>. Muestra las ventas que no se pudieron imprimir, con el tipo de documento, número, cliente y total. Cada fila tiene un botón de impresora que imprime esa venta desde el equipo en el que usted está; por eso conviene abrir esta lista en la PC que tiene la impresora. Cuando se imprime, sale de la lista.</p>
+<div class="figura">
+  <div class="pantalla">
+    <div class="barra"><span>Repuestos POS</span><span>Pendientes de Impresión</span><span></span></div>
+    <div class="cuerpo" style="min-height:58mm"><div class="contenido"><h5>Pendientes de Impresión</h5>
+    <table class="mini"><thead><tr><th class="">Fecha</th><th class="">Documento</th><th class="">Cliente</th><th class="num">Total</th><th class=""></th></tr></thead><tbody><tr><td class="">20/10/2026 10:41</td><td class="">Factura · 00004531</td><td class="">TALLER MECÁNICO LÓPEZ</td><td class="num">L 4,296.40</td><td class=""><span class="btn sec">Imprimir</span></td></tr><tr><td class="">20/10/2026 10:55</td><td class="">Venta · 0087</td><td class="">Sin cliente</td><td class="num">L 680.00</td><td class=""><span class="btn sec">Imprimir</span></td></tr></tbody></table>
+    <p style="color:#6b7280;margin-top:2mm">Cuando la lista está vacía se muestra «No hay ventas pendientes de impresión».</p></div></div>
+    <span class="marca-num" style="left:8%;top:34%">1</span><span class="marca-num" style="left:90%;top:34%">2</span>
+  </div><div class="pie">Lista de ventas pendientes de impresión.</div></div><ol class="leyenda"><li><span>Cada fila es una venta ya registrada: lo único que falta es el papel.</span></li><li><span>Imprime esa venta en este equipo. Hágalo desde la PC de la caja.</span></li></ol>
+
+<h3>Impresión en Android</h3>
+<p>En un celular o tableta Android, al registrar una venta aparece una pregunta con tres opciones:</p>
+<div class="figura">
+  <div class="pantalla">
+    <div class="barra"><span>Repuestos POS</span><span>Registrar Venta</span><span></span></div>
+    <div class="cuerpo" style="min-height:44mm"><div class="contenido"><div style="display:flex;justify-content:center;padding:4mm 0"><div class="tarjeta" style="width:92mm;padding:5mm">
+      <b style="font-size:10pt">Venta 00004531 registrada</b>
+      <p style="margin:2mm 0 4mm">¿Qué quiere hacer con el ticket?</p>
+      <div class="fila" style="justify-content:flex-end"><span class="btn sec">Dejar pendiente</span><span class="btn sec">Impresora del sistema</span><span class="btn ">Bluetooth/red</span></div></div></div></div></div>
+    <span class="marca-num" style="left:36%;top:63%">1</span><span class="marca-num" style="left:60%;top:63%">2</span><span class="marca-num" style="left:86%;top:63%">3</span>
+  </div><div class="pie">Pregunta de impresión en Android.</div></div><ol class="leyenda"><li><span>Guarda la venta como pendiente de impresión para sacarla después.</span></li><li><span>Abre el diálogo de impresión de Android, para PDF o impresoras instaladas en el celular.</span></li><li><span>Imprime directo en la impresora térmica Bluetooth o de red que se configuró en Negocio.</span></li></ol>
+<p>Para usar una impresora Bluetooth: empareje la impresora desde los ajustes Bluetooth del celular y luego elíjala en <b>Negocio ▸ Impresoras ▸ Impresora Bluetooth</b>. Para una impresora de red escriba su IP y el puerto (normalmente 9100).</p>
+
+<h3>Guía de envío</h3>
+<p>Cuando una venta se envía a domicilio (botón <b>Más datos</b> ▸ datos de envío), el sistema puede imprimir además una <b>guía de envío</b> con el nombre, dirección y teléfono del destinatario, en tamaño ticket o en tamaño grande. La guía sigue las mismas reglas: se imprime en el equipo si puede, y si no, se pide a la PC principal.</p>
+
+<h3>Traslados y reimpresiones</h3>
+<ul>
+  <li>El comprobante de un <b>traslado</b> también se imprime en la PC principal cuando se registra desde un celular; sale con las líneas de firma de quien entrega y de quien recibe.</li>
+  <li>Desde <b>Ver Detalle</b> de una venta o traslado, el botón de impresión permite reimprimir como <b>copia</b> o como original. Una reimpresión remota también la procesa la PC principal.</li>
+  <li>Si el negocio tiene apagada «Imprimir copia además del original», cada venta sale con una sola hoja.</li>
+</ul>
+
+<h3>Tipos de impresora y cuál elegir</h3>
+<table class="datos"><thead><tr><th>Tipo</th><th>Cuándo usarla</th><th>Observación</th></tr></thead><tbody><tr><td>Térmica USB en Windows (impresión directa)</td><td>La caja principal</td><td>La más rápida: manda el ticket sin pasar por el controlador.</td></tr><tr><td>Térmica USB en Windows con controlador</td><td>Impresoras que no aceptan impresión directa</td><td>Active «Usar driver de Windows» en Negocio. Es el caso de algunas Star y de impresoras con protocolo propio.</td></tr><tr><td>Térmica de red (IP)</td><td>Impresora con cable de red compartida entre equipos</td><td>Funciona también desde iPhone, iPad y Android.</td></tr><tr><td>Térmica Bluetooth</td><td>Vender desde el celular en el mostrador o en ruta</td><td>Solo Android. Emparejar primero.</td></tr><tr><td>Impresora común o PDF</td><td>Respaldo, o cotizaciones en hoja carta</td><td>Se usa el diálogo de impresión de Windows, Android o del navegador.</td></tr></tbody></table>
+
+<h3>Si algo falla</h3>
+<table class="datos"><thead><tr><th>Síntoma</th><th>Qué revisar</th></tr></thead><tbody><tr><td>«La venta quedó pendiente de impresión»</td><td>La PC principal está apagada, sin el sistema abierto o sin internet. Ábralo y use Pendientes de Impresión.</td></tr><tr><td>Envía la orden pero no sale el ticket</td><td>Revise que la PC principal tenga la impresora encendida, con papel y elegida en Negocio. Haga el ticket de prueba.</td></tr><tr><td>Sale papel en blanco sin cortar</td><td>La impresora no entiende la impresión directa. Active «Usar driver de Windows».</td></tr><tr><td>Sale el ticket cortado o desalineado</td><td>Ancho de rollo equivocado: cambie entre 58 y 80 mm.</td></tr><tr><td>Se imprimen dos hojas</td><td>Es el original y la copia. Apague «Imprimir copia además del original» si no la necesita.</td></tr><tr><td>Desde el navegador de la PC sale un PDF y no el ticket</td><td>Es lo esperado: el navegador no puede enviar el ticket directo a una impresora térmica. Elija la impresora en el diálogo, o venda desde el programa de Windows.</td></tr><tr><td>Varias PC intentan imprimir lo mismo</td><td>Marque una sola PC principal en Dispositivos.</td></tr></tbody></table>
+
+<h2 class="capitulo" id="cap14"><span class="num">14</span>Escanear con el celular</h2>
+<p>El celular puede usarse como <b>lector de códigos de barras</b> de la computadora, sin cables ni programas extra. Sirve para agregar repuestos a una venta apuntando la cámara a la etiqueta.</p>
+<div class="figura">
+  <div class="pantalla">
+    <div class="barra"><span>Repuestos POS</span><span>Escanear con el celular</span><span></span></div>
+    <div class="cuerpo" style="min-height:56mm"><div class="contenido"><div style="display:flex;gap:6mm;align-items:center;padding:4mm 6mm">
+      <div style="width:34mm;height:34mm;background:repeating-conic-gradient(#1a1a1a 0% 25%, #fff 0% 50%) 50% / 6mm 6mm;border:2mm solid #fff;outline:1px solid #b6bcc7"></div>
+      <div><b style="font-size:10pt">Escanear con el celular</b><p style="margin:1.5mm 0">Abra la cámara del celular, apunte al código QR y entre al enlace.</p>
+      <div class="campo lleno"><b>Código</b>K7M2QX</div>
+      <div class="fila" style="margin-top:2mm"><span class="chip ok">Escaneo activo</span><span style="color:#6b7280">3 código(s) recibido(s)</span></div>
+      <div class="fila"><span class="btn sec">Escanear con otro celular</span><span class="btn rojo">Finalizar escaneo</span></div></div></div></div></div>
+    <span class="marca-num" style="left:14%;top:44%">1</span><span class="marca-num" style="left:62%;top:46%">2</span><span class="marca-num" style="left:60%;top:74%">3</span>
+  </div><div class="pie">Ventana que muestra el código QR para conectar un celular.</div></div><ol class="leyenda"><li><span>Código QR que apunta a la página del sistema con un código temporal.</span></li><li><span>Código de 6 letras de esta sesión de escaneo.</span></li><li><span>Indica cuántos códigos ha mandado el celular; con «Finalizar escaneo» se corta la conexión.</span></li></ol>
+<div class="paso"><div class="n">1</div><div class="t"><b>En la PC, en Registrar Venta, presione «Escanear con celular».</b>Aparece el código QR.</div></div><div class="paso"><div class="n">2</div><div class="t"><b>Con el celular, escanee el QR.</b>Se abre directamente la pantalla de la cámara. No necesita usuario ni clave: solo sirve para mandar códigos.</div></div><div class="paso"><div class="n">3</div><div class="t"><b>Apunte a la etiqueta del repuesto.</b>El código llega a la PC y el repuesto se agrega a la venta al instante.</div></div><div class="paso"><div class="n">4</div><div class="t"><b>Siga escaneando.</b>Cada código recibido se agrega a la venta.</div></div><div class="paso"><div class="n">5</div><div class="t"><b>Presione «Finalizar escaneo».</b>La conexión se corta y el celular queda libre.</div></div>
+<div class="consejo"><b>Consejo</b>Si usa la aplicación en un celular o tableta Android, ya tiene el botón «Escanear» con la cámara dentro del buscador de productos; el QR es para escanear desde el celular y vender en la PC.</div>
+<p>Si el código escaneado no coincide con ningún repuesto, el sistema prueba variantes válidas del mismo código (por ejemplo, el cero que algunos iPhone agregan al principio, o el código leído al revés) antes de decir que no existe. Si de verdad no existe, puede crearlo en ese momento con los datos del código ya cargados.</p>
+
+<h2 class="capitulo" id="cap15"><span class="num">15</span>Varios equipos, internet y actualizaciones</h2>
 <h3>Varios equipos trabajando a la vez</h3>
 <p>Puede haber varias cajas, el administrador consultando reportes desde su celular y un encargado en otra sucursal, todos al mismo tiempo. El sistema está preparado para eso:</p>
 <ul>
@@ -662,7 +738,38 @@ code { background: var(--pri-claro); border-radius: 3px; padding: 0 1.5mm; font-
 <p>En <b>Mantenedor ▸ Dispositivos</b> el administrador ve la versión de cada equipo y cuáles están desactualizados.</p>
 <div class="consejo"><b>Consejo</b>Si un equipo no actualiza, descargue el instalador más reciente de la página de versiones del sistema e instálelo encima: se conservan todos los datos, que están en la nube.</div>
 
-<h2 class="capitulo" id="cap15"><span class="num">15</span>Problemas frecuentes y buenas prácticas</h2>
+<h2 class="capitulo" id="cap16"><span class="num">16</span>Instalación, seguridad y respaldo</h2>
+<h3>Instalar en Windows</h3>
+<div class="paso"><div class="n">1</div><div class="t"><b>Descargue el instalador.</b>Es el archivo <code>RepuestosPOS.exe</code> de la página de versiones del sistema.</div></div><div class="paso"><div class="n">2</div><div class="t"><b>Ábralo.</b>No necesita permisos de administrador: se instala solo para su usuario de Windows. Si Windows muestra «Windows protegió su PC», elija <b>Más información ▸ Ejecutar de todas formas</b> (el instalador está firmado por el negocio pero Windows no lo conoce todavía).</div></div><div class="paso"><div class="n">3</div><div class="t"><b>Acepte las opciones.</b>Puede crear un acceso directo en el Escritorio.</div></div><div class="paso"><div class="n">4</div><div class="t"><b>Ingrese.</b>Con su documento y clave.</div></div>
+<h3>Instalar en Android</h3>
+<div class="paso"><div class="n">1</div><div class="t"><b>Descargue <code>RepuestosPOS.apk</code> en el celular.</b>Desde la página de versiones del sistema.</div></div><div class="paso"><div class="n">2</div><div class="t"><b>Permita la instalación desde esa fuente.</b>Android lo pedirá la primera vez: active «Permitir de esta fuente».</div></div><div class="paso"><div class="n">3</div><div class="t"><b>Abra el archivo e instale.</b>Para actualizar más adelante, el mismo proceso instala encima sin perder nada.</div></div>
+<h3>Usar desde el navegador</h3>
+<p>Abra la dirección web del sistema en Chrome o Edge. Puede instalarla como aplicación desde el menú del navegador («Instalar Repuestos POS»). Es la forma más rápida de consultar desde un equipo ajeno, sin instalar nada.</p>
+
+<h3>Primer ingreso del administrador</h3>
+<p>Quien instaló el sistema le entrega un usuario administrador inicial. Al entrar por primera vez:</p>
+<ol>
+  <li>Cambie la clave del administrador en <b>Usuarios</b>.</li>
+  <li>Complete los datos del negocio en <b>Negocio</b> (capítulo 3).</li>
+  <li>Cree las sucursales si las usa y los usuarios de su personal.</li>
+  <li>Cargue las categorías y los repuestos (a mano o con <b>Importar</b>).</li>
+  <li>Haga una venta de prueba y un ticket de prueba para confirmar la impresión.</li>
+</ol>
+
+<h3>Seguridad de la información</h3>
+<ul>
+  <li>Cada persona entra con su usuario y clave; tras varios intentos fallidos la cuenta se bloquea 5 minutos.</li>
+  <li>Las claves se guardan protegidas en el servidor y no se pueden ver ni desde el propio sistema.</li>
+  <li>La sesión dura 24 horas y se renueva sola mientras el programa está abierto; al cerrar sesión se descarta.</li>
+  <li>La clave especial solo la cambia un administrador.</li>
+</ul>
+
+<h3>Respaldo de la información</h3>
+<p>Todos los datos viven en la nube, no en cada computadora, así que si una PC se daña no se pierde nada: se instala el programa en otra y se entra con el mismo usuario.</p>
+<div class="cuidado"><b>Recomendación</b>El plan gratuito del servicio no incluye copias de seguridad automáticas. Como respaldo propio, exporte con regularidad a Excel el inventario (Inventario ▸ Excel) y los reportes de ventas y compras, y guárdelos en otro lugar. Si el negocio crece, conviene pasar al plan de pago, que sí respalda a diario.</div>
+<p>Además, si el servicio gratuito se pausa por falta de uso, el sistema lo reanuda solo cada pocos días; si aun así un día no conecta, avise a quien administra el sistema.</p>
+
+<h2 class="capitulo" id="cap17"><span class="num">17</span>Problemas frecuentes y buenas prácticas</h2>
 <table class="datos"><thead><tr><th>Problema</th><th>Causa probable</th><th>Qué hacer</th></tr></thead><tbody><tr><td>No puedo ingresar</td><td>Documento o clave incorrectos, o cuenta bloqueada por intentos fallidos</td><td>Espere unos minutos y reintente. Si olvidó la clave, el administrador puede cambiarla en Usuarios.</td></tr><tr><td>No veo un módulo del menú</td><td>Su usuario no tiene esa pantalla permitida</td><td>Pídale al administrador que la marque en su usuario.</td></tr><tr><td>Un botón (anular, crear…) no aparece</td><td>Esa acción no está permitida para su usuario</td><td>Pídale al administrador que la active en «Acciones permitidas».</td></tr><tr><td>El sistema pide una clave especial</td><td>La acción está protegida</td><td>Pida la clave al administrador. No se comparte.</td></tr><tr><td>No encuentro un repuesto</td><td>La búsqueda exige todas las palabras escritas</td><td>Escriba menos palabras o use solo el código; revise que el repuesto esté activo.</td></tr><tr><td>El repuesto no sale al filtrar por vehículo</td><td>No tiene ese vehículo registrado</td><td>Abra su ficha y agregue el vehículo y los años en «Vehículos compatibles».</td></tr><tr><td>Dice «Ya existe un producto con ese código»</td><td>Otro repuesto usa ese código</td><td>Use otro código o busque el repuesto existente.</td></tr><tr><td>No me deja vender: sin existencia</td><td>La categoría controla existencias y no hay unidades</td><td>Registre la compra o el ajuste de ingreso; o pida la autorización si el negocio la permite.</td></tr><tr><td>Falta una venta en el reporte</td><td>Otro rango de fechas, o la venta se guardó en espera / es una cotización</td><td>Revise «Ver en Espera» y el tipo de documento. Las cotizaciones y anuladas no suman.</td></tr><tr><td>El ticket sale muy largo o en blanco</td><td>Ancho de rollo mal configurado o impresora que no acepta impresión directa</td><td>Revise 58/80 mm y pruebe «Usar driver de Windows».</td></tr><tr><td>Los colores se ven mal</td><td>Color principal demasiado claro</td><td>Elija otro en Negocio ▸ Apariencia, o use «Restablecer».</td></tr><tr><td>El sistema se ve lento</td><td>Conexión a internet débil</td><td>Compruebe la señal del equipo; las listas guardadas se muestran igual, y las operaciones se reintentan solas.</td></tr><tr><td>La versión de un equipo no cambia</td><td>Instalador viejo guardado en Descargas</td><td>Use «Buscar actualización» dentro del programa o descargue el instalador más reciente.</td></tr></tbody></table>
 <h3>Buenas prácticas</h3>
 <ul>

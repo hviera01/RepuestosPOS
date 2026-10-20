@@ -9,7 +9,6 @@ import '../../../../core/utils/tablet_utils_stub.dart' if (dart.library.html) '.
 import '../../../../core/utils/webauthn.dart';
 import '../../../../core/widgets/face_id_icon.dart';
 import '../../providers/auth_provider.dart';
-import '../../../../core/utils/mayusculas_input_formatter.dart';
 
 bool get _esWebMovil =>
     kIsWeb &&
@@ -24,7 +23,9 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderStateMixin {
+  late final AnimationController _entrada;
+  late final AnimationController _giro;
   final _codigoController = TextEditingController();
   final _claveController = TextEditingController();
   bool _ocultarClave = true;
@@ -35,6 +36,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void initState() {
     super.initState();
+    _entrada = AnimationController(vsync: this, duration: const Duration(milliseconds: 700))..forward();
+    _giro = AnimationController(vsync: this, duration: const Duration(seconds: 30))..repeat();
     if (_esWebMovil) _cargarCredencialFaceId();
   }
 
@@ -45,6 +48,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   void dispose() {
+    _entrada.dispose();
+    _giro.dispose();
     _codigoController.dispose();
     _claveController.dispose();
     super.dispose();
@@ -92,7 +97,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         fit: StackFit.expand,
         children: [
           Container(color: Marca.primario),
-          Center(
+          FadeTransition(
+            opacity: CurvedAnimation(parent: _entrada, curve: Curves.easeOut),
+            child: SlideTransition(
+              position: Tween<Offset>(begin: const Offset(0, 0.05), end: Offset.zero)
+                  .animate(CurvedAnimation(parent: _entrada, curve: Curves.easeOutCubic)),
+              child: Center(
             child: SingleChildScrollView(
               child: Container(
                 width: anchoTarjeta,
@@ -109,7 +119,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          LogoGenerico(tamano: 96, color: Marca.primario),
+                          RotationTransition(turns: _giro, child: LogoGenerico(tamano: 96, color: Marca.primario)),
                           const SizedBox(height: 26),
                           Text(
                             'Bienvenido',
@@ -129,7 +139,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           const SizedBox(height: 34),
                           TextField(
-                            inputFormatters: [mayusculasInputFormatter],
                             autocorrect: false,
                             enableSuggestions: false,
                             controller: _codigoController,
@@ -262,6 +271,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
               ),
+            ),
+          ),
             ),
           ),
         ],

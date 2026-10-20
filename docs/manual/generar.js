@@ -5,6 +5,7 @@ const H = require('./helpers');
 const A = require('./capitulos_a');
 const B = require('./capitulos_b');
 const C = require('./capitulos_c');
+const D = require('./capitulos_d');
 
 const capitulos = [
   ['Bienvenida', A.cap1],
@@ -19,8 +20,10 @@ const capitulos = [
   ['Sucursales y traslados', C.cap10],
   ['Caja, ingresos y egresos', C.cap11],
   ['Reportes', C.cap12],
-  ['Impresión', C.cap13],
+  ['Impresión e impresión remota', D.capImpresion],
+  ['Escanear con el celular', D.capEscaner],
   ['Varios equipos, internet y actualizaciones', C.cap14],
+  ['Instalación, seguridad y respaldo', D.capInstalacion],
   ['Problemas frecuentes y buenas prácticas', C.cap15],
 ];
 
@@ -38,9 +41,11 @@ const cuerpo = capitulos
 
 const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Manual de usuario - Repuestos POS</title><style>${css}</style></head><body>
 <section class="portada">
-  <div class="marca">${H.ENGRANAJE}<span>Repuestos POS</span></div>
-  <div><h1>Manual<br>de usuario</h1><div class="sub">Ventas, compras, inventario por vehículo, créditos, traslados y reportes.</div></div>
-  <div class="pie"><span>Versión del manual: ${fecha}</span><span>Para administradores y personal de mostrador</span></div>
+  ${H.ENGRANAJE.replace('fill="#fff"', 'fill="#303846"').replace('r="14" fill="#303846"', 'r="14" fill="#fff"')}
+  <h1>Manual de usuario</h1>
+  <div class="linea"></div>
+  <div class="sub">Repuestos POS</div>
+  <div class="pie">${fecha}</div>
 </section>
 ${toc}
 ${cuerpo}

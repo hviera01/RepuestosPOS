@@ -21,7 +21,7 @@ ${datos(['Equipo', 'Cómo se usa', 'Notas'], [
   ['Celular o tableta Android', 'Aplicación instalada desde <code>RepuestosPOS.apk</code>', 'Sirve para vender, consultar inventario y escanear códigos de barras con la cámara.'],
   ['Navegador web', 'Dirección web del sistema (la entrega quien le instaló el sistema)', 'Chrome o Edge actualizados. No necesita instalar nada.'],
 ])}
-<p>Todos los equipos necesitan internet. Si la conexión se interrumpe un momento, el sistema vuelve a intentar solo y avisa cuando una operación quedó pendiente (ver capítulo 14).</p>
+<p>Todos los equipos necesitan internet. Si la conexión se interrumpe un momento, el sistema vuelve a intentar solo y avisa cuando una operación quedó pendiente (ver capítulo 15).</p>
 
 <h3>Cómo está organizado este manual</h3>
 <p>Los capítulos siguen el orden en que normalmente se empieza a trabajar: ingresar, configurar el negocio, crear usuarios, cargar inventario, vender y comprar, y finalmente los reportes. Dentro del sistema, cada pantalla importante tiene un botón de ayuda con el ícono de un birrete: al tocarlo se abre una guía paso a paso sobre esa pantalla.</p>
@@ -127,7 +127,7 @@ ${datos(['Tipo', 'Qué hace'], [
 <p>Aunque haya elegido uno por defecto, en cada venta puede cambiar el tipo antes de registrarla.</p>
 
 <h3>Impresión de tickets y facturas</h3>
-<p>En la tarjeta <b>Impresoras</b> y en <b>Factura</b> se configura todo lo relacionado con la impresión:</p>
+<p>En la tarjeta <b>Impresoras</b> y en <b>Factura</b> se configura todo lo relacionado con la impresión (el capítulo 13 explica en detalle cómo funciona, incluida la impresión remota):</p>
 ${datos(['Opción', 'Para qué sirve'], [
   ['Imprimir facturas automáticamente', 'Interruptor general. Apáguelo si todavía no tiene impresora.'],
   ['Imprimir copia además del original', 'Si lo apaga, solo sale la hoja ORIGINAL y se ahorra papel.'],

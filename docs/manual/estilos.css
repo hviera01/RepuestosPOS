@@ -30,19 +30,20 @@ body { margin: 0; }
 
 .portada {
   height: 297mm;
-  background: var(--pri);
-  color: #fff;
-  padding: 28mm 22mm;
+  background: #fff;
+  color: var(--texto);
+  padding: 0 24mm;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
+  align-items: flex-start;
   page-break-after: always;
 }
-.portada .marca { display: flex; align-items: center; gap: 14px; font-size: 13pt; letter-spacing: 3px; text-transform: uppercase; opacity: .85; }
-.portada h1 { font-size: 40pt; line-height: 1.05; margin: 0 0 14px; font-weight: 700; letter-spacing: -1px; }
-.portada .sub { font-size: 15pt; max-width: 120mm; opacity: .85; }
-.portada .pie { font-size: 10pt; opacity: .7; display: flex; justify-content: space-between; }
-.engranaje { width: 54px; height: 54px; }
+.portada .engranaje { width: 22mm; height: 22mm; margin-bottom: 14mm; }
+.portada h1 { font-size: 34pt; line-height: 1.1; margin: 0 0 4mm; font-weight: 700; letter-spacing: -.5px; color: var(--pri); }
+.portada .linea { width: 26mm; height: 3px; background: var(--pri); margin: 0 0 6mm; }
+.portada .sub { font-size: 14pt; color: #4b4f58; }
+.portada .pie { margin-top: 70mm; font-size: 10pt; color: #6b7280; }
 
 h2.capitulo {
   font-size: 22pt;
@@ -154,7 +155,7 @@ table.mini td.num, table.mini th.num { text-align: right; }
 .paso { display: flex; gap: 4mm; margin: 2mm 0 3mm; break-inside: avoid; }
 .paso .n { flex: 0 0 8mm; height: 8mm; border-radius: 50%; background: var(--pri); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: .5mm; }
 .paso .t { flex: 1; }
-.paso .t b { display: block; }
+.paso .t > b:first-child { display: block; }
 
 .dos-col { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
 .sin-corte { break-inside: avoid; }
