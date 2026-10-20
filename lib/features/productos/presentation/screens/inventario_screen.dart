@@ -68,15 +68,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
   String? _columnaOrden;
   bool _ordenAscendente = false;
   String _vistaTablet = 'tabla';
-
-  bool get _seVenTarjetas {
-    final ancho = MediaQuery.of(context).size.width;
-    final esMovil = ancho < 720;
-    final esTablet = !esMovil && ancho < 1100;
-    return esMovil || (esTablet && _vistaTablet == 'tarjetas');
-  }
-  GlobalKey get _keyAccionesSegunVista =>
-      _seVenTarjetas ? _keyPrimeraTarjetaAcciones : _keyColumnaAcciones;
   bool _busquedaPorCodigoBarras = false;
   List<ProductoModel> _listaActual = [];
   String _filtroEstado = 'activos';
