@@ -1,6 +1,7 @@
 import '../../../../core/theme/marca.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/logo_generico.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/utils/face_id_storage.dart';
@@ -108,19 +109,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            width: 108,
-                            height: 108,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Marca.primario,
-                            ),
-                            child: const Icon(
-                              Icons.settings_outlined,
-                              color: Colors.white,
-                              size: 48,
-                            ),
-                          ),
+                          LogoGenerico(tamano: 96, color: Marca.primario),
                           const SizedBox(height: 26),
                           Text(
                             'Bienvenido',
@@ -267,15 +256,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ),
                           ],
-                          const SizedBox(height: 20),
-                          Text(
-                            'REPUESTOS',
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              color: Colors.grey.shade500,
-                              letterSpacing: 0.6,
-                            ),
-                          ),
                         ],
                       ),
                     ),

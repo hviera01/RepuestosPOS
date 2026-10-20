@@ -1,6 +1,6 @@
 import '../theme/marca.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'logo_generico.dart';
 
 class SplashScreen extends StatefulWidget {
   final Widget siguiente;
@@ -60,24 +60,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                ),
-                child: Icon(
-                  Icons.settings_outlined,
-                  color: Marca.primario,
-                  size: 56,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'REPUESTOS',
-                style: GoogleFonts.poppins(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: 1.2),
-              ),
+              const LogoGenerico(tamano: 130, color: Colors.white),
             ],
           ),
         ),
