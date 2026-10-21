@@ -802,20 +802,26 @@ Widget _graficoTendenciaMargen(List<PuntoMensual> serie) {
   final formatoMes = DateFormat('MMM yy', 'es');
   final puntos = <FlSpot>[
     for (var i = 0; i < serie.length; i++)
-      if (serie[i].totalVentas > 0) FlSpot(i.toDouble(), ((serie[i].totalVentas - serie[i].totalCompras) / serie[i].totalVentas) * 100),
+      if (serie[i].totalVentas > 0) FlSpot(i.toDouble(), (((serie[i].totalVentas - serie[i].totalCompras) / serie[i].totalVentas) * 100).clamp(-100, 100).toDouble()),
   ];
   if (puntos.length < 2) {
     return _tarjeta(child: Text('No hay suficientes meses con ventas para calcular la tendencia.', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600)));
   }
-  final minY = puntos.map((p) => p.y).reduce((a, b) => a < b ? a : b);
-  final maxY = puntos.map((p) => p.y).reduce((a, b) => a > b ? a : b);
+  final menor = puntos.map((p) => p.y).reduce((a, b) => a < b ? a : b);
+  final mayor = puntos.map((p) => p.y).reduce((a, b) => a > b ? a : b);
+  final minY = (((menor - 5) / 5).floor() * 5).clamp(-100, 100).toDouble();
+  final maxY = (((mayor + 5) / 5).ceil() * 5).clamp(-100, 100).toDouble();
+  final intervalo = (((maxY - minY) / 4 / 5).ceil() * 5).clamp(5, 100).toDouble();
   return _tarjeta(
     child: SizedBox(
       height: 200,
       child: LineChart(
         LineChartData(
-          minY: (minY - 5).clamp(-100, 100).toDouble(),
-          maxY: (maxY + 5).clamp(-100, 100).toDouble(),
+          minY: minY,
+          maxY: maxY,
+          minX: 0,
+          maxX: (serie.length - 1).toDouble(),
+          clipData: const FlClipData.all(),
           lineTouchData: LineTouchData(
             touchTooltipData: LineTouchTooltipData(
               getTooltipItems: (spots) => spots.map((s) => LineTooltipItem('${s.y.toStringAsFixed(1)}%', GoogleFonts.poppins(color: Colors.white, fontSize: 11))).toList(),
@@ -827,27 +833,30 @@ Widget _graficoTendenciaMargen(List<PuntoMensual> serie) {
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                reservedSize: 40,
+                reservedSize: 44,
+                interval: intervalo,
                 getTitlesWidget: (value, meta) => Text('${value.toStringAsFixed(0)}%', style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey.shade600)),
               ),
             ),
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
+                interval: 1,
                 getTitlesWidget: (value, meta) {
                   final i = value.toInt();
-                  if (i < 0 || i >= serie.length) return const SizedBox();
+                  if (value != i.toDouble() || i < 0 || i >= serie.length) return const SizedBox();
                   return Padding(padding: const EdgeInsets.only(top: 8), child: Text(formatoMes.format(serie[i].mes), style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade600)));
                 },
               ),
             ),
           ),
-          gridData: FlGridData(show: true, drawVerticalLine: false, horizontalInterval: 5, getDrawingHorizontalLine: (v) => FlLine(color: Colors.grey.shade200, strokeWidth: 1)),
+          gridData: FlGridData(show: true, drawVerticalLine: false, horizontalInterval: intervalo, getDrawingHorizontalLine: (v) => FlLine(color: Colors.grey.shade200, strokeWidth: 1)),
           borderData: FlBorderData(show: false),
           lineBarsData: [
             LineChartBarData(
               spots: puntos,
               isCurved: true,
+              preventCurveOverShooting: true,
               color: const Color(0xFF16A34A),
               barWidth: 3,
               dotData: const FlDotData(show: true),
