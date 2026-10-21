@@ -112,7 +112,7 @@ class CarritoCompraNotifier extends Notifier<CarritoCompraState> {
 
   void agregarProductoDirecto(ProductoModel producto) {
     final precioCompra = state.isvPorcentaje > 0
-        ? redondearMoneda(producto.precioCompra / (1 + state.isvPorcentaje / 100))
+        ? producto.precioCompra / (1 + state.isvPorcentaje / 100)
         : producto.precioCompra;
     final item = ItemCompraModel(
       idProducto: producto.id,

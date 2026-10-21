@@ -139,6 +139,10 @@ class _BuscarProductoCompraDialogState
       return;
     }
     _buscar();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _listaActual.isEmpty || _cerrando) return;
+      setState(() => _filaSeleccionada = _listaActual.first.id);
+    });
   }
 
   void _seleccionarAlPresionarEnter() {

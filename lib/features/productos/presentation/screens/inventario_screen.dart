@@ -1095,7 +1095,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                     _celdaHeader(texto: 'UBICACIÓN', flex: 16),
                   _celdaHeader(
                     texto: 'EXISTENCIA',
-                    flex: 12,
+                    flex: 17,
                     columnaOrdenKey: 'existencia',
                     headerKey: _keyColumnaExistencia,
                   ),
@@ -1235,7 +1235,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                               ),
                             ),
                           _celdaTabla(
-                            flex: 12,
+                            flex: 17,
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: Column(

@@ -168,17 +168,17 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
     final editando = widget.usuario != null;
     final tamano = MediaQuery.of(context).size;
     final esMovil = tamano.width < 500;
-    final anchoDialog = esMovil ? tamano.width - 48 : 440.0;
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.all(20),
+    final margenH = esMovil ? 12.0 : ((tamano.width - 820) / 2).clamp(12.0, 2000.0);
+    return Dialog.fullscreen(
+      backgroundColor: const Color(0xFFF2F3F7),
       child: SingleChildScrollView(
         child: Container(
-          width: anchoDialog,
-          padding: const EdgeInsets.all(28),
+          width: double.infinity,
+          margin: EdgeInsets.symmetric(horizontal: margenH, vertical: 24),
+          padding: EdgeInsets.all(esMovil ? 20 : 32),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

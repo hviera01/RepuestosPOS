@@ -314,6 +314,10 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
       return;
     }
     _buscar();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _listaActual.isEmpty || _cerrando) return;
+      setState(() => _filaSeleccionada = _listaActual.first.id);
+    });
   }
 
   bool _coincide(ProductoModel p, String texto) {
