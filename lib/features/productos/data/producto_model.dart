@@ -22,6 +22,7 @@ class ProductoModel {
   final String codigoBarras;
   final String nombre;
   final String descripcion;
+  final String ubicacion;
   final String idCategoria;
   final double stock;
   final double precioCompra;
@@ -42,6 +43,7 @@ class ProductoModel {
     required this.codigoBarras,
     required this.nombre,
     required this.descripcion,
+    this.ubicacion = '',
     required this.idCategoria,
     required this.stock,
     required this.precioCompra,
@@ -64,6 +66,7 @@ class ProductoModel {
       codigoBarras: data['codigo_barras'] ?? '',
       nombre: data['nombre'] ?? '',
       descripcion: data['descripcion'] ?? '',
+      ubicacion: data['ubicacion'] ?? '',
       idCategoria: data['id_categoria'] ?? '',
       stock: (data['stock'] ?? 0).toDouble(),
       precioCompra: (data['precio_compra'] ?? 0).toDouble(),
@@ -84,7 +87,7 @@ class ProductoModel {
     );
   }
 
-  String get textoBusqueda => '$codigo $codigoBarras $nombre $descripcion $textoVehiculos';
+  String get textoBusqueda => '$codigo $codigoBarras $nombre $descripcion $ubicacion $textoVehiculos';
 
   String get textoVehiculos => compatibilidad.map((c) => c.textoCompleto).join(' ');
 

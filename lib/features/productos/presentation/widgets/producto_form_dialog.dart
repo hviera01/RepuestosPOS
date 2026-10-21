@@ -56,6 +56,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
   bool _nombreAuto = true;
   bool _escribiendoNombre = false;
   final _descripcionController = TextEditingController();
+  final _ubicacionController = TextEditingController();
   final _stockController = TextEditingController(text: '0');
   final _precioCompraController = TextEditingController(text: '0');
   final _precioVentaController = TextEditingController(text: '0');
@@ -117,6 +118,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
       _compat = List.of(p.compatibilidad);
       _nombreAuto = p.nombreAutomatico;
       _descripcionController.text = p.descripcion;
+      _ubicacionController.text = p.ubicacion;
       _stockController.text = p.stock.toString();
       _precioCompraController.text = p.precioCompra.toString();
       _precioVentaController.text = p.precioVenta.toString();
@@ -164,6 +166,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
     _nombreController.dispose();
     _nombreBaseController.dispose();
     _descripcionController.dispose();
+    _ubicacionController.dispose();
     _stockController.dispose();
     _precioCompraController.dispose();
     _precioVentaController.dispose();
@@ -306,6 +309,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
               codigoBarras: _codigoBarrasController.text,
               nombre: nombre,
               descripcion: _descripcionController.text,
+              ubicacion: _ubicacionController.text,
               idCategoria: _idCategoria!,
               stock: _esCombo ? 0 : _parseDouble(_stockController.text),
               precioCompra: _esCombo
@@ -341,6 +345,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
             codigoBarras: _codigoBarrasController.text,
             nombre: nombre,
             descripcion: _descripcionController.text,
+              ubicacion: _ubicacionController.text,
             idCategoria: _idCategoria!,
             precioCompra: _esCombo
                 ? _costoSumadoCombo
@@ -723,6 +728,19 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
           maxLines: 2,
           style: GoogleFonts.poppins(fontSize: 14),
           decoration: _decoracion('Descripción (opcional)'),
+        ),
+      ),
+      const SizedBox(height: 14),
+      CampoTecladoCompacto(
+        controller: _ubicacionController,
+        numerico: false,
+        child: TextField(
+          inputFormatters: [mayusculasInputFormatter],
+          autocorrect: false,
+          enableSuggestions: false,
+          controller: _ubicacionController,
+          style: GoogleFonts.poppins(fontSize: 14),
+          decoration: _decoracion('Ubicación física (opcional, ej. PASILLO 2 - ESTANTE B)'),
         ),
       ),
       const SizedBox(height: 14),

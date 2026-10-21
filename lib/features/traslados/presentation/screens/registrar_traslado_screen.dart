@@ -77,7 +77,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
       return;
     }
     setState(() {
-      _items = [..._items, ItemTrasladoModel(idProducto: producto.id, nombreProducto: producto.nombre, cantidad: 1, ubicacion: producto.descripcion)];
+      _items = [..._items, ItemTrasladoModel(idProducto: producto.id, nombreProducto: producto.nombre, cantidad: 1, ubicacion: producto.ubicacion)];
       _error = null;
     });
   }
