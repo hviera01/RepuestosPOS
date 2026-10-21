@@ -36,6 +36,8 @@ class _ResumenDiaScreenState extends ConsumerState<ResumenDiaScreen> {
   String? _error;
   Timer? _debounce;
   bool _mostrarTodasOperaciones = false;
+  String _filtroTipo = 'Todo';
+  String _busquedaOps = '';
   final _formatoDia = DateFormat('dd/MM/yyyy');
   final _formatoHora = DateFormat('HH:mm');
 
@@ -257,7 +259,15 @@ class _ResumenDiaScreenState extends ConsumerState<ResumenDiaScreen> {
       LineaTotal('Cheque', 0, r.cheque),
       LineaTotal('Crédito', 0, r.credito),
     ];
-    final operaciones = _mostrarTodasOperaciones ? r.operaciones : r.operaciones.take(40).toList();
+    final tokens = _busquedaOps.toLowerCase().split(RegExp(r's+')).where((t) => t.isNotEmpty).toList();
+    final filtradas = r.operaciones.where((o) {
+      if (_filtroTipo != 'Todo' && o.tipo != _filtroTipo) return false;
+      if (tokens.isEmpty) return true;
+      final texto = '${o.tipo} ${o.descripcion} ${o.usuario}'.toLowerCase();
+      return tokens.every(texto.contains);
+    }).toList();
+    final operaciones = _mostrarTodasOperaciones ? filtradas : filtradas.take(40).toList();
+    final tipos = <String>['Todo', ...{for (final o in r.operaciones) o.tipo}];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -319,9 +329,42 @@ class _ResumenDiaScreenState extends ConsumerState<ResumenDiaScreen> {
           },
         ),
         _tarjeta(
-          'Todo lo que se hizo (${r.operaciones.length})',
+          'Todo lo que se hizo (${filtradas.length}${filtradas.length == r.operaciones.length ? '' : ' de ${r.operaciones.length}'})',
           Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              TextField(
+                style: GoogleFonts.poppins(fontSize: 13),
+                decoration: InputDecoration(
+                  hintText: 'Buscar por cliente, proveedor, recibo, documento, usuario…',
+                  prefixIcon: const Icon(Icons.search, size: 18),
+                  isDense: true,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onChanged: (v) => setState(() {
+                  _busquedaOps = v.trim();
+                  _mostrarTodasOperaciones = false;
+                }),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  for (final t in tipos)
+                    ChoiceChip(
+                      label: Text(t, style: GoogleFonts.poppins(fontSize: 11.5, color: _filtroTipo == t ? Marca.sobrePrimario : null)),
+                      selected: _filtroTipo == t,
+                      selectedColor: Marca.primario,
+                      showCheckmark: false,
+                      onSelected: (_) => setState(() {
+                        _filtroTipo = t;
+                        _mostrarTodasOperaciones = false;
+                      }),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
               if (operaciones.isEmpty) Text('Sin movimientos en este periodo', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500)),
               for (final o in operaciones)
                 Padding(
@@ -343,8 +386,8 @@ class _ResumenDiaScreenState extends ConsumerState<ResumenDiaScreen> {
                     ],
                   ),
                 ),
-              if (!_mostrarTodasOperaciones && r.operaciones.length > 40)
-                TextButton(onPressed: () => setState(() => _mostrarTodasOperaciones = true), child: Text('Ver las ${r.operaciones.length} operaciones')),
+              if (!_mostrarTodasOperaciones && filtradas.length > 40)
+                TextButton(onPressed: () => setState(() => _mostrarTodasOperaciones = true), child: Text('Ver las ${filtradas.length} operaciones')),
             ],
           ),
           icono: Icons.timeline,

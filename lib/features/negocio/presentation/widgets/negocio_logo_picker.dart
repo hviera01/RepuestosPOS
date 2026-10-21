@@ -103,7 +103,7 @@ class _NegocioLogoPickerState extends ConsumerState<NegocioLogoPicker> {
         Text('Logo del negocio', style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
         const SizedBox(height: 4),
         Text(
-          'Suba el logo normal, a color. El sistema genera solo la versión en blanco y negro para los tickets.',
+          'Suba solo el logo normal, a color. El sistema lo pasa solo a blanco y negro para los tickets; usted no tiene que subir otro.',
           style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600),
         ),
         const SizedBox(height: 10),
@@ -112,8 +112,8 @@ class _NegocioLogoPickerState extends ConsumerState<NegocioLogoPicker> {
           runSpacing: 12,
           crossAxisAlignment: WrapCrossAlignment.end,
           children: [
-            _vista('Original', widget.logoColorBase64),
-            _vista('En tickets (blanco y negro)', widget.logoBnBase64),
+            _vista('Logo', widget.logoColorBase64),
+            if (tiene) _vista('Así sale en el ticket', widget.logoBnBase64),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,

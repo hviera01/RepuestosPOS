@@ -1,5 +1,6 @@
 import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -460,7 +461,7 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
               child: _campoEstatico('Fecha del gasto', formatoFecha.format(_fechaEgreso)),
             ),
             const SizedBox(height: 10),
-            _campoTexto('Monto (L.)', _montoController, teclado: const TextInputType.numberWithOptions(decimal: true)),
+            _campoTexto('Monto', _montoController, teclado: const TextInputType.numberWithOptions(decimal: true), dinero: true),
             const SizedBox(height: 10),
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -484,9 +485,9 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
             const SizedBox(height: 10),
             _campoTexto('Concepto / descripción', _descripcionController),
             const SizedBox(height: 10),
-            _campoTexto('Pagado a (proveedor o beneficiario)', _beneficiarioController),
+            _campoTexto('Pagado a (opcional)', _beneficiarioController),
             const SizedBox(height: 10),
-            _campoTexto('No. de comprobante o factura', _comprobanteController),
+            _campoTexto('No. de comprobante (opcional)', _comprobanteController),
             const SizedBox(height: 10),
             _dropdown('Forma de pago', _metodoPago, _metodos, (v) => setState(() => _metodoPago = v!)),
             const SizedBox(height: 6),
@@ -762,12 +763,13 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
     String etiqueta,
     TextEditingController controller, {
     TextInputType? teclado,
+    bool dinero = false,
   }) {
     return CampoTecladoCompacto(
       controller: controller,
       numerico: false,
       child: TextField(
-        inputFormatters: [mayusculasInputFormatter],
+        inputFormatters: dinero ? [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))] : [mayusculasInputFormatter],
         autocorrect: false,
         enableSuggestions: false,
         controller: controller,
@@ -775,6 +777,7 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
         style: GoogleFonts.poppins(fontSize: 13),
         decoration: InputDecoration(
           labelText: etiqueta,
+          prefixText: dinero ? 'L. ' : null,
           labelStyle: GoogleFonts.poppins(fontSize: 12),
           filled: true,
           fillColor: const Color(0xFFE8EAF0),

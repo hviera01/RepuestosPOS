@@ -1,4 +1,3 @@
-import '../../../core/utils/logo_bn.dart';
 import '../../../core/utils/avisos.dart';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -127,11 +126,10 @@ class NegocioRepository with ConRedMixin {
     return _guardar({'tipo_documento_defecto': tipo});
   }
 
-  Future<void> guardarLogo(Uint8List bytes) async {
-    final bn = await convertirLogoABlancoYNegro(bytes);
+  Future<void> guardarLogo(Uint8List bytes) {
     return _guardar({
       'logo_color_base64': base64Encode(bytes),
-      'logo_bn_base64': bn == null ? base64Encode(bytes) : base64Encode(bn),
+      'logo_bn_base64': '',
     }, exito: 'Logo guardado correctamente');
   }
 

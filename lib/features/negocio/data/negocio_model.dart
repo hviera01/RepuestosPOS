@@ -1,3 +1,5 @@
+import '../../../core/utils/logo_bn.dart';
+
 class PermisosEspeciales {
   static const inventarioEditarProducto = 'inventario_editar_producto';
   static const inventarioAjustarStock = 'inventario_ajustar_stock';
@@ -83,7 +85,9 @@ class NegocioModel {
   final String rangoHasta;
   final DateTime? fechaLimiteEmision;
   final String logoColorBase64;
-  final String logoBnBase64;
+  final String logoBnGuardadoBase64;
+
+  String get logoBnBase64 => logoColorBase64.isEmpty ? '' : logoBnDesdeColorBase64(logoColorBase64);
   final bool tieneClaveEspecial;
   final Map<String, bool> permisos;
   final String impresoraTermicaUrl;
@@ -119,7 +123,7 @@ class NegocioModel {
     this.rangoHasta = '',
     this.fechaLimiteEmision,
     this.logoColorBase64 = '',
-    this.logoBnBase64 = '',
+    this.logoBnGuardadoBase64 = '',
     this.tieneClaveEspecial = false,
     this.permisos = const {},
     this.impresoraTermicaUrl = '',
@@ -160,7 +164,7 @@ class NegocioModel {
       rangoHasta: data['rango_hasta'] ?? '',
       fechaLimiteEmision: data['fecha_limite_emision'] == null ? null : DateTime.parse(data['fecha_limite_emision'] as String),
       logoColorBase64: data['logo_color_base64'] ?? '',
-      logoBnBase64: data['logo_bn_base64'] ?? '',
+      logoBnGuardadoBase64: data['logo_bn_base64'] ?? '',
       tieneClaveEspecial: data['tiene_clave_especial'] ?? false,
       permisos: Map<String, bool>.from(data['permisos'] ?? {}),
       impresoraTermicaUrl: data['impresora_termica_url'] ?? '',
@@ -200,7 +204,7 @@ class NegocioModel {
       'rango_hasta': rangoHasta,
       'fecha_limite_emision': fechaLimiteEmision?.toIso8601String(),
       'logo_color_base64': logoColorBase64,
-      'logo_bn_base64': logoBnBase64,
+      'logo_bn_base64': logoBnGuardadoBase64,
       'permisos': permisos,
       'impresora_termica_url': impresoraTermicaUrl,
       'impresora_termica_nombre': impresoraTermicaNombre,
@@ -237,7 +241,7 @@ class NegocioModel {
     String? rangoHasta,
     DateTime? fechaLimiteEmision,
     String? logoColorBase64,
-    String? logoBnBase64,
+    String? logoBnGuardadoBase64,
     bool? tieneClaveEspecial,
     Map<String, bool>? permisos,
     String? impresoraTermicaUrl,
@@ -273,7 +277,7 @@ class NegocioModel {
       rangoHasta: rangoHasta ?? this.rangoHasta,
       fechaLimiteEmision: fechaLimiteEmision ?? this.fechaLimiteEmision,
       logoColorBase64: logoColorBase64 ?? this.logoColorBase64,
-      logoBnBase64: logoBnBase64 ?? this.logoBnBase64,
+      logoBnGuardadoBase64: logoBnGuardadoBase64 ?? this.logoBnGuardadoBase64,
       tieneClaveEspecial: tieneClaveEspecial ?? this.tieneClaveEspecial,
       permisos: permisos ?? this.permisos,
       impresoraTermicaUrl: impresoraTermicaUrl ?? this.impresoraTermicaUrl,

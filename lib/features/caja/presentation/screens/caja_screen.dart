@@ -297,7 +297,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProvid
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Caja de ${caja.usuario}'),
-        content: SizedBox(width: 440, child: SingleChildScrollView(child: _ResumenCaja(caja: caja))),
+        content: SizedBox(width: 560, child: SingleChildScrollView(child: _ResumenCaja(caja: caja))),
         actions: [
           if (!caja.abierta && (_esAdmin || caja.usuario == _usuario) && _historial.isNotEmpty && _historial.first.id == caja.id)
             TextButton(
@@ -891,75 +891,123 @@ class _ConfigConteo extends StatelessWidget {
   }
 }
 
+String _dinero(double v) => v < 0 ? '-${formatearMoneda(-v)}' : formatearMoneda(v);
+
 class _ResumenCaja extends StatelessWidget {
   final CajaModel caja;
 
   const _ResumenCaja({required this.caja});
 
-  Widget _fila(String etiqueta, double valor, {bool fuerte = false, Color? color, bool tenue = false}) {
-    final estilo = GoogleFonts.poppins(
-      fontSize: fuerte ? 14.5 : 13,
-      fontWeight: fuerte ? FontWeight.w800 : FontWeight.w500,
-      color: tenue ? Colors.grey.shade500 : color,
-      decoration: tenue ? TextDecoration.lineThrough : null,
-    );
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
+  Widget _tabla(String titulo, List<Widget> filas) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFDADDE4)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(child: Text(etiqueta, style: estilo)),
-          Text(formatearMoneda(valor), style: estilo),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            color: const Color(0xFFECEEF3),
+            child: Text(titulo.toUpperCase(), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.5, color: const Color(0xFF4B4F58))),
+          ),
+          ...filas,
         ],
       ),
     );
   }
 
-  Widget _titulo(String t) => Padding(
-        padding: const EdgeInsets.only(top: 12, bottom: 4),
-        child: Text(t.toUpperCase(), style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, letterSpacing: 0.5, color: Colors.grey.shade600)),
-      );
+  Widget _fila(String etiqueta, double valor, int indice, {bool tenue = false, Color? color}) {
+    final estilo = GoogleFonts.poppins(
+      fontSize: 13.5,
+      fontWeight: FontWeight.w500,
+      color: tenue ? Colors.grey.shade500 : color ?? const Color(0xFF1A1A1A),
+      decoration: tenue ? TextDecoration.lineThrough : null,
+    );
+    return Container(
+      color: indice.isEven ? Colors.white : const Color(0xFFF7F8FA),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+      child: Row(
+        children: [
+          Expanded(child: Text(etiqueta, style: estilo)),
+          const SizedBox(width: 16),
+          Text(_dinero(valor), style: estilo.copyWith(fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+
+  Widget _total(String etiqueta, double valor, {Color? fondo, Color? texto}) {
+    final estilo = GoogleFonts.poppins(fontSize: 15.5, fontWeight: FontWeight.w800, color: texto ?? Colors.white);
+    return Container(
+      color: fondo ?? Marca.primario,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        children: [
+          Expanded(child: Text(etiqueta, style: estilo)),
+          const SizedBox(width: 16),
+          Text(_dinero(valor), style: estilo),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = caja;
     final fin = c.hastaEn ?? c.cerradaEn;
+    final difOk = c.diferencia.abs() < 0.01;
+    final efectivo = _tabla('Efectivo en caja', [
+      _fila('Fondo inicial', c.montoApertura, 0),
+      _fila('Ventas en efectivo', c.ventasEfectivo, 1, tenue: !c.config.ventasEfectivo),
+      _fila('Abonos de clientes en efectivo', c.abonosEfectivo, 2, tenue: !c.config.abonosEfectivo),
+      _fila('Gastos en efectivo', -c.gastos, 3, tenue: !c.config.gastos),
+      _fila('Pagos a proveedores en efectivo', -c.pagosProveedores, 4, tenue: !c.config.pagosProveedores),
+      _fila('Compras en efectivo', -c.comprasEfectivo, 5, tenue: !c.config.comprasEfectivo),
+      _total('Efectivo esperado', c.efectivoEsperado),
+      if (!c.abierta) ...[
+        _fila('Efectivo contado', c.montoCierre ?? 0, 0),
+        _total('Diferencia', c.diferencia, fondo: difOk ? const Color(0xFFE6F4EA) : const Color(0xFFFCE8E6), texto: difOk ? const Color(0xFF1E7B4B) : const Color(0xFFC62828)),
+      ],
+    ]);
+    final ventas = _tabla('Ventas (${c.cantidadVentas})', [
+      _fila('Efectivo', c.ventasEfectivo, 0),
+      _fila('Tarjeta', c.ventasTarjeta, 1),
+      _fila('Transferencia', c.ventasTransferencia, 2),
+      _fila('Cheque', c.ventasCheque, 3),
+      _fila('Crédito', c.ventasCredito, 4),
+      _total('Total ventas', c.totalVentas, fondo: const Color(0xFFECEEF3), texto: const Color(0xFF1A1A1A)),
+      _fila('Abonos con otros métodos', c.abonosOtros, 1),
+    ]);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Contando del ${_formatoFecha.format(c.desdeEfectivo)} ${fin == null ? 'en adelante (en vivo)' : 'al ${_formatoFecha.format(fin)}'}',
-          style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600),
+          style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade700),
         ),
-        if (c.cerradaEn != null) Text('Cerrada ${_formatoFecha.format(c.cerradaEn!)}', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
-        if (c.notas.isNotEmpty) Text('Notas: ${c.notas}', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade700)),
-        _titulo('Efectivo en caja'),
-        _fila('Fondo inicial', c.montoApertura),
-        _fila('Ventas en efectivo', c.ventasEfectivo, tenue: !c.config.ventasEfectivo),
-        _fila('Abonos en efectivo', c.abonosEfectivo, tenue: !c.config.abonosEfectivo),
-        _fila('Gastos en efectivo', -c.gastos, tenue: !c.config.gastos),
-        _fila('Pagos a proveedores en efectivo', -c.pagosProveedores, tenue: !c.config.pagosProveedores),
-        _fila('Compras en efectivo', -c.comprasEfectivo, tenue: !c.config.comprasEfectivo),
-        const Divider(height: 18),
-        _fila('Efectivo esperado', c.efectivoEsperado, fuerte: true),
-        if (!c.abierta) ...[
-          _fila('Efectivo contado', c.montoCierre ?? 0, fuerte: true),
-          _fila(
-            'Diferencia',
-            c.diferencia,
-            fuerte: true,
-            color: c.diferencia.abs() < 0.01 ? const Color(0xFF2E7D32) : const Color(0xFFC62828),
-          ),
-          if (c.notasCierre.isNotEmpty) Text('Notas de cierre: ${c.notasCierre}', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade700)),
-        ],
-        _titulo('Ventas (${c.cantidadVentas})'),
-        _fila('Efectivo', c.ventasEfectivo),
-        _fila('Tarjeta', c.ventasTarjeta),
-        _fila('Transferencia', c.ventasTransferencia),
-        _fila('Cheque', c.ventasCheque),
-        _fila('Crédito', c.ventasCredito),
-        const Divider(height: 18),
-        _fila('Total ventas', c.totalVentas, fuerte: true),
-        _fila('Abonos con otros métodos', c.abonosOtros),
+        if (c.cerradaEn != null) Text('Cerrada ${_formatoFecha.format(c.cerradaEn!)}', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade700)),
+        if (c.notas.isNotEmpty) Text('Notas: ${c.notas}', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade700)),
+        if (c.notasCierre.isNotEmpty) Text('Notas de cierre: ${c.notasCierre}', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade700)),
+        const SizedBox(height: 12),
+        LayoutBuilder(
+          builder: (context, cons) {
+            if (cons.maxWidth >= 820) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: efectivo),
+                  const SizedBox(width: 14),
+                  Expanded(child: ventas),
+                ],
+              );
+            }
+            return Column(children: [efectivo, const SizedBox(height: 14), ventas]);
+          },
+        ),
       ],
     );
   }

@@ -1062,6 +1062,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
         final ancho = constraints.maxWidth;
         final mostrarDescripcion = ancho >= 1050;
         final mostrarCategoria = ancho >= 850;
+        final mostrarUbicacion = ancho >= 760;
 
         return Column(
           children: [
@@ -1090,6 +1091,8 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                     _celdaHeader(texto: 'DESCRIPCIÓN', flex: 20),
                   if (mostrarCategoria)
                     _celdaHeader(texto: 'CATEGORÍA', flex: 17),
+                  if (mostrarUbicacion)
+                    _celdaHeader(texto: 'UBICACIÓN', flex: 16),
                   _celdaHeader(
                     texto: 'EXISTENCIA',
                     flex: 12,
@@ -1214,6 +1217,19 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.poppins(
                                   fontSize: 12.5,
+                                  color: const Color(0xFF3F434A),
+                                ),
+                              ),
+                            ),
+                          if (mostrarUbicacion)
+                            _celdaTabla(
+                              flex: 16,
+                              child: Text(
+                                producto.ubicacion.isEmpty ? '-' : producto.ubicacion,
+                                softWrap: true,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
                                   color: const Color(0xFF3F434A),
                                 ),
                               ),
@@ -1530,6 +1546,20 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                       ),
                     ),
                   ),
+                  if (p.ubicacion.isNotEmpty) ...[
+                    Divider(height: 1, color: Colors.grey.shade200),
+                    _filaDatoTarjeta(
+                      'UBICACION',
+                      Text(
+                        p.ubicacion,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF1A1A1A),
+                        ),
+                      ),
+                    ),
+                  ],
                   Divider(height: 1, color: Colors.grey.shade200),
                   _filaDatoTarjeta(
                     'EXISTENCIA',

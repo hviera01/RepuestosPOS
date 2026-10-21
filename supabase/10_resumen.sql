@@ -183,7 +183,7 @@ begin
   select coalesce(jsonb_agg(jsonb_build_object('nombre', nombre_producto, 'cantidad', c, 'monto', m) order by c desc), '[]'::jsonb)
   into v_productos
   from (
-    select i.nombre_producto, sum(i.cantidad) c, sum(i.subtotal) m
+    select i.nombre_producto, sum(i.cantidad) c, round(sum(i.subtotal * case when v.impuesto > 0 then 1.15 else 1 end), 2) m
     from venta_items i join ventas v on v.id = i.id_venta
     where v.estado = 'Activa' and v.tipo_documento <> 'Cotizacion'
       and v.fecha_registro >= p_desde and v.fecha_registro <= p_hasta and (p_usuario is null or v.usuario_registro = p_usuario)
@@ -214,11 +214,19 @@ begin
         usuario_registro, total_a_pagar
       from compras where estado = 'Activa' and fecha_registro >= p_desde and fecha_registro <= p_hasta and (p_usuario is null or usuario_registro = p_usuario)
       union all
-      select fecha, 'Abono de cliente', coalesce(numero_recibo, '') || ' · ' || metodo_pago, usuario, monto_abonado
-      from venta_credito_abonos where fecha >= p_desde and fecha <= p_hasta and (p_usuario is null or usuario = p_usuario)
+      select a.fecha, 'Abono de cliente',
+        'Recibo ' || coalesce(nullif(a.numero_recibo, ''), '-') || ' · ' || coalesce(vc.nombre_cliente, 'Cliente') || ' · Doc. ' || coalesce(vc.numero_documento, '-')
+          || ' · ' || a.metodo_pago || ' · saldo L.' || to_char(a.saldo_pendiente, 'FM999,999,990.00'),
+        a.usuario, a.monto_abonado
+      from venta_credito_abonos a left join ventas_credito vc on vc.id = a.id_venta_credito
+      where a.fecha >= p_desde and a.fecha <= p_hasta and (p_usuario is null or a.usuario = p_usuario)
       union all
-      select fecha, 'Pago a proveedor', nombre_proveedor || ' · ' || metodo_pago, usuario, monto_abonado
-      from compra_credito_abonos where fecha >= p_desde and fecha <= p_hasta and (p_usuario is null or usuario = p_usuario)
+      select a.fecha, 'Pago a proveedor',
+        'Recibo ' || coalesce(nullif(a.numero_recibo, ''), '-') || ' · ' || a.nombre_proveedor || ' · Doc. ' || coalesce(cc.numero_documento, '-')
+          || ' · Factura ' || coalesce(nullif(cc.no_factura, ''), '-') || ' · ' || a.metodo_pago || ' · saldo L.' || to_char(a.saldo_pendiente, 'FM999,999,990.00'),
+        a.usuario, a.monto_abonado
+      from compra_credito_abonos a left join compras_credito cc on cc.id = a.id_compra_credito
+      where a.fecha >= p_desde and a.fecha <= p_hasta and (p_usuario is null or a.usuario = p_usuario)
       union all
       select coalesce(fecha_pago, fecha), 'Egreso', descripcion || ' · ' || categoria || ' · ' || metodo_pago, usuario, monto
       from egresos where es_pagado and coalesce(fecha_pago, fecha) >= p_desde and coalesce(fecha_pago, fecha) <= p_hasta and (p_usuario is null or usuario = p_usuario)

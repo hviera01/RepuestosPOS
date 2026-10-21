@@ -172,7 +172,7 @@ class UsuariosScreen extends ConsumerWidget {
                 Expanded(
                   flex: 2,
                   child: Text(
-                    'DOCUMENTO',
+                    'CÓDIGO',
                     style: GoogleFonts.poppins(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -347,7 +347,7 @@ class UsuariosScreen extends ConsumerWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _chipInfo('Documento', u.documento),
+                    _chipInfo('Código', u.documento),
                     _chipInfo('Rol', u.rol),
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -418,7 +418,7 @@ class UsuariosScreen extends ConsumerWidget {
               enableSuggestions: false,
               style: GoogleFonts.poppins(fontSize: 13),
               decoration: InputDecoration(
-                hintText: 'Buscar por nombre o documento...',
+                hintText: 'Buscar por nombre o código de acceso...',
                 hintStyle: GoogleFonts.poppins(
                   fontSize: 13,
                   color: Colors.grey.shade400,

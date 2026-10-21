@@ -307,11 +307,13 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   }
 
   void _buscarYElegirPrimero() {
+    final texto = limpiarCodigoEscaneado(_busquedaController.text);
+    if (texto.isNotEmpty && texto == _busquedaAplicada && _listaActual.isNotEmpty) {
+      final resaltado = _listaActual.where((p) => p.id == _filaSeleccionada).toList();
+      _confirmarSeleccion(resaltado.isNotEmpty ? resaltado.first : _listaActual.first);
+      return;
+    }
     _buscar();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _listaActual.isEmpty) return;
-      _confirmarSeleccion(_listaActual.first);
-    });
   }
 
   bool _coincide(ProductoModel p, String texto) {
@@ -748,6 +750,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
         Expanded(flex: 2, child: Text('Código', style: estilo)),
         Expanded(flex: 6, child: Text('Descripción', style: estilo)),
         Expanded(flex: 3, child: Text('Categoría', style: estilo)),
+        Expanded(flex: 3, child: Text('Ubicación', style: estilo)),
         Expanded(
           flex: 3,
           child: Text('Precio', textAlign: TextAlign.right, style: estilo),
@@ -944,6 +947,21 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
               ),
               Expanded(
                 flex: 3,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: Text(
+                    p.ubicacion.isEmpty ? '-' : p.ubicacion,
+                    softWrap: true,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 3,
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: _celdaPrecio(p),
@@ -1083,7 +1101,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '${p.codigo} · ${mapaCategorias[p.idCategoria] ?? '-'}',
+                          '${p.codigo} · ${mapaCategorias[p.idCategoria] ?? '-'}${p.ubicacion.isEmpty ? '' : ' · ${p.ubicacion}'}',
                           softWrap: true,
                           style: GoogleFonts.poppins(
                             fontSize: 12,

@@ -148,10 +148,11 @@ class _TecladoNumericoDialogState extends State<TecladoNumericoDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final tamano = MediaQuery.sizeOf(context);
+    return LayoutBuilder(builder: (context, cons) {
+    final tamano = Size(cons.maxWidth, cons.maxHeight);
     _posicion ??= Offset(
-      ((tamano.width - _ancho) / 2).clamp(0, tamano.width - _ancho),
-      ((tamano.height - _altoEstimado) / 2).clamp(0, tamano.height - _altoEstimado),
+      ((tamano.width - _ancho) / 2).clamp(0, tamano.width - _ancho).toDouble(),
+      ((tamano.height - _altoEstimado) / 2).clamp(8, (tamano.height - _altoEstimado).clamp(8, 100000)).toDouble(),
     );
     return Focus(
       focusNode: _focusNode,
@@ -242,5 +243,6 @@ class _TecladoNumericoDialogState extends State<TecladoNumericoDialog> {
         ),
       ),
     );
+    });
   }
 }

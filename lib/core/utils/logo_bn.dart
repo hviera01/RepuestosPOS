@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'segundo_plano.dart';
@@ -26,4 +27,21 @@ Uint8List? _convertir(Uint8List bytes) {
   gris = img.normalize(gris, min: 0, max: 255);
   gris = img.adjustColor(gris, contrast: 1.35, brightness: 1.02);
   return Uint8List.fromList(img.encodePng(gris));
+}
+
+final _cacheBn = <String, String>{};
+
+String logoBnDesdeColorBase64(String colorBase64) {
+  if (colorBase64.isEmpty) return '';
+  final clave = '${colorBase64.length}:${colorBase64.hashCode}';
+  final guardado = _cacheBn[clave];
+  if (guardado != null) return guardado;
+  try {
+    final bn = _convertir(base64Decode(colorBase64));
+    final resultado = bn == null ? colorBase64 : base64Encode(bn);
+    _cacheBn[clave] = resultado;
+    return resultado;
+  } catch (_) {
+    return colorBase64;
+  }
 }

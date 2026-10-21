@@ -71,7 +71,7 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
     final editando = widget.usuario != null;
 
     if (documento.isEmpty || nombre.isEmpty) {
-      setState(() => _error = 'Documento y nombre completo son obligatorios');
+      setState(() => _error = 'El código de acceso y el nombre completo son obligatorios');
       return;
     }
     if (!editando && clave.isEmpty) {
@@ -226,7 +226,7 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                   controller: _documentoController,
                   autofocus: true,
                   style: GoogleFonts.poppins(fontSize: 14),
-                  decoration: _decoracion('Documento'),
+                  decoration: _decoracion('Código de acceso'),
                 ),
               ),
               const SizedBox(height: 14),
@@ -240,19 +240,6 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                   controller: _nombreController,
                   style: GoogleFonts.poppins(fontSize: 14),
                   decoration: _decoracion('Nombre completo'),
-                ),
-              ),
-              const SizedBox(height: 14),
-              CampoTecladoCompacto(
-                controller: _correoController,
-                numerico: false,
-                child: TextField(
-                  inputFormatters: [mayusculasInputFormatter],
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  controller: _correoController,
-                  style: GoogleFonts.poppins(fontSize: 14),
-                  decoration: _decoracion('Correo'),
                 ),
               ),
               const SizedBox(height: 14),

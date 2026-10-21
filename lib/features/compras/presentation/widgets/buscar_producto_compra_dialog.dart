@@ -132,11 +132,13 @@ class _BuscarProductoCompraDialogState
   }
 
   void _buscarYElegirPrimero() {
+    final texto = _busquedaController.text.trim();
+    if (texto.isNotEmpty && texto == _busquedaAplicada && _listaActual.isNotEmpty) {
+      final resaltado = _listaActual.where((p) => p.id == _filaSeleccionada).toList();
+      _confirmarSeleccion(resaltado.isNotEmpty ? resaltado.first : _listaActual.first);
+      return;
+    }
     _buscar();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _listaActual.isEmpty) return;
-      _confirmarSeleccion(_listaActual.first);
-    });
   }
 
   void _seleccionarAlPresionarEnter() {
@@ -418,6 +420,7 @@ class _BuscarProductoCompraDialogState
         Expanded(flex: 2, child: Text('Código', style: estilo)),
         Expanded(flex: 6, child: Text('Descripción', style: estilo)),
         Expanded(flex: 3, child: Text('Categoría', style: estilo)),
+        Expanded(flex: 3, child: Text('Ubicación', style: estilo)),
         Expanded(
           flex: 3,
           child: Text('Costo', textAlign: TextAlign.right, style: estilo),
@@ -493,6 +496,21 @@ class _BuscarProductoCompraDialogState
                     style: GoogleFonts.poppins(
                       fontSize: 12.5,
                       color: Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 3,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: Text(
+                    p.ubicacion.isEmpty ? '-' : p.ubicacion,
+                    softWrap: true,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade700,
                     ),
                   ),
                 ),
@@ -600,7 +618,7 @@ class _BuscarProductoCompraDialogState
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '${p.codigo} · ${mapaCategorias[p.idCategoria] ?? '-'}',
+                          '${p.codigo} · ${mapaCategorias[p.idCategoria] ?? '-'}${p.ubicacion.isEmpty ? '' : ' · ${p.ubicacion}'}',
                           softWrap: true,
                           style: GoogleFonts.poppins(
                             fontSize: 12,
