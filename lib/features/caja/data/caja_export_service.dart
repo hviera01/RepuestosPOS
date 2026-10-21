@@ -11,7 +11,7 @@ class CajaExportService {
   static const _colorGrisClaro = PdfColor.fromInt(0xFFF2F3F7);
   static const _colorTexto = PdfColor.fromInt(0xFF303846);
 
-  String titulo(CajaModel c) => c.abierta ? 'CORTE X (CAJA ABIERTA)' : 'CORTE Z (CAJA CERRADA)';
+  String titulo(CajaModel c) => c.abierta ? 'RESUMEN DE CAJA' : 'CIERRE DE CAJA';
 
   double? _anchoValido(PdfPageFormat? formato) {
     if (formato == null) return null;
@@ -21,13 +21,14 @@ class CajaExportService {
   }
 
   List<List<Object>> _filas(CajaModel c) {
+    String nota(bool cuenta) => cuenta ? '' : ' (no se cuenta)';
     return [
       ['Fondo inicial', c.montoApertura],
-      ['Ventas en efectivo', c.ventasEfectivo],
-      ['Abonos en efectivo', c.abonosEfectivo],
-      ['Gastos pagados en efectivo', -c.gastos],
-      ['Pagos a proveedores en efectivo', -c.pagosProveedores],
-      ['Compras en efectivo', -c.comprasEfectivo],
+      ['Ventas en efectivo${nota(c.config.ventasEfectivo)}', c.ventasEfectivo],
+      ['Abonos en efectivo${nota(c.config.abonosEfectivo)}', c.abonosEfectivo],
+      ['Gastos pagados en efectivo${nota(c.config.gastos)}', -c.gastos],
+      ['Pagos a proveedores en efectivo${nota(c.config.pagosProveedores)}', -c.pagosProveedores],
+      ['Compras en efectivo${nota(c.config.comprasEfectivo)}', -c.comprasEfectivo],
     ];
   }
 
@@ -61,11 +62,9 @@ class CajaExportService {
           pw.Center(child: pw.Text(titulo(c), style: pw.TextStyle(fontSize: f + 1, fontWeight: pw.FontWeight.bold))),
           sep(),
           pw.Text('Cajero: ${c.usuario}', style: const pw.TextStyle(fontSize: f)),
-          pw.Text('Apertura: ${fecha.format(c.abiertaEn)}', style: const pw.TextStyle(fontSize: f)),
-          pw.Text(
-            c.abierta ? 'Corte: ${fecha.format(DateTime.now())}' : 'Cierre: ${fecha.format(c.cerradaEn!)}',
-            style: const pw.TextStyle(fontSize: f),
-          ),
+          pw.Text('Desde: ${fecha.format(c.desdeEfectivo)}', style: const pw.TextStyle(fontSize: f)),
+          pw.Text('Hasta: ${fecha.format(c.hastaEn ?? c.cerradaEn ?? DateTime.now())}', style: const pw.TextStyle(fontSize: f)),
+          if (c.cerradaEn != null) pw.Text('Cerrada: ${fecha.format(c.cerradaEn!)}', style: const pw.TextStyle(fontSize: f)),
           sep(),
           pw.Text('EFECTIVO', style: pw.TextStyle(fontSize: f, fontWeight: pw.FontWeight.bold)),
           for (final r in _filas(c)) fila(r[0] as String, r[1] as double),
@@ -150,10 +149,10 @@ class CajaExportService {
             pw.SizedBox(height: 16),
             pw.Row(children: [
               pw.Expanded(child: pw.Text('Cajero: ${c.usuario}', style: const pw.TextStyle(fontSize: 10))),
-              pw.Expanded(child: pw.Text('Apertura: ${fecha.format(c.abiertaEn)}', style: const pw.TextStyle(fontSize: 10))),
+              pw.Expanded(child: pw.Text('Desde: ${fecha.format(c.desdeEfectivo)}', style: const pw.TextStyle(fontSize: 10))),
               pw.Expanded(
                 child: pw.Text(
-                  c.abierta ? 'Corte: ${fecha.format(DateTime.now())}' : 'Cierre: ${fecha.format(c.cerradaEn!)}',
+                  'Hasta: ${fecha.format(c.hastaEn ?? c.cerradaEn ?? DateTime.now())}',
                   style: const pw.TextStyle(fontSize: 10),
                 ),
               ),

@@ -16,6 +16,7 @@ class PermisosEspeciales {
   static const clientesEliminar = 'clientes_eliminar';
   static const ventasEliminar = 'ventas_eliminar';
   static const trasladosAnular = 'traslados_anular';
+  static const cajaEditar = 'caja_editar';
 
   static const Map<String, String> etiquetas = {
     inventarioEditarProducto: 'Editar productos en Inventario',
@@ -34,6 +35,7 @@ class PermisosEspeciales {
     clientesEliminar: 'Eliminar clientes',
     ventasEliminar: 'Anular ventas',
     trasladosAnular: 'Anular traslados',
+    cajaEditar: 'Editar el fondo inicial y las fechas de una caja abierta',
   };
 
   static const Map<String, String> descripciones = {
@@ -59,6 +61,7 @@ class PermisosEspeciales {
     clientesEliminar: 'Permite eliminar un cliente.',
     ventasEliminar: 'Permite anular una venta ya registrada.',
     trasladosAnular: 'Permite anular un traslado ya registrado.',
+    cajaEditar: 'Pide la clave especial a quien no es administrador antes de cambiar el fondo inicial, las fechas o lo que se cuenta en una caja que ya está abierta.',
   };
 }
 

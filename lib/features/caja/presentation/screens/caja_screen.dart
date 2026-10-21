@@ -1,18 +1,29 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
+import '../../../../core/constants/roles.dart';
 import '../../../../core/theme/marca.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/widgets/pdf_preview_dialog.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../../negocio/data/negocio_model.dart';
+import '../../../negocio/presentation/widgets/acceso_especial.dart';
 import '../../../negocio/providers/negocio_provider.dart';
+import '../../../reportes/providers/reportes_provider.dart';
+import '../../../resumen_dia/data/resumen_operaciones_model.dart';
 import '../../data/caja_export_service.dart';
 import '../../data/caja_model.dart';
 import '../../providers/caja_provider.dart';
 
-enum _ModoApertura { ahora, ultimoCierre, personalizada }
+final _formatoFecha = DateFormat('dd/MM/yyyy HH:mm');
+final _formatoDia = DateFormat('dd/MM/yyyy');
+final _formatoHora = DateFormat('HH:mm');
+
+DateTime _inicioDelDia(DateTime d) => DateTime(d.year, d.month, d.day);
+DateTime _finDelDia(DateTime d) => DateTime(d.year, d.month, d.day, 23, 59, 59);
 
 class CajaScreen extends ConsumerStatefulWidget {
   const CajaScreen({super.key});
@@ -23,26 +34,20 @@ class CajaScreen extends ConsumerStatefulWidget {
 
 class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProviderStateMixin {
   final _export = CajaExportService();
-  final _fondoController = TextEditingController(text: '0');
-  final _notasController = TextEditingController();
   late final TabController _tabs = TabController(length: 2, vsync: this);
-  final _formatoFecha = DateFormat('dd/MM/yyyy HH:mm');
+  Timer? _debounce;
 
   CajaModel? _caja;
   List<CajaModel> _historial = [];
   bool _cargando = true;
   bool _ocupado = false;
   String? _error;
-  _ModoApertura _modo = _ModoApertura.ahora;
-  DateTime _fechaPersonalizada = DateTime.now();
   DateTime? _ultimoCierre;
-  DateTimeRange _rango = DateTimeRange(
-    start: DateTime.now().subtract(const Duration(days: 30)),
-    end: DateTime.now(),
-  );
+  DateTime _historialDesde = _inicioDelDia(DateTime.now());
+  DateTime _historialHasta = _finDelDia(DateTime.now());
 
   String get _usuario => ref.read(authProvider).usuario?.nombreCompleto ?? '';
-  bool get _esAdmin => ref.read(authProvider).usuario?.rol == 'Administrador';
+  bool get _esAdmin => ref.read(authProvider).usuario?.rol == Roles.administrador;
 
   @override
   void initState() {
@@ -52,25 +57,25 @@ class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProvid
 
   @override
   void dispose() {
-    _fondoController.dispose();
-    _notasController.dispose();
+    _debounce?.cancel();
     _tabs.dispose();
     super.dispose();
   }
 
-  Future<void> _cargar() async {
-    setState(() {
-      _cargando = true;
-      _error = null;
-    });
+  Future<void> _cargar({bool silencioso = false}) async {
+    if (!silencioso) {
+      setState(() {
+        _cargando = true;
+        _error = null;
+      });
+    }
     final repo = ref.read(cajaRepositoryProvider);
     try {
       final caja = await repo.cajaAbiertaDe(_usuario);
-      final ultimo = caja == null ? await repo.ultimoCierreDe(_usuario) : null;
-      final fin = DateTime(_rango.end.year, _rango.end.month, _rango.end.day, 23, 59, 59);
+      final ultimo = caja == null ? await repo.ultimoCierreDe(_usuario) : _ultimoCierre;
       final historial = await repo.historial(
-        desde: DateTime(_rango.start.year, _rango.start.month, _rango.start.day),
-        hasta: fin,
+        desde: _historialDesde,
+        hasta: _historialHasta,
         usuario: _esAdmin ? null : _usuario,
       );
       if (!mounted) return;
@@ -79,9 +84,10 @@ class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProvid
         _ultimoCierre = ultimo;
         _historial = historial;
         _cargando = false;
+        _error = null;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || silencioso) return;
       setState(() {
         _error = '$e';
         _cargando = false;
@@ -89,76 +95,89 @@ class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProvid
     }
   }
 
-  void _mensaje(String texto, {bool error = false}) {
+  void _programarRefresco() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 700), () {
+      if (mounted && !_ocupado) _cargar(silencioso: true);
+    });
+  }
+
+  void _escuchar(String tabla) {
+    ref.listen<AsyncValue<void>>(cambiosEnTablaProvider(tabla), (previous, next) {
+      if (!next.hasValue || !mounted) return;
+      _programarRefresco();
+    });
+  }
+
+  void _mensaje(String texto) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(texto), backgroundColor: error ? Marca.primario : null),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(texto), backgroundColor: Marca.primario));
   }
 
-  Future<DateTime?> _elegirFechaHora(DateTime inicial) async {
-    final fecha = await showDatePicker(
-      context: context,
-      initialDate: inicial,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-    );
-    if (fecha == null || !mounted) return null;
-    final hora = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(inicial));
-    if (hora == null) return null;
-    return DateTime(fecha.year, fecha.month, fecha.day, hora.hour, hora.minute);
-  }
-
-  Future<void> _abrirCaja() async {
-    final fondo = double.tryParse(_fondoController.text.replaceAll(',', '.').trim());
-    if (fondo == null || fondo < 0) {
-      _mensaje('Escriba un fondo inicial válido (puede ser 0).', error: true);
-      return;
-    }
-    DateTime desde;
-    switch (_modo) {
-      case _ModoApertura.ahora:
-        desde = DateTime.now();
-      case _ModoApertura.ultimoCierre:
-        if (_ultimoCierre == null) {
-          _mensaje('Todavía no tiene un cierre anterior.', error: true);
-          return;
-        }
-        desde = _ultimoCierre!;
-      case _ModoApertura.personalizada:
-        desde = _fechaPersonalizada;
-    }
+  Future<void> _abrirCaja(_DatosCaja datos) async {
     setState(() => _ocupado = true);
     try {
       final caja = await ref.read(cajaRepositoryProvider).abrir(
             usuario: _usuario,
-            monto: fondo,
-            notas: _notasController.text.trim(),
-            abiertaEn: desde,
+            monto: datos.monto,
+            notas: datos.notas,
+            desde: datos.desde,
+            hasta: datos.hasta,
+            config: datos.config,
           );
-      _notasController.clear();
-      if (!mounted) return;
-      setState(() => _caja = caja);
-      _mensaje('Caja abierta.');
-      _cargar();
+      if (mounted) setState(() => _caja = caja);
+      await _cargar(silencioso: true);
     } catch (e) {
-      _mensaje('$e', error: true);
+      _mensaje('$e');
     } finally {
       if (mounted) setState(() => _ocupado = false);
     }
   }
 
-  Future<void> _actualizar() async {
+  Future<void> _editarCaja() async {
     final actual = _caja;
     if (actual == null) return;
+    final acceso = await verificarAccesoEspecial(context, ref, PermisosEspeciales.cajaEditar);
+    if (!acceso.autorizado || !mounted) return;
+    final datos = await showDialog<_DatosCaja>(
+      useRootNavigator: false,
+      context: context,
+      builder: (context) => _EditarCajaDialog(caja: actual, esAdmin: _esAdmin, ultimoCierre: _ultimoCierre),
+    );
+    if (datos == null || !mounted) return;
     setState(() => _ocupado = true);
     try {
-      final caja = await ref.read(cajaRepositoryProvider).resumen(actual.id);
+      final caja = await ref.read(cajaRepositoryProvider).editar(
+            id: actual.id,
+            monto: datos.monto,
+            desde: datos.desde,
+            hasta: datos.hasta,
+            notas: datos.notas,
+            config: datos.config,
+          );
       if (mounted) setState(() => _caja = caja);
     } catch (e) {
-      _mensaje('$e', error: true);
+      _mensaje('$e');
     } finally {
       if (mounted) setState(() => _ocupado = false);
+    }
+  }
+
+  Future<void> _cambiarConfig(CajaConfig config) async {
+    final actual = _caja;
+    if (actual == null) return;
+    try {
+      final caja = await ref.read(cajaRepositoryProvider).editar(
+            id: actual.id,
+            monto: actual.montoApertura,
+            desde: actual.abiertaEn,
+            hasta: actual.hastaEn,
+            notas: actual.notas,
+            config: config,
+          );
+      if (mounted) setState(() => _caja = caja);
+    } catch (e) {
+      _mensaje('$e');
     }
   }
 
@@ -169,7 +188,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProvid
       useRootNavigator: false,
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(caja.abierta ? 'Corte X' : 'Corte Z'),
+        title: const Text('Cierre de caja'),
         content: const Text('¿Cómo desea el reporte?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
@@ -187,7 +206,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProvid
         useRootNavigator: false,
         context: context,
         builder: (context) => PdfPreviewDialog(
-          titulo: 'Ticket · ${caja.abierta ? 'Corte X' : 'Corte Z'}',
+          titulo: 'Ticket · Cierre de caja',
           nombreArchivo: 'caja_ticket.pdf',
           generarPdf: () => _export.generarTicket(caja, negocio),
           generarPdfConFormato: (formato) => _export.generarTicket(caja, negocio, formatoImpresora: formato),
@@ -199,7 +218,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProvid
         useRootNavigator: false,
         context: context,
         builder: (context) => PdfPreviewDialog(
-          titulo: 'Vista previa · ${caja.abierta ? 'Corte X' : 'Corte Z'}',
+          titulo: 'Vista previa · Cierre de caja',
           nombreArchivo: 'caja.pdf',
           generarPdf: () => _export.generarPdf(caja, negocio),
         ),
@@ -210,7 +229,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProvid
   Future<void> _cerrarCaja() async {
     final actual = _caja;
     if (actual == null) return;
-    await _actualizar();
+    await _cargar(silencioso: true);
     final fresca = _caja;
     if (fresca == null || !mounted) return;
     final resultado = await showDialog<_ResultadoCierre>(
@@ -232,12 +251,11 @@ class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProvid
         _caja = null;
         _ocupado = false;
       });
-      _mensaje('Caja cerrada.');
-      await _cargar();
+      await _cargar(silencioso: true);
       if (!mounted) return;
       await _imprimir(cerrada);
     } catch (e) {
-      _mensaje('$e', error: true);
+      _mensaje('$e');
       if (mounted) setState(() => _ocupado = false);
     }
   }
@@ -258,12 +276,19 @@ class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProvid
     if (confirmar != true) return;
     try {
       await ref.read(cajaRepositoryProvider).reabrir(caja.id);
-      _mensaje('Caja reabierta.');
-      await _cargar();
+      await _cargar(silencioso: true);
       _tabs.animateTo(0);
     } catch (e) {
-      _mensaje('$e', error: true);
+      _mensaje('$e');
     }
+  }
+
+  Future<void> _verMovimientos(CajaModel caja) async {
+    await showDialog(
+      useRootNavigator: false,
+      context: context,
+      builder: (context) => _MovimientosDialog(caja: caja),
+    );
   }
 
   Future<void> _verDetalle(CajaModel caja) async {
@@ -272,7 +297,7 @@ class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProvid
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Caja de ${caja.usuario}'),
-        content: SizedBox(width: 420, child: SingleChildScrollView(child: _ResumenCaja(caja: caja, formatoFecha: _formatoFecha))),
+        content: SizedBox(width: 440, child: SingleChildScrollView(child: _ResumenCaja(caja: caja))),
         actions: [
           if (!caja.abierta && (_esAdmin || caja.usuario == _usuario) && _historial.isNotEmpty && _historial.first.id == caja.id)
             TextButton(
@@ -282,125 +307,25 @@ class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProvid
               },
               child: const Text('Reabrir'),
             ),
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cerrar')),
-          FilledButton.icon(
+          TextButton(
             onPressed: () {
               Navigator.pop(context);
-              _imprimir(caja);
+              _verMovimientos(caja);
             },
-            icon: const Icon(Icons.print_outlined, size: 18),
-            label: const Text('Imprimir'),
+            child: const Text('Ver movimientos'),
           ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cerrar')),
+          if (!caja.abierta)
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                _imprimir(caja);
+              },
+              icon: const Icon(Icons.print_outlined, size: 18),
+              label: const Text('Imprimir'),
+            ),
         ],
       ),
-    );
-  }
-
-  Widget _vistaApertura() {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _tarjeta(
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Abrir caja', style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 4),
-              Text(
-                'No tiene una caja abierta. Indique con cuánto efectivo empieza y desde cuándo se cuentan sus ventas.',
-                style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _fondoController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: 'Fondo inicial en efectivo (L)', border: OutlineInputBorder()),
-              ),
-              const SizedBox(height: 14),
-              Text('Contar mis ventas desde', style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 6),
-              SegmentedButton<_ModoApertura>(
-                showSelectedIcon: false,
-                segments: const [
-                  ButtonSegment(value: _ModoApertura.ahora, label: Text('Ahora')),
-                  ButtonSegment(value: _ModoApertura.ultimoCierre, label: Text('Último cierre')),
-                  ButtonSegment(value: _ModoApertura.personalizada, label: Text('Otra fecha')),
-                ],
-                selected: {_modo},
-                onSelectionChanged: (s) => setState(() => _modo = s.first),
-              ),
-              if (_modo == _ModoApertura.ultimoCierre)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    _ultimoCierre == null
-                        ? 'Todavía no tiene un cierre anterior.'
-                        : 'Desde ${_formatoFecha.format(_ultimoCierre!)}',
-                    style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade700),
-                  ),
-                ),
-              if (_modo == _ModoApertura.personalizada)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      final f = await _elegirFechaHora(_fechaPersonalizada);
-                      if (f != null) setState(() => _fechaPersonalizada = f);
-                    },
-                    icon: const Icon(Icons.event_outlined, size: 18),
-                    label: Text(_formatoFecha.format(_fechaPersonalizada)),
-                  ),
-                ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: _notasController,
-                maxLines: 2,
-                decoration: const InputDecoration(labelText: 'Notas (opcional)', border: OutlineInputBorder()),
-              ),
-              const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.centerRight,
-                child: FilledButton.icon(
-                  onPressed: _ocupado ? null : _abrirCaja,
-                  icon: const Icon(Icons.lock_open_outlined, size: 18),
-                  label: const Text('Abrir caja'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _vistaAbierta(CajaModel caja) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            OutlinedButton.icon(
-              onPressed: _ocupado ? null : _actualizar,
-              icon: const Icon(Icons.refresh, size: 18),
-              label: const Text('Actualizar'),
-            ),
-            OutlinedButton.icon(
-              onPressed: _ocupado ? null : () => _imprimir(caja),
-              icon: const Icon(Icons.receipt_long_outlined, size: 18),
-              label: const Text('Corte X'),
-            ),
-            FilledButton.icon(
-              onPressed: _ocupado ? null : _cerrarCaja,
-              icon: const Icon(Icons.lock_outline, size: 18),
-              label: const Text('Cerrar caja (Corte Z)'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
-        _tarjeta(_ResumenCaja(caja: caja, formatoFecha: _formatoFecha)),
-      ],
     );
   }
 
@@ -416,29 +341,128 @@ class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProvid
     );
   }
 
+  Widget _vistaApertura() {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _tarjeta(
+          _FormularioCaja(
+            titulo: 'Abrir caja',
+            subtitulo: 'Indique con cuánto efectivo empieza y qué periodo se cuenta. Todo se puede cambiar después.',
+            textoBoton: 'Abrir caja',
+            esAdmin: _esAdmin,
+            ultimoCierre: _ultimoCierre,
+            ocupado: _ocupado,
+            alConfirmar: _abrirCaja,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _vistaAbierta(CajaModel caja) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            OutlinedButton.icon(
+              onPressed: _ocupado ? null : _editarCaja,
+              icon: const Icon(Icons.edit_calendar_outlined, size: 18),
+              label: const Text('Fondo y periodo'),
+            ),
+            OutlinedButton.icon(
+              onPressed: _ocupado ? null : () => _verMovimientos(caja),
+              icon: const Icon(Icons.list_alt_outlined, size: 18),
+              label: const Text('Ver movimientos'),
+            ),
+            FilledButton.icon(
+              onPressed: _ocupado ? null : _cerrarCaja,
+              icon: const Icon(Icons.lock_outline, size: 18),
+              label: const Text('Cerrar caja'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        _tarjeta(_ResumenCaja(caja: caja)),
+        if (_esAdmin) ...[
+          const SizedBox(height: 14),
+          _tarjeta(_ConfigConteo(config: caja.config, alCambiar: _cambiarConfig)),
+        ],
+      ],
+    );
+  }
+
+  Widget _cajaFecha(String etiqueta, DateTime fecha, ValueChanged<DateTime> alCambiar) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () async {
+        final f = await showDatePicker(context: context, initialDate: fecha, firstDate: DateTime(2020), lastDate: DateTime(2100));
+        if (f != null) alCambiar(f);
+      },
+      child: Container(
+        width: 150,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFC9CDD6)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey.shade600),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '$etiqueta ${_formatoDia.format(fecha)}',
+                style: GoogleFonts.poppins(fontSize: 12),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _vistaHistorial() {
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-          child: Row(
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              OutlinedButton.icon(
-                onPressed: () async {
-                  final r = await showDateRangePicker(
-                    context: context,
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime.now(),
-                    initialDateRange: _rango,
-                  );
-                  if (r == null) return;
-                  setState(() => _rango = r);
-                  _cargar();
-                },
-                icon: const Icon(Icons.date_range_outlined, size: 18),
-                label: Text('${DateFormat('dd/MM/yyyy').format(_rango.start)} - ${DateFormat('dd/MM/yyyy').format(_rango.end)}'),
-              ),
-              const Spacer(),
+              _cajaFecha('Del', _historialDesde, (f) {
+                setState(() {
+                  _historialDesde = _inicioDelDia(f);
+                  if (_historialHasta.isBefore(_historialDesde)) _historialHasta = _finDelDia(f);
+                });
+                _cargar(silencioso: true);
+              }),
+              _cajaFecha('al', _historialHasta, (f) {
+                setState(() {
+                  _historialHasta = _finDelDia(f);
+                  if (_historialDesde.isAfter(_historialHasta)) _historialDesde = _inicioDelDia(f);
+                });
+                _cargar(silencioso: true);
+              }),
+              for (final (etiqueta, dias) in const [('Hoy', 0), ('Ayer', 1), ('7 días', 6), ('30 días', 29)])
+                ActionChip(
+                  label: Text(etiqueta, style: GoogleFonts.poppins(fontSize: 12)),
+                  onPressed: () {
+                    final hoy = DateTime.now();
+                    setState(() {
+                      _historialDesde = _inicioDelDia(hoy.subtract(Duration(days: dias)));
+                      _historialHasta = etiqueta == 'Ayer' ? _finDelDia(hoy.subtract(const Duration(days: 1))) : _finDelDia(hoy);
+                    });
+                    _cargar(silencioso: true);
+                  },
+                ),
               Text('${_historial.length} cajas', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600)),
             ],
           ),
@@ -455,6 +479,15 @@ class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProvid
                     final color = c.abierta
                         ? const Color(0xFF2E7D32)
                         : (c.diferencia.abs() < 0.01 ? Colors.grey.shade700 : const Color(0xFFC62828));
+                    Widget caja(String t) => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF2F3F7),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFFDADDE4)),
+                          ),
+                          child: Text(t, style: GoogleFonts.poppins(fontSize: 11)),
+                        );
                     return InkWell(
                       onTap: () => _verDetalle(c),
                       child: Container(
@@ -471,9 +504,16 @@ class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProvid
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(c.usuario, style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w700)),
-                                  Text(
-                                    '${_formatoFecha.format(c.abiertaEn)} → ${c.cerradaEn == null ? 'abierta' : _formatoFecha.format(c.cerradaEn!)}',
-                                    style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade600),
+                                  const SizedBox(height: 4),
+                                  Wrap(
+                                    spacing: 6,
+                                    runSpacing: 4,
+                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                    children: [
+                                      caja(_formatoFecha.format(c.desdeEfectivo)),
+                                      Text('a', style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade600)),
+                                      caja(c.cerradaEn == null ? 'abierta' : _formatoFecha.format(c.hastaEn ?? c.cerradaEn!)),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -501,12 +541,15 @@ class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
+    for (final tabla in const ['ventas', 'venta_credito_abonos', 'egresos', 'compras', 'compra_credito_abonos', 'cajas']) {
+      _escuchar(tabla);
+    }
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
         title: Text('Caja', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
         bottom: TabBar(controller: _tabs, tabs: const [Tab(text: 'Mi caja'), Tab(text: 'Historial de cajas')]),
-        actions: [IconButton(onPressed: _cargar, icon: const Icon(Icons.refresh), tooltip: 'Recargar')],
+        actions: [IconButton(onPressed: () => _cargar(), icon: const Icon(Icons.refresh), tooltip: 'Recargar')],
       ),
       body: _cargando
           ? const Center(child: CircularProgressIndicator())
@@ -532,17 +575,333 @@ class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProvid
   }
 }
 
+class _DatosCaja {
+  final double monto;
+  final DateTime desde;
+  final DateTime? hasta;
+  final String notas;
+  final CajaConfig config;
+
+  const _DatosCaja({required this.monto, required this.desde, required this.hasta, required this.notas, required this.config});
+}
+
+class _FormularioCaja extends StatefulWidget {
+  final String titulo;
+  final String subtitulo;
+  final String textoBoton;
+  final bool esAdmin;
+  final DateTime? ultimoCierre;
+  final bool ocupado;
+  final CajaModel? inicial;
+  final ValueChanged<_DatosCaja> alConfirmar;
+
+  const _FormularioCaja({
+    required this.titulo,
+    required this.subtitulo,
+    required this.textoBoton,
+    required this.esAdmin,
+    required this.ultimoCierre,
+    required this.ocupado,
+    required this.alConfirmar,
+    this.inicial,
+  });
+
+  @override
+  State<_FormularioCaja> createState() => _FormularioCajaState();
+}
+
+class _FormularioCajaState extends State<_FormularioCaja> {
+  late final TextEditingController _fondo;
+  late final TextEditingController _notas;
+  late DateTime _desde;
+  DateTime? _hasta;
+  late CajaConfig _config;
+  String _rapido = '';
+
+  @override
+  void initState() {
+    super.initState();
+    final c = widget.inicial;
+    _fondo = TextEditingController(text: c == null ? '0' : c.montoApertura.toStringAsFixed(2));
+    _notas = TextEditingController(text: c?.notas ?? '');
+    _desde = c?.abiertaEn ?? DateTime.now();
+    _hasta = c?.hastaEn;
+    _config = c?.config ?? const CajaConfig();
+    _rapido = c == null ? 'ahora' : '';
+  }
+
+  @override
+  void dispose() {
+    _fondo.dispose();
+    _notas.dispose();
+    super.dispose();
+  }
+
+  void _aplicarRapido(String clave) {
+    final ahora = DateTime.now();
+    setState(() {
+      _rapido = clave;
+      switch (clave) {
+        case 'ahora':
+          _desde = ahora;
+          _hasta = null;
+        case 'hoy':
+          _desde = _inicioDelDia(ahora);
+          _hasta = null;
+        case 'ayer':
+          _desde = _inicioDelDia(ahora.subtract(const Duration(days: 1)));
+          _hasta = _finDelDia(ahora.subtract(const Duration(days: 1)));
+        case 'semana':
+          _desde = _inicioDelDia(ahora.subtract(Duration(days: ahora.weekday - 1)));
+          _hasta = null;
+        case 'mes':
+          _desde = DateTime(ahora.year, ahora.month, 1);
+          _hasta = null;
+        case 'cierre':
+          _desde = widget.ultimoCierre ?? ahora;
+          _hasta = null;
+      }
+    });
+  }
+
+  Future<DateTime?> _elegir(DateTime base) async {
+    final fecha = await showDatePicker(
+      context: context,
+      initialDate: base,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+    );
+    if (fecha == null || !mounted) return null;
+    final hora = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(base),
+      initialEntryMode: TimePickerEntryMode.dial,
+      helpText: 'ELIJA LA HORA',
+    );
+    if (hora == null) return null;
+    return DateTime(fecha.year, fecha.month, fecha.day, hora.hour, hora.minute);
+  }
+
+  Widget _botonFechaHora(String etiqueta, DateTime? valor, VoidCallback onTap, {String vacio = 'En vivo (hasta ahora)'}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFC9CDD6)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(etiqueta, style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade600)),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.schedule, size: 16),
+                const SizedBox(width: 6),
+                Text(valor == null ? vacio : '${_formatoDia.format(valor)}  ${_formatoHora.format(valor)}', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _confirmar() {
+    final fondo = double.tryParse(_fondo.text.replaceAll(',', '.').trim());
+    if (fondo == null || fondo < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('Escriba un fondo inicial válido (puede ser 0).'), backgroundColor: Marca.primario));
+      return;
+    }
+    if (_hasta != null && _hasta!.isBefore(_desde)) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('La fecha final no puede ser anterior a la inicial.'), backgroundColor: Marca.primario));
+      return;
+    }
+    widget.alConfirmar(_DatosCaja(monto: fondo, desde: _desde, hasta: _hasta, notas: _notas.text.trim(), config: _config));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(widget.titulo, style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 4),
+        Text(widget.subtitulo, style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600)),
+        const SizedBox(height: 14),
+        SizedBox(
+          width: 260,
+          child: TextField(
+            controller: _fondo,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(labelText: 'Fondo inicial en efectivo', prefixText: 'L. ', border: OutlineInputBorder()),
+          ),
+        ),
+        const SizedBox(height: 14),
+        Text('Periodo que se cuenta', style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          children: [
+            for (final (clave, etiqueta) in [
+              ('ahora', 'Desde ahora'),
+              ('hoy', 'Hoy'),
+              ('ayer', 'Ayer'),
+              ('semana', 'Esta semana'),
+              ('mes', 'Este mes'),
+              if (widget.ultimoCierre != null) ('cierre', 'Desde mi último cierre'),
+            ])
+              ChoiceChip(
+                label: Text(etiqueta, style: GoogleFonts.poppins(fontSize: 12, color: _rapido == clave ? Marca.sobrePrimario : null)),
+                selected: _rapido == clave,
+                selectedColor: Marca.primario,
+                showCheckmark: false,
+                onSelected: (_) => _aplicarRapido(clave),
+              ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            _botonFechaHora('Desde', _desde, () async {
+              final f = await _elegir(_desde);
+              if (f != null) setState(() {
+                    _desde = f;
+                    _rapido = '';
+                  });
+            }),
+            _botonFechaHora('Hasta', _hasta, () async {
+              final f = await _elegir(_hasta ?? DateTime.now());
+              if (f != null) setState(() {
+                    _hasta = f;
+                    _rapido = '';
+                  });
+            }),
+            if (_hasta != null)
+              TextButton.icon(
+                onPressed: () => setState(() => _hasta = null),
+                icon: const Icon(Icons.all_inclusive, size: 16),
+                label: const Text('Hasta ahora'),
+              ),
+          ],
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          dense: true,
+          value: _config.soloDesdeApertura,
+          onChanged: (v) => setState(() => _config = _config.copyWith(soloDesdeApertura: v)),
+          title: Text('Contar solo lo que pase desde que abro la caja', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+          subtitle: Text('Si lo apaga, se cuenta todo lo del periodo elegido aunque haya pasado antes de abrir.', style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade600)),
+        ),
+        if (widget.esAdmin) ...[
+          const Divider(),
+          _ConfigConteo(config: _config, alCambiar: (c) => setState(() => _config = c), compacto: true),
+        ],
+        const SizedBox(height: 10),
+        TextField(
+          controller: _notas,
+          maxLines: 2,
+          decoration: const InputDecoration(labelText: 'Notas (opcional)', border: OutlineInputBorder()),
+        ),
+        const SizedBox(height: 16),
+        Align(
+          alignment: Alignment.centerRight,
+          child: FilledButton.icon(
+            onPressed: widget.ocupado ? null : _confirmar,
+            icon: const Icon(Icons.lock_open_outlined, size: 18),
+            label: Text(widget.textoBoton),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _EditarCajaDialog extends StatelessWidget {
+  final CajaModel caja;
+  final bool esAdmin;
+  final DateTime? ultimoCierre;
+
+  const _EditarCajaDialog({required this.caja, required this.esAdmin, required this.ultimoCierre});
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: SizedBox(
+        width: 520,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: _FormularioCaja(
+            titulo: 'Fondo y periodo de la caja',
+            subtitulo: 'Cambie el fondo inicial, desde y hasta cuándo se cuenta, o lo que entra en el efectivo.',
+            textoBoton: 'Guardar cambios',
+            esAdmin: esAdmin,
+            ultimoCierre: ultimoCierre,
+            ocupado: false,
+            inicial: caja,
+            alConfirmar: (datos) => Navigator.pop(context, datos),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ConfigConteo extends StatelessWidget {
+  final CajaConfig config;
+  final ValueChanged<CajaConfig> alCambiar;
+  final bool compacto;
+
+  const _ConfigConteo({required this.config, required this.alCambiar, this.compacto = false});
+
+  Widget _fila(String titulo, bool valor, CajaConfig Function(bool) nuevo) {
+    return SwitchListTile(
+      contentPadding: EdgeInsets.zero,
+      dense: true,
+      value: valor,
+      onChanged: (v) => alCambiar(nuevo(v)),
+      title: Text(titulo, style: GoogleFonts.poppins(fontSize: 13)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Qué se cuenta en el efectivo (solo administrador)', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700)),
+        if (!compacto)
+          Text('Lo que apague no entra en el cálculo del efectivo esperado. Se sigue mostrando en el resumen.', style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade600)),
+        _fila('Ventas en efectivo', config.ventasEfectivo, (v) => config.copyWith(ventasEfectivo: v)),
+        _fila('Abonos de clientes en efectivo', config.abonosEfectivo, (v) => config.copyWith(abonosEfectivo: v)),
+        _fila('Gastos pagados en efectivo', config.gastos, (v) => config.copyWith(gastos: v)),
+        _fila('Pagos a proveedores en efectivo', config.pagosProveedores, (v) => config.copyWith(pagosProveedores: v)),
+        _fila('Compras de contado en efectivo', config.comprasEfectivo, (v) => config.copyWith(comprasEfectivo: v)),
+      ],
+    );
+  }
+}
+
 class _ResumenCaja extends StatelessWidget {
   final CajaModel caja;
-  final DateFormat formatoFecha;
 
-  const _ResumenCaja({required this.caja, required this.formatoFecha});
+  const _ResumenCaja({required this.caja});
 
-  Widget _fila(String etiqueta, double valor, {bool fuerte = false, Color? color}) {
+  Widget _fila(String etiqueta, double valor, {bool fuerte = false, Color? color, bool tenue = false}) {
     final estilo = GoogleFonts.poppins(
       fontSize: fuerte ? 14.5 : 13,
       fontWeight: fuerte ? FontWeight.w800 : FontWeight.w500,
-      color: color,
+      color: tenue ? Colors.grey.shade500 : color,
+      decoration: tenue ? TextDecoration.lineThrough : null,
     );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
@@ -563,21 +922,23 @@ class _ResumenCaja extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = caja;
+    final fin = c.hastaEn ?? c.cerradaEn;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Abierta ${formatoFecha.format(c.abiertaEn)}${c.cerradaEn == null ? '' : '  ·  Cerrada ${formatoFecha.format(c.cerradaEn!)}'}',
+          'Contando del ${_formatoFecha.format(c.desdeEfectivo)} ${fin == null ? 'en adelante (en vivo)' : 'al ${_formatoFecha.format(fin)}'}',
           style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600),
         ),
+        if (c.cerradaEn != null) Text('Cerrada ${_formatoFecha.format(c.cerradaEn!)}', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
         if (c.notas.isNotEmpty) Text('Notas: ${c.notas}', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade700)),
         _titulo('Efectivo en caja'),
         _fila('Fondo inicial', c.montoApertura),
-        _fila('Ventas en efectivo', c.ventasEfectivo),
-        _fila('Abonos en efectivo', c.abonosEfectivo),
-        _fila('Gastos en efectivo', -c.gastos),
-        _fila('Pagos a proveedores en efectivo', -c.pagosProveedores),
-        _fila('Compras en efectivo', -c.comprasEfectivo),
+        _fila('Ventas en efectivo', c.ventasEfectivo, tenue: !c.config.ventasEfectivo),
+        _fila('Abonos en efectivo', c.abonosEfectivo, tenue: !c.config.abonosEfectivo),
+        _fila('Gastos en efectivo', -c.gastos, tenue: !c.config.gastos),
+        _fila('Pagos a proveedores en efectivo', -c.pagosProveedores, tenue: !c.config.pagosProveedores),
+        _fila('Compras en efectivo', -c.comprasEfectivo, tenue: !c.config.comprasEfectivo),
         const Divider(height: 18),
         _fila('Efectivo esperado', c.efectivoEsperado, fuerte: true),
         if (!c.abierta) ...[
@@ -600,6 +961,80 @@ class _ResumenCaja extends StatelessWidget {
         _fila('Total ventas', c.totalVentas, fuerte: true),
         _fila('Abonos con otros métodos', c.abonosOtros),
       ],
+    );
+  }
+}
+
+class _MovimientosDialog extends ConsumerStatefulWidget {
+  final CajaModel caja;
+
+  const _MovimientosDialog({required this.caja});
+
+  @override
+  ConsumerState<_MovimientosDialog> createState() => _MovimientosDialogState();
+}
+
+class _MovimientosDialogState extends ConsumerState<_MovimientosDialog> {
+  late Future<ResumenOperaciones> _futuro;
+
+  @override
+  void initState() {
+    super.initState();
+    final c = widget.caja;
+    _futuro = ref.read(cajaRepositoryProvider).operaciones(
+          desde: c.desdeEfectivo,
+          hasta: c.hastaEn ?? c.cerradaEn ?? DateTime.now().add(const Duration(minutes: 1)),
+          usuario: c.usuario,
+        );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tamano = MediaQuery.of(context).size;
+    return Dialog(
+      child: SizedBox(
+        width: tamano.width < 720 ? tamano.width - 32 : 680,
+        height: tamano.height < 640 ? tamano.height - 48 : 560,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 8, 6),
+              child: Row(
+                children: [
+                  Expanded(child: Text('Movimientos de ${widget.caja.usuario}', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700))),
+                  IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+                ],
+              ),
+            ),
+            Expanded(
+              child: FutureBuilder<ResumenOperaciones>(
+                future: _futuro,
+                builder: (context, snap) {
+                  if (snap.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
+                  if (snap.hasError) return Center(child: Text('${snap.error}'));
+                  final ops = snap.data!.operaciones;
+                  if (ops.isEmpty) return Center(child: Text('Sin movimientos en este periodo', style: GoogleFonts.poppins(color: Colors.grey.shade600)));
+                  return ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                    itemCount: ops.length,
+                    separatorBuilder: (_, _) => const Divider(height: 1),
+                    itemBuilder: (context, i) {
+                      final o = ops[i];
+                      return ListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        title: Text('${o.tipo} · ${o.descripcion}', style: GoogleFonts.poppins(fontSize: 12.5), maxLines: 2, overflow: TextOverflow.ellipsis),
+                        subtitle: Text('${_formatoFecha.format(o.fecha)} · ${o.usuario}', style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade600)),
+                        trailing: Text(formatearMoneda(o.monto), style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700)),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -663,7 +1098,7 @@ class _CerrarCajaDialogState extends State<_CerrarCajaDialog> {
     final dif = _diferencia;
     final color = dif.abs() < 0.01 ? const Color(0xFF2E7D32) : const Color(0xFFC62828);
     return AlertDialog(
-      title: const Text('Cerrar caja (Corte Z)'),
+      title: const Text('Cerrar caja'),
       content: SizedBox(
         width: 420,
         child: SingleChildScrollView(
@@ -716,7 +1151,7 @@ class _CerrarCajaDialogState extends State<_CerrarCajaDialog> {
                   controller: _directoController,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   onChanged: (_) => setState(() => _error = null),
-                  decoration: const InputDecoration(labelText: 'Efectivo contado (L)', border: OutlineInputBorder()),
+                  decoration: const InputDecoration(labelText: 'Efectivo contado', prefixText: 'L. ', border: OutlineInputBorder()),
                 ),
               const Divider(height: 22),
               Text('Efectivo contado: ${formatearMoneda(_contado)}', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
