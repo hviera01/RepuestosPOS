@@ -123,8 +123,20 @@ class _BuscarProductoCompraDialogState
     if (!_focusNodeLista.hasFocus) _focusNodeLista.requestFocus();
   }
 
+  bool _cerrando = false;
+
   void _confirmarSeleccion(ProductoModel producto) {
+    if (_cerrando) return;
+    _cerrando = true;
     Navigator.pop(context, producto);
+  }
+
+  void _buscarYElegirPrimero() {
+    _buscar();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _listaActual.isEmpty) return;
+      _confirmarSeleccion(_listaActual.first);
+    });
   }
 
   void _seleccionarAlPresionarEnter() {
@@ -242,7 +254,7 @@ class _BuscarProductoCompraDialogState
                             child: CampoTecladoCompacto(
                               controller: _busquedaController,
                               numerico: false,
-                              onSubmitted: (_) => _buscar(),
+                              onSubmitted: (_) => _buscarYElegirPrimero(),
                               titulo: 'Escribí y presioná Enter para buscar...',
                               child: TextField(
                                 inputFormatters: [mayusculasInputFormatter],
@@ -261,7 +273,7 @@ class _BuscarProductoCompraDialogState
                                   border: InputBorder.none,
                                   isDense: true,
                                 ),
-                                onSubmitted: (_) => _buscar(),
+                                onSubmitted: (_) => _buscarYElegirPrimero(),
                               ),
                             ),
                           ),

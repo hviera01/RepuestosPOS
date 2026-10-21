@@ -238,7 +238,10 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     return coincidencias.isEmpty ? true : coincidencias.first.controlaStock;
   }
 
+  bool _cerrando = false;
+
   void _confirmarSeleccion(ProductoModel producto) {
+    if (_cerrando) return;
     if (!producto.esCombo &&
         producto.stock <= 0 &&
         !widget.esCotizacion &&
@@ -258,6 +261,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
       );
       return;
     }
+    _cerrando = true;
     Navigator.pop(
       context,
       ProductoConPrecio(
@@ -300,6 +304,14 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     if (coincidencias.length == 1 && exacta) {
       _confirmarSeleccion(coincidencias.first);
     }
+  }
+
+  void _buscarYElegirPrimero() {
+    _buscar();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _listaActual.isEmpty) return;
+      _confirmarSeleccion(_listaActual.first);
+    });
   }
 
   bool _coincide(ProductoModel p, String texto) {
@@ -441,7 +453,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                             child: CampoTecladoCompacto(
                               controller: _busquedaController,
                               numerico: false,
-                              onSubmitted: (_) => _buscar(),
+                              onSubmitted: (_) => _buscarYElegirPrimero(),
                               titulo: 'Escribí y presioná Enter para buscar...',
                               child: TextField(
                                 inputFormatters: [mayusculasInputFormatter],
@@ -460,7 +472,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                                   border: InputBorder.none,
                                   isDense: true,
                                 ),
-                                onSubmitted: (_) => _buscar(),
+                                onSubmitted: (_) => _buscarYElegirPrimero(),
                               ),
                             ),
                           ),

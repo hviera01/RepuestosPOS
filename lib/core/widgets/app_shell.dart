@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:printing/printing.dart';
@@ -48,9 +49,20 @@ class _AppShellState extends ConsumerState<AppShell> {
   final _servicioImpresionEnVivoTraslado = ImpresionEnVivoTrasladoService();
   final _idsSolicitudTrasladoEnProceso = <String>{};
 
+  bool _manejarEscape(KeyEvent evento) {
+    if (evento is! KeyDownEvent || evento.logicalKey != LogicalKeyboardKey.escape) return false;
+    final contexto = FocusManager.instance.primaryFocus?.context;
+    if (contexto == null) return false;
+    final navegador = Navigator.maybeOf(contexto);
+    if (navegador == null || !navegador.canPop()) return false;
+    navegador.maybePop();
+    return true;
+  }
+
   @override
   void initState() {
     super.initState();
+    HardwareKeyboard.instance.addHandler(_manejarEscape);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final tabsState = ref.read(tabsProvider);
       if (tabsState.tabs.isEmpty) {
@@ -129,6 +141,7 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   @override
   void dispose() {
+    HardwareKeyboard.instance.removeHandler(_manejarEscape);
     _latidoTimer?.cancel();
     _actualizacionTimer?.cancel();
     super.dispose();
