@@ -1,5 +1,5 @@
 #define MyAppName "Repuestos POS"
-#define MyAppVersion "5"
+#define MyAppVersion "6"
 #define MyAppExeName "repuestos_pos.exe"
 #define MyReleaseDir "..\..\build\windows\x64\runner\Release"
 #define MyAppId "{{B0D11753-95F1-4292-ADD9-B878C57E0AB9}"

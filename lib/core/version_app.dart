@@ -1,1 +1,1 @@
-const int versionApp = 5;
+const int versionApp = 6;
