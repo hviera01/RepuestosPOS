@@ -1,5 +1,5 @@
 #define MyAppName "Danli Autoparts"
-#define MyAppVersion "6"
+#define MyAppVersion "7"
 #define MyAppExeName "repuestos_pos.exe"
 #define MyReleaseDir "..\..\build\windows\x64\runner\Release"
 #define MyAppId "{{B0D11753-95F1-4292-ADD9-B878C57E0AB9}"
