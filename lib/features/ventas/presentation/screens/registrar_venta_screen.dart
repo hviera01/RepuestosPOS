@@ -3992,6 +3992,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               SizedBox(
                 width: esMovil ? double.infinity : 190,
                 child: DropdownButtonFormField<String>(
+                  key: ValueKey('doc-${carrito.tipoDocumento}-${carrito.cotizacionConIsv}'),
                   initialValue: carrito.cotizacionConIsv
                       ? 'CotizacionIsv'
                       : carrito.tipoDocumento,
@@ -4016,6 +4017,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               SizedBox(
                 width: esMovil ? double.infinity : 150,
                 child: DropdownButtonFormField<String>(
+                  key: ValueKey('cond-${carrito.condicion}'),
                   initialValue: carrito.condicion,
                   isExpanded: true,
                   decoration: _decoracion('Condición'),
@@ -4041,6 +4043,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                 SizedBox(
                   width: esMovil ? double.infinity : 160,
                   child: DropdownButtonFormField<String>(
+                    key: ValueKey('met-${carrito.metodoPago}'),
                     initialValue: _metodosPago.contains(carrito.metodoPago)
                         ? carrito.metodoPago
                         : null,
@@ -4330,6 +4333,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                 key: _keyTipoDocumento,
                 width: esMovil ? double.infinity : 190,
                 child: DropdownButtonFormField<String>(
+                  key: ValueKey('doc-${carrito.tipoDocumento}-${carrito.cotizacionConIsv}'),
                   initialValue: carrito.cotizacionConIsv
                       ? 'CotizacionIsv'
                       : carrito.tipoDocumento,
@@ -4454,6 +4458,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                 key: _keyCondicion,
                 width: esMovil ? double.infinity : 150,
                 child: DropdownButtonFormField<String>(
+                  key: ValueKey('cond-${carrito.condicion}'),
                   initialValue: carrito.condicion,
                   isExpanded: true,
                   decoration: _decoracion('Condición'),
@@ -4480,6 +4485,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                   key: _keyMetodoPago,
                   width: esMovil ? double.infinity : 160,
                   child: DropdownButtonFormField<String>(
+                    key: ValueKey('met-${carrito.metodoPago}'),
                     initialValue: _metodosPago.contains(carrito.metodoPago)
                         ? carrito.metodoPago
                         : null,

@@ -550,7 +550,6 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
               SliverToBoxAdapter(child: _tarjetaApariencia()),
               SliverToBoxAdapter(child: _tarjetaFactura()),
               SliverToBoxAdapter(child: const SizedBox(height: 18)),
-              SliverToBoxAdapter(child: _tarjetaTecladoCompacto()),
               if (_esWebMovil) ...[
                 SliverToBoxAdapter(child: const SizedBox(height: 18)),
                 SliverToBoxAdapter(child: _tarjetaFaceId()),
@@ -1693,35 +1692,6 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                 ),
               ],
             ),
-        ],
-      ),
-    );
-  }
-
-  Widget _tarjetaTecladoCompacto() {
-    return _tarjeta(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _tituloSeccion('Teclado en pantalla', Icons.keyboard_alt_outlined),
-          const SizedBox(height: 6),
-          Text(
-            'Solo afecta a tablet (no a celular ni a PC/escritorio).',
-            style: GoogleFonts.poppins(
-              fontSize: 12.5,
-              color: Colors.grey.shade600,
-            ),
-          ),
-          const SizedBox(height: 14),
-          _filaSwitchFactura(
-            titulo: 'Usar teclado compacto en tablet',
-            descripcion:
-                'En vez de abrir el teclado nativo del sistema (que en tablet ocupa media pantalla), los campos de texto abren un teclado propio, más chico, con letras y números juntos -pensado para tocar seguido sin que la pantalla se achique tanto.',
-            valor: widget.modelo.tecladoCompactoTablet,
-            onChanged: (v) => ref
-                .read(negocioRepositoryProvider)
-                .establecerTecladoCompactoTablet(v),
-          ),
         ],
       ),
     );

@@ -21,7 +21,7 @@ class ProveedorRepository with ConRedMixin {
     required String telefono,
     required bool estado,
   }) {
-    return conRed(() async {
+    return conRedExito('Proveedor creado correctamente', () async {
       if (rtn.isNotEmpty && _tabla.actual.any((p) => p.rtn == rtn)) {
         throw Exception('Ya existe un proveedor con ese RTN');
       }
@@ -44,7 +44,7 @@ class ProveedorRepository with ConRedMixin {
     required String telefono,
     required bool estado,
   }) {
-    return conRed(() async {
+    return conRedExito('Proveedor actualizado correctamente', () async {
       if (rtn.isNotEmpty && _tabla.actual.any((p) => p.id != id && p.rtn == rtn)) {
         throw Exception('Ya existe un proveedor con ese RTN');
       }
@@ -60,7 +60,7 @@ class ProveedorRepository with ConRedMixin {
   }
 
   Future<void> eliminar(String id) {
-    return conRed(() async {
+    return conRedExito('Proveedor eliminado correctamente', () async {
       await _db.from('proveedores').delete().eq('id', id);
       _tabla.quitarLocal(id);
     });

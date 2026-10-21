@@ -145,7 +145,7 @@ class CompraRepository with ConRedMixin {
     required String usuario,
     String motivo = '',
   }) {
-    return conRed(() async {
+    return conRedExito('Compra anulada correctamente', () async {
       try {
         await OperacionesService.instancia.rpc('anular_compra', {'p_id': id, 'p_usuario': usuario, 'p_motivo': motivo});
       } on PostgrestException catch (e) {

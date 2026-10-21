@@ -95,7 +95,6 @@ class NegocioModel {
   final String impresoraBluetoothId;
   final String impresoraBluetoothNombre;
   final int anchoTicketMm;
-  final bool tecladoCompactoTablet;
   final String pcPrincipalHostname;
   final bool imprimirFacturas;
   final bool impresoraUsbUsarDriverWindows;
@@ -130,7 +129,6 @@ class NegocioModel {
     this.impresoraBluetoothId = '',
     this.impresoraBluetoothNombre = '',
     this.anchoTicketMm = 80,
-    this.tecladoCompactoTablet = false,
     this.pcPrincipalHostname = '',
     this.imprimirFacturas = true,
     this.impresoraUsbUsarDriverWindows = false,
@@ -170,7 +168,6 @@ class NegocioModel {
       impresoraBluetoothId: data['impresora_bluetooth_id'] ?? '',
       impresoraBluetoothNombre: data['impresora_bluetooth_nombre'] ?? '',
       anchoTicketMm: ((data['ancho_ticket_mm'] ?? 80) as num).toInt(),
-      tecladoCompactoTablet: data['teclado_compacto_tablet'] ?? false,
       pcPrincipalHostname: data['pc_principal_hostname'] ?? '',
       imprimirFacturas: data['imprimir_facturas'] ?? true,
       impresoraUsbUsarDriverWindows:
@@ -208,7 +205,6 @@ class NegocioModel {
       'impresora_bluetooth_id': impresoraBluetoothId,
       'impresora_bluetooth_nombre': impresoraBluetoothNombre,
       'ancho_ticket_mm': anchoTicketMm,
-      'teclado_compacto_tablet': tecladoCompactoTablet,
       'pc_principal_hostname': pcPrincipalHostname,
       'imprimir_facturas': imprimirFacturas,
       'impresora_usb_usar_driver_windows': impresoraUsbUsarDriverWindows,
@@ -245,7 +241,6 @@ class NegocioModel {
     String? impresoraBluetoothId,
     String? impresoraBluetoothNombre,
     int? anchoTicketMm,
-    bool? tecladoCompactoTablet,
     String? pcPrincipalHostname,
     bool? imprimirFacturas,
     bool? impresoraUsbUsarDriverWindows,
@@ -284,8 +279,6 @@ class NegocioModel {
       impresoraBluetoothNombre:
           impresoraBluetoothNombre ?? this.impresoraBluetoothNombre,
       anchoTicketMm: anchoTicketMm ?? this.anchoTicketMm,
-      tecladoCompactoTablet:
-          tecladoCompactoTablet ?? this.tecladoCompactoTablet,
       pcPrincipalHostname: pcPrincipalHostname ?? this.pcPrincipalHostname,
       imprimirFacturas: imprimirFacturas ?? this.imprimirFacturas,
       impresoraUsbUsarDriverWindows:

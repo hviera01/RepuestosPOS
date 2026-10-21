@@ -1004,6 +1004,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
               SizedBox(
                 width: esMovil ? double.infinity : 150,
                 child: DropdownButtonFormField<String>(
+                  key: ValueKey('cond-${carrito.condicion}'),
                   initialValue: carrito.condicion,
                   isExpanded: true,
                   decoration: _decoracion('Condición'),
@@ -1078,6 +1079,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
                 SizedBox(
                   width: esMovil ? double.infinity : 160,
                   child: DropdownButtonFormField<String>(
+                    key: ValueKey('met-${carrito.metodoPago}'),
                     initialValue: _metodosPago.contains(carrito.metodoPago)
                         ? carrito.metodoPago
                         : null,

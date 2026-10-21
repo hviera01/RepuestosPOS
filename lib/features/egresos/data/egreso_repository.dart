@@ -14,15 +14,15 @@ class EgresoRepository with ConRedMixin {
   final _compraCreditoRepository = CompraCreditoRepository();
 
   Future<void> crear(EgresoModel egreso) {
-    return conRed(() => _db.from('egresos').insert(egreso.toMap()));
+    return conRedExito('Egreso registrado correctamente', () => _db.from('egresos').insert(egreso.toMap()));
   }
 
   Future<void> actualizar(EgresoModel egreso) {
-    return conRed(() => _db.from('egresos').update(egreso.toMap()).eq('id', egreso.id));
+    return conRedExito('Egreso actualizado correctamente', () => _db.from('egresos').update(egreso.toMap()).eq('id', egreso.id));
   }
 
   Future<void> eliminar(String id) {
-    return conRed(() => _db.from('egresos').delete().eq('id', id));
+    return conRedExito('Egreso eliminado correctamente', () => _db.from('egresos').delete().eq('id', id));
   }
 
   Future<List<EgresoModel>> obtenerEgresosPorRango(DateTime inicio, DateTime finInclusive) {

@@ -1,3 +1,4 @@
+import '../../../core/utils/avisos.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
@@ -80,11 +81,12 @@ class NegocioRepository with ConRedMixin {
     _cacheFecha = null;
   }
 
-  Future<void> _guardar(Map<String, dynamic> datos) {
+  Future<void> _guardar(Map<String, dynamic> datos, {String? exito}) {
     return conRed(() async {
       final fila = await _db.from('negocio_config').upsert({'id': 1, ...datos}).select().single();
       _tabla.aplicarLocal(fila);
       _invalidarCache();
+      if (exito != null) avisarExito(exito);
     });
   }
 
@@ -113,7 +115,7 @@ class NegocioRepository with ConRedMixin {
       'rango_desde': rangoDesde,
       'rango_hasta': rangoHasta,
       'fecha_limite_emision': fechaLimiteEmision?.toIso8601String(),
-    });
+    }, exito: 'Datos del negocio guardados correctamente');
   }
 
   Future<void> actualizarTema(Map<String, dynamic> tema) {
@@ -125,19 +127,19 @@ class NegocioRepository with ConRedMixin {
   }
 
   Future<void> guardarLogoColor(Uint8List bytes) {
-    return _guardar({'logo_color_base64': base64Encode(bytes)});
+    return _guardar({'logo_color_base64': base64Encode(bytes)}, exito: 'Logo guardado correctamente');
   }
 
   Future<void> guardarLogoBn(Uint8List bytes) {
-    return _guardar({'logo_bn_base64': base64Encode(bytes)});
+    return _guardar({'logo_bn_base64': base64Encode(bytes)}, exito: 'Logo guardado correctamente');
   }
 
   Future<void> actualizarPermisos(Map<String, bool> permisos) {
-    return _guardar({'permisos': permisos});
+    return _guardar({'permisos': permisos}, exito: 'Permisos guardados correctamente');
   }
 
   Future<void> establecerClave(String clave) {
-    return conRed(() async {
+    return conRedExito('Clave especial guardada correctamente', () async {
       await _db.rpc('establecer_clave_especial', params: {'p_hash': hashClave(clave)});
       _invalidarCache();
       await _tabla.sincronizar();
@@ -166,10 +168,6 @@ class NegocioRepository with ConRedMixin {
 
   Future<void> establecerFacturaPreciosConIsv(bool valor) {
     return _guardar({'factura_precios_con_isv': valor});
-  }
-
-  Future<void> establecerTecladoCompactoTablet(bool valor) {
-    return _guardar({'teclado_compacto_tablet': valor});
   }
 
   Future<void> establecerModoImpresion(String modo) {

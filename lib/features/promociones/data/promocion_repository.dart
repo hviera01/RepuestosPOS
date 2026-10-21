@@ -61,14 +61,14 @@ class PromocionRepository with ConRedMixin {
   }
 
   Future<void> crear(PromocionModel promocion) {
-    return conRed(() async {
+    return conRedExito('Promoción creada correctamente', () async {
       final fila = await _db.from('promociones').insert(promocion.toMap()).select('id').single();
       await _guardarProductosPuente(fila['id'] as String, promocion);
     });
   }
 
   Future<void> actualizar(PromocionModel promocion) {
-    return conRed(() async {
+    return conRedExito('Promoción actualizada correctamente', () async {
       await _db.from('promociones').update(promocion.toMap()).eq('id', promocion.id);
       await _guardarProductosPuente(promocion.id, promocion);
     });
@@ -79,6 +79,6 @@ class PromocionRepository with ConRedMixin {
   }
 
   Future<void> eliminar(String id) {
-    return conRed(() => _db.from('promociones').delete().eq('id', id));
+    return conRedExito('Promoción eliminada correctamente', () => _db.from('promociones').delete().eq('id', id));
   }
 }

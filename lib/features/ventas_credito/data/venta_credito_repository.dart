@@ -72,7 +72,7 @@ class VentaCreditoRepository with ConRedMixin {
     required DateTime fechaVencimiento,
     String telefono = '',
   }) {
-    return conRed(() => _db.from('ventas_credito').insert({
+    return conRedExito('Crédito creado correctamente', () => _db.from('ventas_credito').insert({
           'documento_cliente': documentoCliente.isEmpty ? 'N/A' : documentoCliente,
           'nombre_cliente': nombreCliente,
           'id_cliente': (idCliente == null || idCliente.isEmpty) ? null : idCliente,
@@ -86,7 +86,7 @@ class VentaCreditoRepository with ConRedMixin {
   }
 
   Future<void> actualizarTelefono(String id, String telefono) {
-    return conRed(() => _db.from('ventas_credito').update({'telefono': telefono.trim()}).eq('id', id));
+    return conRedExito('Teléfono actualizado correctamente', () => _db.from('ventas_credito').update({'telefono': telefono.trim()}).eq('id', id));
   }
 
   Future<void> registrarAbono({
@@ -99,7 +99,7 @@ class VentaCreditoRepository with ConRedMixin {
     required String usuario,
     required DateTime fecha,
   }) {
-    return conRed(() async {
+    return conRedExito('Abono registrado correctamente', () async {
       if (montoAbonado > saldoAnterior + interes + 0.01) {
         throw Exception('El abono (${formatearMoneda(montoAbonado)}) supera el saldo disponible en este crédito (${formatearMoneda(saldoAnterior + interes)})');
       }
@@ -119,7 +119,7 @@ class VentaCreditoRepository with ConRedMixin {
   }
 
   Future<void> eliminarAbono({required String idCredito, required String idAbono, required double montoTotal}) {
-    return conRed(() => OperacionesService.instancia.rpc('eliminar_abono_venta_credito', {
+    return conRedExito('Abono eliminado correctamente', () => OperacionesService.instancia.rpc('eliminar_abono_venta_credito', {
           'p_id_credito': idCredito,
           'p_id_abono': idAbono,
           'p_monto_total': montoTotal,
@@ -136,7 +136,7 @@ class VentaCreditoRepository with ConRedMixin {
     required String metodoPago,
     required String numeroRecibo,
   }) {
-    return conRed(() => OperacionesService.instancia.rpc('editar_abono_venta_credito', {
+    return conRedExito('Abono actualizado correctamente', () => OperacionesService.instancia.rpc('editar_abono_venta_credito', {
           'payload': {
             'idCredito': idCredito,
             'idAbono': idAbono,
@@ -182,11 +182,11 @@ class VentaCreditoRepository with ConRedMixin {
   }
 
   Future<void> eliminar(String id) {
-    return conRed(() => _db.from('ventas_credito').delete().eq('id', id));
+    return conRedExito('Crédito eliminado correctamente', () => _db.from('ventas_credito').delete().eq('id', id));
   }
 
   Future<int> importarCreditos(List<FilaImportacionVentaCredito> filas) {
-    return conRed(() async {
+    return conRedExito('Créditos importados correctamente', () async {
       final validas = filas.where((f) => f.valido).toList();
       if (validas.isEmpty) return 0;
       final filasInsertar = validas.map((fila) => {

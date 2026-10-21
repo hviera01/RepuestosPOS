@@ -73,7 +73,7 @@ class ProductoRepository with ConRedMixin {
     bool nombreAutomatico = false,
     List<CompatibilidadModel> compatibilidad = const [],
   }) {
-    return conRed(() async {
+    return conRedExito('Producto creado correctamente', () async {
       var codigoFinal = codigo.trim();
       if (codigoFinal.isEmpty) {
         codigoFinal = _generarCodigo();
@@ -160,7 +160,7 @@ class ProductoRepository with ConRedMixin {
     bool? nombreAutomatico,
     List<CompatibilidadModel>? compatibilidad,
   }) {
-    return conRed(() async {
+    return conRedExito('Producto actualizado correctamente', () async {
       final codigoFinal = codigo.trim().isEmpty ? _generarCodigo() : codigo.trim();
       if (_tabla.actual.any((p) => p.id != id && p.codigo.toLowerCase() == codigoFinal.toLowerCase())) {
         throw Exception('Ya existe un producto con ese código');
@@ -195,14 +195,14 @@ class ProductoRepository with ConRedMixin {
   }
 
   Future<void> eliminar(String id) {
-    return conRed(() async {
+    return conRedExito('Producto eliminado correctamente', () async {
       await _db.from('productos').delete().eq('id', id);
       _tabla.quitarLocal(id);
     });
   }
 
   Future<ResumenImportacionProductos> importarProductos(List<FilaImportacionProducto> filas) {
-    return conRed(() async {
+    return conRedExito('Productos importados correctamente', () async {
       final productosExistentes = await _db.from('productos').select('id, codigo, es_combo');
       final idPorCodigo = <String, String>{};
       for (final d in productosExistentes) {
@@ -291,7 +291,7 @@ class ProductoRepository with ConRedMixin {
     String motivo = '',
   }) {
     if (cantidad <= 0) throw Exception('La cantidad debe ser mayor a 0');
-    return conRed(() => OperacionesService.instancia.rpc('registrar_ingreso_stock', {
+    return conRedExito('Ingreso de existencias registrado', () => OperacionesService.instancia.rpc('registrar_ingreso_stock', {
           'payload': {'id': id, 'cantidad': cantidad, 'costoUnitario': costoUnitario, 'usuario': usuario, 'motivo': motivo},
         }));
   }
@@ -304,7 +304,7 @@ class ProductoRepository with ConRedMixin {
     String motivo = '',
   }) {
     if (cantidad <= 0) throw Exception('La cantidad debe ser mayor a 0');
-    return conRed(() => OperacionesService.instancia.rpc('registrar_salida_stock', {
+    return conRedExito('Salida de existencias registrada', () => OperacionesService.instancia.rpc('registrar_salida_stock', {
           'payload': {'id': id, 'cantidad': cantidad, 'idLote': idLote, 'usuario': usuario, 'motivo': motivo},
         }));
   }

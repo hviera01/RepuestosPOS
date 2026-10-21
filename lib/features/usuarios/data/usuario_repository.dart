@@ -33,7 +33,7 @@ class UsuarioRepository with ConRedMixin {
     Map<String, bool> pantallasPermitidas = const {},
     Map<String, bool> accionesPermitidas = const {},
   ]) {
-    return conRed(() async {
+    return conRedExito('Usuario creado correctamente', () async {
       final sal = ClaveHash.generarSal();
       final aplicaPermisos = rol == Roles.encargado || rol == Roles.empleado;
       try {
@@ -67,7 +67,7 @@ class UsuarioRepository with ConRedMixin {
     Map<String, bool> pantallasPermitidas = const {},
     Map<String, bool> accionesPermitidas = const {},
   ]) {
-    return conRed(() async {
+    return conRedExito('Usuario actualizado correctamente', () async {
       final existe = await _db.from('usuarios').select('id').eq('documento', documento).limit(2);
       final duplicado = existe.any((d) => d['id'] != id);
       if (duplicado) {
@@ -96,7 +96,7 @@ class UsuarioRepository with ConRedMixin {
   }
 
   Future<void> eliminar(String id) {
-    return conRed(() async {
+    return conRedExito('Usuario eliminado correctamente', () async {
       final compras = await _db.from('compras').select('id').eq('usuario_registro', id).limit(1);
       if (compras.isNotEmpty) {
         throw Exception('No se puede eliminar porque el usuario se encuentra relacionado a una compra');

@@ -23,7 +23,7 @@ class SucursalRepository with ConRedMixin {
 
   Future<void> crear({required String nombre, required String direccion, required bool estado}) {
     if (nombre.trim().isEmpty) throw Exception('El nombre es obligatorio');
-    return conRed(() async {
+    return conRedExito('Sucursal creada correctamente', () async {
       final fila = await _db
           .from('sucursales')
           .insert({'nombre': nombre.trim(), 'direccion': direccion.trim(), 'estado': estado})
@@ -35,7 +35,7 @@ class SucursalRepository with ConRedMixin {
 
   Future<void> actualizar({required String id, required String nombre, required String direccion, required bool estado}) {
     if (nombre.trim().isEmpty) throw Exception('El nombre es obligatorio');
-    return conRed(() async {
+    return conRedExito('Sucursal actualizada correctamente', () async {
       final fila = await _db
           .from('sucursales')
           .update({'nombre': nombre.trim(), 'direccion': direccion.trim(), 'estado': estado})
@@ -47,7 +47,7 @@ class SucursalRepository with ConRedMixin {
   }
 
   Future<void> eliminar(String id) {
-    return conRed(() async {
+    return conRedExito('Sucursal eliminada correctamente', () async {
       await _db.from('sucursales').delete().eq('id', id);
       _tabla.quitarLocal(id);
     });

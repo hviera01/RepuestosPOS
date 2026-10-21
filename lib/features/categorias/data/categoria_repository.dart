@@ -15,7 +15,7 @@ class CategoriaRepository with ConRedMixin {
   Stream<List<CategoriaModel>> obtenerCategorias() => _tabla.observar();
 
   Future<void> crear(String descripcion, bool estado, {bool controlaStock = true}) {
-    return conRed(() async {
+    return conRedExito('Categoría creada correctamente', () async {
       final existe = await _db.from('categorias').select('id').eq('descripcion', descripcion).limit(1);
       if (existe.isNotEmpty) {
         throw Exception('Ya existe una categoría con esa descripción');
@@ -30,7 +30,7 @@ class CategoriaRepository with ConRedMixin {
   }
 
   Future<void> actualizar(String id, String descripcion, bool estado, {bool controlaStock = true}) {
-    return conRed(() async {
+    return conRedExito('Categoría actualizada correctamente', () async {
       final existe = await _db.from('categorias').select('id').eq('descripcion', descripcion).limit(2);
       final duplicado = existe.any((d) => d['id'] != id);
       if (duplicado) {
@@ -46,7 +46,7 @@ class CategoriaRepository with ConRedMixin {
   }
 
   Future<void> eliminar(String id) {
-    return conRed(() async {
+    return conRedExito('Categoría eliminada correctamente', () async {
       final productos = await _db.from('productos').select('id').eq('id_categoria', id).limit(1);
       if (productos.isNotEmpty) {
         throw Exception('La categoría se encuentra relacionada a un producto');

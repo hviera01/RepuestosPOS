@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:postgrest/postgrest.dart';
+import '../utils/avisos.dart';
 
 class SinConexionException implements Exception {
   final String mensaje;
@@ -33,6 +34,12 @@ Object traducirError(Object e) {
 }
 
 mixin ConRedMixin {
+  Future<T> conRedExito<T>(String mensaje, Future<T> Function() operacion) async {
+    final r = await conRed(operacion);
+    avisarExito(mensaje);
+    return r;
+  }
+
   Future<T> conRed<T>(Future<T> Function() operacion) async {
     try {
       return await operacion();

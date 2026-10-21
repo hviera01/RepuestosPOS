@@ -35,7 +35,7 @@ class ClienteRepository with ConRedMixin {
     required String telefono,
     required bool estado,
   }) {
-    return conRed(() async {
+    return conRedExito('Cliente creado correctamente', () async {
       if (dni.isNotEmpty && _tabla.actual.any((c) => c.dni == dni)) {
         throw Exception('Ya existe un cliente con ese DNI');
       }
@@ -65,7 +65,7 @@ class ClienteRepository with ConRedMixin {
     required String telefono,
     required bool estado,
   }) {
-    return conRed(() async {
+    return conRedExito('Cliente actualizado correctamente', () async {
       if (dni.isNotEmpty && _tabla.actual.any((c) => c.id != id && c.dni == dni)) {
         throw Exception('Ya existe un cliente con ese DNI');
       }
@@ -86,7 +86,7 @@ class ClienteRepository with ConRedMixin {
   }
 
   Future<void> eliminar(String id) {
-    return conRed(() async {
+    return conRedExito('Cliente eliminado correctamente', () async {
       await _db.from('clientes').delete().eq('id', id);
       _tabla.quitarLocal(id);
     });

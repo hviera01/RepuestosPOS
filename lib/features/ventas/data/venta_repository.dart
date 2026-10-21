@@ -27,7 +27,7 @@ class VentaRepository with ConRedMixin {
 
   Future<void> establecerProximoNumeroFactura(int proximoNumero) {
     final nuevoUltimo = proximoNumero - 1;
-    return conRed(() => _db.from('contadores').upsert({'clave': 'venta', 'ultimo': nuevoUltimo < 0 ? 0 : nuevoUltimo}));
+    return conRedExito('Numeración guardada correctamente', () => _db.from('contadores').upsert({'clave': 'venta', 'ultimo': nuevoUltimo < 0 ? 0 : nuevoUltimo}));
   }
 
   Future<String> reservarProximoNumeroFactura() {
@@ -270,7 +270,7 @@ class VentaRepository with ConRedMixin {
     required String usuario,
     String motivo = '',
   }) {
-    return conRed(() async {
+    return conRedExito('Venta anulada correctamente', () async {
       try {
         _invalidarVenta(id);
         await OperacionesService.instancia.rpc('anular_venta', {'p_id': id, 'p_usuario': usuario, 'p_motivo': motivo});

@@ -1,3 +1,4 @@
+import '../../../core/utils/avisos.dart';
 import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/data/base_repository.dart';
@@ -159,6 +160,7 @@ class TrasladoRepository with ConRedMixin {
       },
     }) as Map<String, dynamic>;
     final ahora = DateTime.now();
+    avisarExito('Traslado registrado correctamente');
     return TrasladoModel(
       id: resultado['id'] as String,
       numero: resultado['numero'] as String,
@@ -178,13 +180,16 @@ class TrasladoRepository with ConRedMixin {
 
   Future<void> enviar(String id) async {
     await OperacionesService.instancia.rpc('enviar_traslado', {'p_id': id});
+    avisarExito('Traslado enviado correctamente');
   }
 
   Future<void> recepcionar(String id, {required String usuarioRecibe}) async {
     await OperacionesService.instancia.rpc('recepcionar_traslado', {'p_id': id, 'p_usuario': usuarioRecibe});
+    avisarExito('Recepción confirmada correctamente');
   }
 
   Future<void> anular(String id, {required String usuario}) async {
     await OperacionesService.instancia.rpc('anular_traslado', {'p_id': id, 'p_usuario': usuario});
+    avisarExito('Traslado anulado correctamente');
   }
 }

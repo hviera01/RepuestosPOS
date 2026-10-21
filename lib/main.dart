@@ -1,3 +1,4 @@
+import 'core/utils/avisos.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -61,6 +62,7 @@ class RepuestosApp extends ConsumerWidget {
     final codigoEscaneo = Uri.base.queryParameters['escanear'];
 
     return MaterialApp(
+      scaffoldMessengerKey: mensajeroGlobal,
       title: 'Repuestos POS',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(

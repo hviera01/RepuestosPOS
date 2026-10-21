@@ -58,7 +58,7 @@ class CompraCreditoRepository with ConRedMixin {
     required double saldoPendiente,
     required DateTime fechaVencimiento,
   }) {
-    return conRed(() => _db.from('compras_credito').insert({
+    return conRedExito('Crédito creado correctamente', () => _db.from('compras_credito').insert({
           'id_proveedor': idProveedor.isEmpty ? null : idProveedor,
           'documento_proveedor': documentoProveedor.isEmpty ? 'N/A' : documentoProveedor,
           'nombre_proveedor': nombreProveedor,
@@ -83,7 +83,7 @@ class CompraCreditoRepository with ConRedMixin {
     required String usuario,
     required DateTime fecha,
   }) {
-    return conRed(() async {
+    return conRedExito('Abono registrado correctamente', () async {
       if (montoAbonado > saldoAnterior + interes + 0.01) {
         throw Exception('El abono (${formatearMoneda(montoAbonado)}) supera el saldo disponible en esa factura (${formatearMoneda(saldoAnterior + interes)})');
       }
@@ -105,7 +105,7 @@ class CompraCreditoRepository with ConRedMixin {
   }
 
   Future<void> eliminarAbono({required String idCompra, required String idAbono, required double montoTotal}) {
-    return conRed(() => OperacionesService.instancia.rpc('eliminar_abono_compra_credito', {
+    return conRedExito('Abono eliminado correctamente', () => OperacionesService.instancia.rpc('eliminar_abono_compra_credito', {
           'p_id_compra': idCompra,
           'p_id_abono': idAbono,
           'p_monto_total': montoTotal,
@@ -122,7 +122,7 @@ class CompraCreditoRepository with ConRedMixin {
     required String metodoPago,
     required String numeroRecibo,
   }) {
-    return conRed(() => OperacionesService.instancia.rpc('editar_abono_compra_credito', {
+    return conRedExito('Abono actualizado correctamente', () => OperacionesService.instancia.rpc('editar_abono_compra_credito', {
           'payload': {
             'idCompra': idCompra,
             'idAbono': idAbono,
@@ -137,7 +137,7 @@ class CompraCreditoRepository with ConRedMixin {
   }
 
   Future<void> eliminar(String id) {
-    return conRed(() => _db.from('compras_credito').delete().eq('id', id));
+    return conRedExito('Crédito eliminado correctamente', () => _db.from('compras_credito').delete().eq('id', id));
   }
 
   Future<List<CompraCreditoModel>> obtenerComprasPorProveedor(String idProveedor) {
@@ -155,7 +155,7 @@ class CompraCreditoRepository with ConRedMixin {
   }
 
   Future<ResumenImportacionComprasCredito> importarCreditos(List<FilaImportacionCompraCredito> filas) {
-    return conRed(() async {
+    return conRedExito('Créditos importados correctamente', () async {
       final proveedoresExistentes = await _db.from('proveedores').select('id, razon_social, rtn');
       final idProveedorPorNombre = <String, String>{};
       final rtnPorId = <String, String>{};
@@ -233,7 +233,7 @@ class CompraCreditoRepository with ConRedMixin {
     required String usuario,
     required DateTime fecha,
   }) {
-    return conRed(() async {
+    return conRedExito('Abono general registrado correctamente', () async {
       for (final item in distribucion) {
         if (item.montoAplicado > item.compra.saldoPendiente + 0.01) {
           throw Exception('El monto asignado a la factura ${item.compra.noFactura} supera su saldo pendiente');
