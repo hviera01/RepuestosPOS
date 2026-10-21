@@ -8,19 +8,31 @@ import '../../data/historial_stock_model.dart';
 import '../../providers/productos_provider.dart';
 import '../../../ventas/presentation/screens/detalle_venta_screen.dart';
 import '../../../compras/presentation/screens/detalle_compra_screen.dart';
+import '../../../traslados/presentation/screens/detalle_traslado_screen.dart';
+import 'lotes_producto_vista.dart';
 
 class HistorialStockDialog extends ConsumerStatefulWidget {
   final ProductoModel producto;
+  final String filtroInicial;
 
-  const HistorialStockDialog({super.key, required this.producto});
+  const HistorialStockDialog({super.key, required this.producto, this.filtroInicial = 'todo'});
 
   @override
   ConsumerState<HistorialStockDialog> createState() => _HistorialStockDialogState();
 }
 
+const _filtros = <String, (String, Set<TipoMovimientoStock>)>{
+  'todo': ('Movimientos', {}),
+  'ventas': ('Ventas', {TipoMovimientoStock.venta, TipoMovimientoStock.anulacionVenta}),
+  'compras': ('Compras', {TipoMovimientoStock.compra, TipoMovimientoStock.anulacionCompra}),
+  'traslados': ('Traslados', {TipoMovimientoStock.traslado, TipoMovimientoStock.anulacionTraslado}),
+  'manuales': ('Ajustes manuales', {TipoMovimientoStock.ajusteEntrada, TipoMovimientoStock.ajusteSalida}),
+};
+
 class _HistorialStockDialogState extends ConsumerState<HistorialStockDialog> {
   DateTime? _fechaInicio;
   DateTime? _fechaFin;
+  late String _filtro = widget.filtroInicial;
 
   Future<void> _seleccionarFecha(bool esInicio) async {
     final fecha = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2020), lastDate: DateTime(2100));
@@ -42,7 +54,9 @@ class _HistorialStockDialogState extends ConsumerState<HistorialStockDialog> {
   }
 
   List<HistorialStockModel> _filtrar(List<HistorialStockModel> registros) {
+    final tipos = _filtros[_filtro]?.$2 ?? const <TipoMovimientoStock>{};
     return registros.where((r) {
+      if (tipos.isNotEmpty && !tipos.contains(r.tipo)) return false;
       if (r.fecha == null) return true;
       if (_fechaInicio != null && r.fecha!.isBefore(DateTime(_fechaInicio!.year, _fechaInicio!.month, _fechaInicio!.day))) return false;
       if (_fechaFin != null && r.fecha!.isAfter(DateTime(_fechaFin!.year, _fechaFin!.month, _fechaFin!.day, 23, 59, 59))) return false;
@@ -57,6 +71,9 @@ class _HistorialStockDialogState extends ConsumerState<HistorialStockDialog> {
       case TipoMovimientoStock.compra:
       case TipoMovimientoStock.anulacionCompra:
         return RegExp(r'\d+').firstMatch(r.motivo)?.group(0);
+      case TipoMovimientoStock.traslado:
+      case TipoMovimientoStock.anulacionTraslado:
+        return RegExp(r'TRAS-\d+').firstMatch(r.motivo)?.group(0);
       case TipoMovimientoStock.ajusteEntrada:
       case TipoMovimientoStock.ajusteSalida:
         return null;
@@ -67,24 +84,48 @@ class _HistorialStockDialogState extends ConsumerState<HistorialStockDialog> {
     final numero = _numeroDocumentoDesde(r);
     if (numero == null) return;
     final esVenta = r.tipo == TipoMovimientoStock.venta || r.tipo == TipoMovimientoStock.anulacionVenta;
+    final esTraslado = r.tipo == TipoMovimientoStock.traslado || r.tipo == TipoMovimientoStock.anulacionTraslado;
     Navigator.push(
       context,
       MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (context) => esVenta ? DetalleVentaScreen(numeroDocumentoInicial: numero) : DetalleCompraScreen(numeroDocumentoInicial: numero),
+        builder: (context) => esTraslado
+            ? DetalleTrasladoScreen(numeroInicial: numero)
+            : (esVenta ? DetalleVentaScreen(numeroDocumentoInicial: numero) : DetalleCompraScreen(numeroDocumentoInicial: numero)),
+      ),
+    );
+  }
+
+  Widget _chipFiltro(String clave, String etiqueta) {
+    final activo = _filtro == clave;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => setState(() => _filtro = clave),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          decoration: BoxDecoration(
+            color: activo ? Marca.primario : const Color(0xFFE8EAF0),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: activo ? Marca.primario : const Color(0xFFB6BCC7)),
+          ),
+          child: Text(
+            etiqueta,
+            style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: activo ? FontWeight.w700 : FontWeight.w500, color: activo ? Marca.sobrePrimario : const Color(0xFF4B4F58)),
+          ),
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final historialAsync = ref.watch(historialStockProvider(widget.producto.id));
-    final formatoFecha = DateFormat('dd/MM/yyyy HH:mm');
     final formatoDia = DateFormat('dd/MM/yyyy');
     final tamano = MediaQuery.of(context).size;
     final esMovil = tamano.width < 640;
     final anchoDialog = esMovil ? tamano.width - 24 : (tamano.width - 64 < 1040 ? tamano.width - 64 : 1040.0);
-    final altoDialog = tamano.height < 640 ? tamano.height - 40 : 580.0;
+    final altoDialog = tamano.height < 640 ? tamano.height - 40 : 600.0;
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -100,12 +141,22 @@ class _HistorialStockDialogState extends ConsumerState<HistorialStockDialog> {
             Row(
               children: [
                 Expanded(
-                  child: Text('Historial de Existencia · ${widget.producto.nombre}', style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
+                  child: Text('Historial de existencia · ${widget.producto.nombre}', style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
                 ),
                 IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(context)),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (final e in _filtros.entries) _chipFiltro(e.key, e.value.$1),
+                  _chipFiltro('lotes', 'Lotes de costo'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
             Wrap(
               spacing: 10,
               runSpacing: 10,
@@ -116,145 +167,148 @@ class _HistorialStockDialogState extends ConsumerState<HistorialStockDialog> {
                   TextButton.icon(onPressed: _limpiarFechas, icon: const Icon(Icons.close, size: 16), label: Text('Limpiar fechas', style: GoogleFonts.poppins(fontSize: 12))),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
             Expanded(
-              child: historialAsync.when(
-                loading: () => Center(child: CircularProgressIndicator(color: Marca.primario)),
-                error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
-                data: (data) {
-                  final registros = _filtrar(data);
-                  if (registros.isEmpty) {
-                    return Center(child: Text('Sin movimientos en el rango seleccionado', textAlign: TextAlign.center, style: GoogleFonts.poppins(color: Colors.grey.shade500)));
-                  }
-                  if (esMovil) {
-                    return ListView.separated(
-                      itemCount: registros.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 10),
-                      itemBuilder: (context, index) {
-                        final r = registros[index];
-                        final subio = r.stockNuevo >= r.stockAnterior;
-                        final numeroDocumento = _numeroDocumentoDesde(r);
-                        return Material(
-                          color: const Color(0xFFF8F9FB),
-                          borderRadius: BorderRadius.circular(14),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(14),
-                            onTap: numeroDocumento == null ? null : () => _abrirDetalle(r),
-                            child: Container(
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFC7CBD3))),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      _chipTipo(r.tipo),
-                                      const Spacer(),
-                                      Text(r.fecha != null ? formatoFecha.format(r.fecha!) : '-', style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade500)),
-                                      if (numeroDocumento != null) ...[const SizedBox(width: 4), Icon(Icons.chevron_right, size: 16, color: Colors.grey.shade400)],
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      Icon(subio ? Icons.arrow_upward : Icons.arrow_downward, size: 15, color: subio ? const Color(0xFF16A34A) : Marca.primario),
-                                      const SizedBox(width: 6),
-                                      Text('${r.stockAnterior} → ${r.stockNuevo}', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700)),
-                                      const SizedBox(width: 8),
-                                      Text('(${subio ? '+' : ''}${r.delta.toStringAsFixed(r.delta == r.delta.roundToDouble() ? 0 : 2)})', style: GoogleFonts.poppins(fontSize: 12, color: subio ? const Color(0xFF16A34A) : Marca.primario)),
-                                    ],
-                                  ),
-                                  if (r.motivo.isNotEmpty) ...[
-                                    const SizedBox(height: 6),
-                                    Text(r.motivo, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade700)),
-                                  ],
-                                  const SizedBox(height: 6),
-                                  Text(r.usuario, style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  }
-                  return Container(
-                    decoration: BoxDecoration(border: Border.all(color: const Color(0xFFB6BCC7)), borderRadius: BorderRadius.circular(12)),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          decoration: const BoxDecoration(color: Color(0xFFECEEF3), borderRadius: BorderRadius.vertical(top: Radius.circular(12))),
-                          child: Row(
-                            children: [
-                              Expanded(flex: 2, child: Text('FECHA', style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
-                              Expanded(flex: 2, child: Text('TIPO', style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
-                              Expanded(flex: 1, child: Text('ANTERIOR', style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
-                              Expanded(flex: 1, child: Text('NUEVO', style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
-                              Expanded(flex: 1, child: Text('CAMBIO', style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
-                              Expanded(flex: 5, child: Text('MOTIVO', style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
-                              Expanded(flex: 2, child: Text('USUARIO', style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: ListView.separated(
-                            itemCount: registros.length,
-                            separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey.shade200),
-                            itemBuilder: (context, index) {
-                              final r = registros[index];
-                              final subio = r.stockNuevo >= r.stockAnterior;
-                              final numeroDocumento = _numeroDocumentoDesde(r);
-                              return InkWell(
-                                onTap: numeroDocumento == null ? null : () => _abrirDetalle(r),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: Row(
-                                          children: [
-                                            Flexible(child: Text(r.fecha != null ? formatoFecha.format(r.fecha!) : '-', style: GoogleFonts.poppins(fontSize: 12))),
-                                            if (numeroDocumento != null) ...[const SizedBox(width: 4), Icon(Icons.chevron_right, size: 15, color: Colors.grey.shade400)],
-                                          ],
-                                        ),
-                                      ),
-                                      Expanded(flex: 2, child: _chipTipo(r.tipo)),
-                                      Expanded(flex: 1, child: Text(r.stockAnterior.toString(), style: GoogleFonts.poppins(fontSize: 12))),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Row(
-                                          children: [
-                                            Icon(subio ? Icons.arrow_upward : Icons.arrow_downward, size: 13, color: subio ? const Color(0xFF16A34A) : Marca.primario),
-                                            const SizedBox(width: 4),
-                                            Text(r.stockNuevo.toString(), style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
-                                          ],
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(
-                                          '${subio ? '+' : ''}${r.delta.toStringAsFixed(r.delta == r.delta.roundToDouble() ? 0 : 2)}',
-                                          style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: subio ? const Color(0xFF16A34A) : Marca.primario),
-                                        ),
-                                      ),
-                                      Expanded(flex: 5, child: Text(r.motivo.isEmpty ? '-' : r.motivo, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600), overflow: TextOverflow.ellipsis, maxLines: 3)),
-                                      Expanded(flex: 2, child: Text(r.usuario, style: GoogleFonts.poppins(fontSize: 12), overflow: TextOverflow.ellipsis)),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+              child: _filtro == 'lotes'
+                  ? LotesProductoVista(producto: widget.producto, desde: _fechaInicio, hasta: _fechaFin)
+                  : _movimientos(esMovil),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _movimientos(bool esMovil) {
+    final historialAsync = ref.watch(historialStockProvider(widget.producto.id));
+    final formatoFecha = DateFormat('dd/MM/yyyy HH:mm');
+    return historialAsync.when(
+      skipLoadingOnReload: true,
+      skipLoadingOnRefresh: true,
+      loading: () => Center(child: CircularProgressIndicator(color: Marca.primario)),
+      error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
+      data: (data) {
+        final registros = _filtrar(data);
+        if (registros.isEmpty) {
+          return Center(child: Text('Sin movimientos en esta categoría o rango', textAlign: TextAlign.center, style: GoogleFonts.poppins(color: Colors.grey.shade500)));
+        }
+        if (esMovil) {
+          return ListView.separated(
+            itemCount: registros.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 10),
+            itemBuilder: (context, index) => _tarjeta(registros[index], formatoFecha),
+          );
+        }
+        return Container(
+          decoration: BoxDecoration(border: Border.all(color: const Color(0xFFB6BCC7)), borderRadius: BorderRadius.circular(12)),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: const BoxDecoration(color: Color(0xFFECEEF3), borderRadius: BorderRadius.vertical(top: Radius.circular(12))),
+                child: Row(
+                  children: [
+                    for (final (flex, titulo) in const [(2, 'FECHA'), (2, 'TIPO'), (1, 'ANTERIOR'), (1, 'NUEVO'), (1, 'CAMBIO'), (5, 'MOTIVO'), (2, 'USUARIO')])
+                      Expanded(flex: flex, child: Text(titulo, style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView.separated(
+                  itemCount: registros.length,
+                  separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey.shade200),
+                  itemBuilder: (context, index) => _fila(registros[index], formatoFecha),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _cambio(HistorialStockModel r) => '${r.delta >= 0 ? '+' : ''}${r.delta.toStringAsFixed(r.delta == r.delta.roundToDouble() ? 0 : 2)}';
+
+  Widget _fila(HistorialStockModel r, DateFormat formatoFecha) {
+    final subio = r.stockNuevo >= r.stockAnterior;
+    final numeroDocumento = _numeroDocumentoDesde(r);
+    return InkWell(
+      onTap: numeroDocumento == null ? null : () => _abrirDetalle(r),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: Row(
+                children: [
+                  Flexible(child: Text(r.fecha != null ? formatoFecha.format(r.fecha!) : '-', style: GoogleFonts.poppins(fontSize: 12))),
+                  if (numeroDocumento != null) ...[const SizedBox(width: 4), Icon(Icons.chevron_right, size: 15, color: Colors.grey.shade400)],
+                ],
+              ),
+            ),
+            Expanded(flex: 2, child: _chipTipo(r.tipo)),
+            Expanded(flex: 1, child: Text(r.stockAnterior.toString(), style: GoogleFonts.poppins(fontSize: 12))),
+            Expanded(
+              flex: 1,
+              child: Row(
+                children: [
+                  Icon(subio ? Icons.arrow_upward : Icons.arrow_downward, size: 13, color: subio ? const Color(0xFF16A34A) : Marca.primario),
+                  const SizedBox(width: 4),
+                  Text(r.stockNuevo.toString(), style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
+            Expanded(flex: 1, child: Text(_cambio(r), style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: subio ? const Color(0xFF16A34A) : Marca.primario))),
+            Expanded(flex: 5, child: Text(r.motivo.isEmpty ? '-' : r.motivo, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600), overflow: TextOverflow.ellipsis, maxLines: 3)),
+            Expanded(flex: 2, child: Text(r.usuario, style: GoogleFonts.poppins(fontSize: 12), overflow: TextOverflow.ellipsis)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _tarjeta(HistorialStockModel r, DateFormat formatoFecha) {
+    final subio = r.stockNuevo >= r.stockAnterior;
+    final numeroDocumento = _numeroDocumentoDesde(r);
+    return Material(
+      color: const Color(0xFFF8F9FB),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: numeroDocumento == null ? null : () => _abrirDetalle(r),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFC7CBD3))),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  _chipTipo(r.tipo),
+                  const Spacer(),
+                  Text(r.fecha != null ? formatoFecha.format(r.fecha!) : '-', style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade500)),
+                  if (numeroDocumento != null) ...[const SizedBox(width: 4), Icon(Icons.chevron_right, size: 16, color: Colors.grey.shade400)],
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(subio ? Icons.arrow_upward : Icons.arrow_downward, size: 15, color: subio ? const Color(0xFF16A34A) : Marca.primario),
+                  const SizedBox(width: 6),
+                  Text('${r.stockAnterior} → ${r.stockNuevo}', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700)),
+                  const SizedBox(width: 8),
+                  Text('(${_cambio(r)})', style: GoogleFonts.poppins(fontSize: 12, color: subio ? const Color(0xFF16A34A) : Marca.primario)),
+                ],
+              ),
+              if (r.motivo.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(r.motivo, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade700)),
+              ],
+              const SizedBox(height: 6),
+              Text(r.usuario, style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
+            ],
+          ),
         ),
       ),
     );
@@ -266,6 +320,8 @@ class _HistorialStockDialogState extends ConsumerState<HistorialStockDialog> {
       TipoMovimientoStock.anulacionVenta => (Marca.primario, Icons.undo),
       TipoMovimientoStock.compra => (const Color(0xFF2B6CB0), Icons.local_shipping_outlined),
       TipoMovimientoStock.anulacionCompra => (Marca.primario, Icons.undo),
+      TipoMovimientoStock.traslado => (const Color(0xFF7C5A1E), Icons.sync_alt),
+      TipoMovimientoStock.anulacionTraslado => (Marca.primario, Icons.undo),
       TipoMovimientoStock.ajusteEntrada => (const Color(0xFF6B7280), Icons.tune),
       TipoMovimientoStock.ajusteSalida => (const Color(0xFF6B7280), Icons.tune),
     };

@@ -332,6 +332,18 @@ class ProductoRepository with ConRedMixin {
     });
   }
 
+  Stream<List<HistorialStockModel>> observarHistorialStock(String idProducto) {
+    return conRedStream(() => _db
+        .from('producto_historial_stock')
+        .stream(primaryKey: ['id'])
+        .eq('id_producto', idProducto)
+        .map((filas) {
+      final lista = filas.map((d) => HistorialStockModel.fromMap(d['id'] as String, d)).toList();
+      lista.sort((a, b) => (b.fecha ?? DateTime(2000)).compareTo(a.fecha ?? DateTime(2000)));
+      return lista;
+    }));
+  }
+
   Future<List<HistorialPrecioCompraModel>> obtenerHistorialPreciosCompra(String idProducto) {
     return conRed(() async {
       final filas = await traerTodo(() => _db.from('producto_historial_precios_compra').select().eq('id_producto', idProducto).order('fecha').order('id'));

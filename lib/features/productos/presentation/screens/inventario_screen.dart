@@ -20,7 +20,6 @@ import '../widgets/importar_inventario_dialog.dart';
 import '../widgets/exportar_inventario_opciones_dialog.dart';
 import '../widgets/ajuste_stock_dialog.dart';
 import '../widgets/historial_stock_dialog.dart';
-import '../widgets/historial_movimientos_dialog.dart';
 import '../../../../core/widgets/pdf_preview_dialog.dart';
 import '../widgets/ticket_opciones_dialog.dart';
 import 'package:printing/printing.dart';
@@ -288,15 +287,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
       useRootNavigator: false,
       context: context,
       builder: (context) => HistorialStockDialog(producto: producto),
-    );
-  }
-
-  void _abrirHistorialMovimientos(ProductoModel producto, String tipo) {
-    showDialog(
-      useRootNavigator: false,
-      context: context,
-      builder: (context) =>
-          HistorialMovimientosDialog(producto: producto, tipo: tipo),
     );
   }
 
@@ -1911,15 +1901,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
       case 'historial_stock':
         _abrirHistorial(producto);
         break;
-      case 'historial_ventas':
-        _abrirHistorialMovimientos(producto, 'ventas');
-        break;
-      case 'historial_compras':
-        _abrirHistorialMovimientos(producto, 'compras');
-        break;
-      case 'lotes_costo':
-        _abrirHistorialMovimientos(producto, 'lotes');
-        break;
       case 'codigo_barras':
         _abrirCodigoBarras(producto);
         break;
@@ -1944,21 +1925,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
         valor: 'historial_stock',
         icono: Icons.history,
         texto: 'Historial de existencia',
-      ),
-      _opcionMenu(
-        valor: 'historial_ventas',
-        icono: Icons.point_of_sale_outlined,
-        texto: 'Historial de ventas',
-      ),
-      _opcionMenu(
-        valor: 'historial_compras',
-        icono: Icons.shopping_cart_outlined,
-        texto: 'Historial de compras',
-      ),
-      _opcionMenu(
-        valor: 'lotes_costo',
-        icono: Icons.layers_outlined,
-        texto: 'Costos por lote (FIFO)',
       ),
       const PopupMenuDivider(),
       _opcionMenu(

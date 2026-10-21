@@ -27,8 +27,8 @@ final productosStreamProvider = StreamProvider<List<ProductoModel>>((ref) {
   return ref.watch(productoRepositoryProvider).obtenerProductos();
 });
 
-final historialStockProvider = FutureProvider.autoDispose.family<List<HistorialStockModel>, String>((ref, idProducto) {
-  return ref.watch(productoRepositoryProvider).obtenerHistorialStock(idProducto);
+final historialStockProvider = StreamProvider.autoDispose.family<List<HistorialStockModel>, String>((ref, idProducto) {
+  return ref.watch(productoRepositoryProvider).observarHistorialStock(idProducto);
 });
 
 final historialPreciosCompraProvider = FutureProvider.autoDispose.family<List<HistorialPrecioCompraModel>, String>((ref, idProducto) {
