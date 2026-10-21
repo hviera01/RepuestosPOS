@@ -1,3 +1,4 @@
+import 'ver_compras_screen.dart';
 import '../../../../core/theme/marca.dart';
 import '../../../negocio/data/negocio_model.dart';
 import '../../../../core/utils/permisos_usuario.dart';
@@ -801,6 +802,12 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
           style: _estiloBotonSecundario(),
         ),
         OutlinedButton.icon(
+          onPressed: _verCompras,
+          icon: const Icon(Icons.list_alt_outlined, size: 18),
+          label: Text('Ver Compras', style: GoogleFonts.poppins(fontSize: 13)),
+          style: _estiloBotonSecundario(),
+        ),
+        OutlinedButton.icon(
           onPressed: _verDetalleCompra,
           icon: const Icon(Icons.receipt_long_outlined, size: 18),
           label: Text('Ver Detalle', style: GoogleFonts.poppins(fontSize: 13)),
@@ -816,6 +823,15 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
           style: _estiloBotonSecundario(),
         ),
       ],
+    );
+  }
+
+  void _verCompras() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (context) => const VerComprasScreen(),
+      ),
     );
   }
 
