@@ -74,7 +74,7 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
   void initState() {
     super.initState();
     final ahora = DateTime.now();
-    _fechaInicio = DateTime(ahora.year, ahora.month, 1);
+    _fechaInicio = DateTime(ahora.year, ahora.month, ahora.day);
     _fechaFin = DateTime(ahora.year, ahora.month, ahora.day);
     _buscar();
   }
