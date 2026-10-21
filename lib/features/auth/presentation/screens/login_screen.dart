@@ -9,6 +9,7 @@ import '../../../../core/utils/tablet_utils_stub.dart' if (dart.library.html) '.
 import '../../../../core/utils/webauthn.dart';
 import '../../../../core/widgets/face_id_icon.dart';
 import '../../providers/auth_provider.dart';
+import '../widgets/fondo_login.dart';
 
 bool get _esWebMovil =>
     kIsWeb &&
@@ -86,274 +87,229 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
     if (mounted) setState(() => _credencialFaceId = null);
   }
 
+  InputDecoration _decoracion(String etiqueta, IconData icono, {Widget? sufijo}) {
+    return InputDecoration(
+      labelText: etiqueta,
+      labelStyle: GoogleFonts.poppins(fontSize: 13),
+      prefixIcon: Icon(icono, size: 20),
+      suffixIcon: sufijo,
+      filled: true,
+      fillColor: const Color(0xFFF0F2F6),
+      contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 14),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE1E4EA))),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Marca.primario, width: 1.6)),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+    );
+  }
+
+  Widget _formulario(AuthState authState, {required bool conLogo}) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (conLogo) ...[
+          Center(child: RotationTransition(turns: _giro, child: LogoGenerico(tamano: 72, color: Marca.primario))),
+          const SizedBox(height: 22),
+        ],
+        Text(
+          'Bienvenido',
+          textAlign: conLogo ? TextAlign.center : TextAlign.left,
+          style: GoogleFonts.poppins(fontSize: 30, fontWeight: FontWeight.w700, color: const Color(0xFF1A1D23), height: 1.1),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Ingrese con su código de acceso',
+          textAlign: conLogo ? TextAlign.center : TextAlign.left,
+          style: GoogleFonts.poppins(fontSize: 13.5, color: Colors.grey.shade600),
+        ),
+        const SizedBox(height: 32),
+        TextField(
+          autocorrect: false,
+          enableSuggestions: false,
+          controller: _codigoController,
+          keyboardType: _esWebMovil ? TextInputType.number : TextInputType.text,
+          style: GoogleFonts.poppins(fontSize: 14.5),
+          textInputAction: TextInputAction.next,
+          decoration: _decoracion('Código de acceso', Icons.badge_outlined),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _claveController,
+          obscureText: _ocultarClave,
+          keyboardType: _esWebMovil ? TextInputType.number : TextInputType.text,
+          style: GoogleFonts.poppins(fontSize: 14.5),
+          onSubmitted: (_) => _iniciarSesion(),
+          decoration: _decoracion(
+            'Contraseña',
+            Icons.lock_outline,
+            sufijo: IconButton(
+              icon: Icon(_ocultarClave ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20),
+              onPressed: () => setState(() => _ocultarClave = !_ocultarClave),
+            ),
+          ),
+        ),
+        if (authState.error != null) ...[
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.red.shade200),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.red.shade700, size: 18),
+                const SizedBox(width: 8),
+                Expanded(child: Text(authState.error!, style: GoogleFonts.poppins(color: Colors.red.shade700, fontSize: 12))),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 26),
+        SizedBox(
+          height: 54,
+          child: ElevatedButton(
+            onPressed: authState.cargando ? null : _iniciarSesion,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Marca.primario,
+              foregroundColor: Marca.sobrePrimario,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              elevation: 0,
+            ),
+            child: authState.cargando
+                ? SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Marca.sobrePrimario, strokeWidth: 2.4))
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Ingresar', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: Marca.sobrePrimario)),
+                      const SizedBox(width: 8),
+                      Icon(Icons.arrow_forward_rounded, size: 19, color: Marca.sobrePrimario),
+                    ],
+                  ),
+          ),
+        ),
+        if (_esWebMovil && _credencialFaceId != null) ...[
+          const SizedBox(height: 22),
+          Center(
+            child: Column(
+              children: [
+                Material(
+                  color: const Color(0xFFF0F2F6),
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: _verificandoFaceId ? null : _entrarConFaceId,
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: _verificandoFaceId
+                          ? SizedBox(width: 26, height: 26, child: CircularProgressIndicator(strokeWidth: 2.4, color: Marca.primario))
+                          : FaceIdIcon(size: 26, color: Marca.primario),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text('Entrar con Face ID', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
+                TextButton(
+                  onPressed: _olvidarFaceId,
+                  child: Text('¿No es usted? Olvidar Face ID', style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    final tamano = MediaQuery.of(context).size;
-    final anchoTarjeta = tamano.width < 480 ? tamano.width - 40 : 440.0;
+    final ancho = MediaQuery.of(context).size.width;
+    final ancha = ancho >= 960;
+    final animacion = CurvedAnimation(parent: _entrada, curve: Curves.easeOutCubic);
 
-    return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          _FondoLogin(giro: _giro),
-          FadeTransition(
-            opacity: CurvedAnimation(parent: _entrada, curve: Curves.easeOut),
-            child: SlideTransition(
-              position: Tween<Offset>(begin: const Offset(0, 0.05), end: Offset.zero)
-                  .animate(CurvedAnimation(parent: _entrada, curve: Curves.easeOutCubic)),
-              child: Center(
-            child: SingleChildScrollView(
-              child: Container(
-                width: anchoTarjeta,
-                margin: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: Container(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 44),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
+    Widget animar(Widget hijo) => FadeTransition(
+          opacity: CurvedAnimation(parent: _entrada, curve: Curves.easeOut),
+          child: SlideTransition(position: Tween<Offset>(begin: const Offset(0, 0.04), end: Offset.zero).animate(animacion), child: hijo),
+        );
+
+    if (ancha) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Row(
+          children: [
+            Expanded(
+              flex: 11,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  FondoLoginArte(giro: _giro),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(56, 52, 56, 52),
+                    child: animar(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          RotationTransition(turns: _giro, child: LogoGenerico(tamano: 96, color: Marca.primario)),
-                          const SizedBox(height: 26),
-                          Text(
-                            'Bienvenido',
-                            style: GoogleFonts.poppins(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
-                              color: Marca.primario,
-                            ),
+                          Row(
+                            children: [
+                              RotationTransition(turns: _giro, child: LogoGenerico(tamano: 46, color: Colors.white)),
+                              const SizedBox(width: 14),
+                              Text('REPUESTOS', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: 3, color: Colors.white)),
+                            ],
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Ingresá con tu código de acceso',
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                          const SizedBox(height: 34),
-                          TextField(
-                            autocorrect: false,
-                            enableSuggestions: false,
-                            controller: _codigoController,
-                            keyboardType: _esWebMovil ? TextInputType.number : TextInputType.text,
-                            style: GoogleFonts.poppins(fontSize: 14),
-                            decoration: InputDecoration(
-                              labelText: 'Código de acceso',
-                              labelStyle: GoogleFonts.poppins(fontSize: 13),
-                              prefixIcon: const Icon(Icons.badge_outlined, size: 20),
-                              filled: true,
-                              fillColor: const Color(0xFFE8EAF0),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          TextField(
-                            controller: _claveController,
-                            obscureText: _ocultarClave,
-                            keyboardType: _esWebMovil ? TextInputType.number : TextInputType.text,
-                            style: GoogleFonts.poppins(fontSize: 14),
-                            onSubmitted: (_) => _iniciarSesion(),
-                            decoration: InputDecoration(
-                              labelText: 'Contraseña',
-                              labelStyle: GoogleFonts.poppins(fontSize: 13),
-                              prefixIcon: const Icon(Icons.lock_outline, size: 20),
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _ocultarClave ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                  size: 20,
-                                ),
-                                onPressed: () => setState(() => _ocultarClave = !_ocultarClave),
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFFE8EAF0),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
-                          ),
-                          if (authState.error != null) ...[
-                            const SizedBox(height: 16),
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                              decoration: BoxDecoration(
-                                color: Colors.red.shade50,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: Colors.red.shade200),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.error_outline, color: Colors.red.shade700, size: 18),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      authState.error!,
-                                      style: GoogleFonts.poppins(color: Colors.red.shade700, fontSize: 12),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: 30),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 54,
-                            child: ElevatedButton(
-                              onPressed: authState.cargando ? null : _iniciarSesion,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Marca.primario,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                elevation: 0,
-                              ),
-                              child: authState.cargando
-                                  ? const SizedBox(
-                                      width: 22,
-                                      height: 22,
-                                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.4),
-                                    )
-                                  : Text(
-                                      'Ingresar',
-                                      style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
-                                    ),
-                            ),
-                          ),
-                          if (_esWebMovil && _credencialFaceId != null) ...[
-                            const SizedBox(height: 22),
-                            Center(
-                              child: Column(
-                                children: [
-                                  Material(
-                                    color: const Color(0xFFE8EAF0),
-                                    shape: const CircleBorder(),
-                                    child: InkWell(
-                                      customBorder: const CircleBorder(),
-                                      onTap: _verificandoFaceId ? null : _entrarConFaceId,
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(14),
-                                        child: _verificandoFaceId
-                                            ? SizedBox(
-                                                width: 26,
-                                                height: 26,
-                                                child: CircularProgressIndicator(strokeWidth: 2.4, color: Marca.primario),
-                                              )
-                                            : FaceIdIcon(size: 26, color: Marca.primario),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text('Entrar con Face ID', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
-                                  TextButton(
-                                    onPressed: _olvidarFaceId,
-                                    child: Text(
-                                      '¿No sos vos? Olvidar Face ID',
-                                      style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
                         ],
                       ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 9,
+              child: Container(
+                color: Colors.white,
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 56, vertical: 40),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 400),
+                      child: animar(_formulario(authState, conLogo: false)),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
+          ],
+        ),
+      );
+    }
+
+    final anchoTarjeta = ancho < 480 ? ancho - 32 : 440.0;
+    return Scaffold(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          FondoLoginArte(giro: _giro),
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+              child: animar(
+                Container(
+                  width: anchoTarjeta,
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 36),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 40, offset: const Offset(0, 18))],
+                  ),
+                  child: _formulario(authState, conLogo: true),
+                ),
+              ),
             ),
           ),
         ],
       ),
     );
   }
-}
-class _FondoLogin extends StatelessWidget {
-  final Animation<double> giro;
-
-  const _FondoLogin({required this.giro});
-
-  @override
-  Widget build(BuildContext context) {
-    final base = Marca.primario;
-    final hsl = HSLColor.fromColor(base);
-    final claro = hsl.withLightness((hsl.lightness + 0.1).clamp(0.0, 1.0)).toColor();
-    final oscuro = hsl.withLightness((hsl.lightness - 0.07).clamp(0.0, 1.0)).toColor();
-    final tenue = Color.alphaBlend(Colors.white.withValues(alpha: 0.07), base);
-    final linea = Colors.white.withValues(alpha: 0.05);
-    return LayoutBuilder(
-      builder: (context, c) {
-        final lado = c.maxWidth < c.maxHeight ? c.maxHeight : c.maxWidth;
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
-                  colors: [claro, base, oscuro],
-                  stops: const [0, 0.5, 1],
-                ),
-              ),
-            ),
-            CustomPaint(painter: _RejillaPainter(linea)),
-            Positioned(
-              left: -lado * 0.16,
-              bottom: -lado * 0.18,
-              child: RotationTransition(turns: giro, child: LogoGenerico(tamano: lado * 0.55, color: tenue)),
-            ),
-            Positioned(
-              right: -lado * 0.1,
-              top: -lado * 0.12,
-              child: RotationTransition(
-                turns: ReverseAnimation(giro),
-                child: LogoGenerico(tamano: lado * 0.38, color: tenue),
-              ),
-            ),
-            Positioned(
-              right: lado * 0.08,
-              bottom: -lado * 0.06,
-              child: RotationTransition(turns: giro, child: LogoGenerico(tamano: lado * 0.18, color: tenue)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _RejillaPainter extends CustomPainter {
-  final Color color;
-
-  _RejillaPainter(this.color);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final p = Paint()
-      ..color = color
-      ..strokeWidth = 1;
-    const paso = 48.0;
-    for (var x = 0.0; x < size.width; x += paso) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), p);
-    }
-    for (var y = 0.0; y < size.height; y += paso) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), p);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _RejillaPainter old) => old.color != color;
 }
