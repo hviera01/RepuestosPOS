@@ -96,7 +96,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Container(color: Marca.primario),
+          _FondoLogin(giro: _giro),
           FadeTransition(
             opacity: CurvedAnimation(parent: _entrada, curve: Curves.easeOut),
             child: SlideTransition(
@@ -279,4 +279,81 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
       ),
     );
   }
+}
+class _FondoLogin extends StatelessWidget {
+  final Animation<double> giro;
+
+  const _FondoLogin({required this.giro});
+
+  @override
+  Widget build(BuildContext context) {
+    final base = Marca.primario;
+    final hsl = HSLColor.fromColor(base);
+    final claro = hsl.withLightness((hsl.lightness + 0.1).clamp(0.0, 1.0)).toColor();
+    final oscuro = hsl.withLightness((hsl.lightness - 0.07).clamp(0.0, 1.0)).toColor();
+    final tenue = Color.alphaBlend(Colors.white.withValues(alpha: 0.07), base);
+    final linea = Colors.white.withValues(alpha: 0.05);
+    return LayoutBuilder(
+      builder: (context, c) {
+        final lado = c.maxWidth < c.maxHeight ? c.maxHeight : c.maxWidth;
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                  colors: [claro, base, oscuro],
+                  stops: const [0, 0.5, 1],
+                ),
+              ),
+            ),
+            CustomPaint(painter: _RejillaPainter(linea)),
+            Positioned(
+              left: -lado * 0.16,
+              bottom: -lado * 0.18,
+              child: RotationTransition(turns: giro, child: LogoGenerico(tamano: lado * 0.55, color: tenue)),
+            ),
+            Positioned(
+              right: -lado * 0.1,
+              top: -lado * 0.12,
+              child: RotationTransition(
+                turns: ReverseAnimation(giro),
+                child: LogoGenerico(tamano: lado * 0.38, color: tenue),
+              ),
+            ),
+            Positioned(
+              right: lado * 0.08,
+              bottom: -lado * 0.06,
+              child: RotationTransition(turns: giro, child: LogoGenerico(tamano: lado * 0.18, color: tenue)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _RejillaPainter extends CustomPainter {
+  final Color color;
+
+  _RejillaPainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()
+      ..color = color
+      ..strokeWidth = 1;
+    const paso = 48.0;
+    for (var x = 0.0; x < size.width; x += paso) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), p);
+    }
+    for (var y = 0.0; y < size.height; y += paso) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), p);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _RejillaPainter old) => old.color != color;
 }
