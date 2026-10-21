@@ -1763,15 +1763,14 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
 
 
   List<DropdownMenuItem<String>> _opcionesTipoDocumento() {
-    final entradas = <MapEntry<String, String>>[];
-    for (final e in tiposDocumento.entries) {
-      if (e.key == 'Cotizacion') {
-        entradas.add(const MapEntry('Cotizacion', 'Cotización sin ISV'));
-        entradas.add(const MapEntry('CotizacionIsv', 'Cotización con ISV'));
-      } else {
-        entradas.add(e);
-      }
-    }
+    final primero = tipoDocumentoVentaPorDefecto == 'VentaSinFacturar' ? 'VentaSinFacturar' : 'Factura';
+    final segundo = primero == 'Factura' ? 'VentaSinFacturar' : 'Factura';
+    final entradas = <MapEntry<String, String>>[
+      MapEntry(primero, tiposDocumento[primero]!),
+      MapEntry(segundo, tiposDocumento[segundo]!),
+      const MapEntry('Cotizacion', 'Cotización sin ISV'),
+      const MapEntry('CotizacionIsv', 'Cotización con ISV'),
+    ];
     return [
       for (final e in entradas)
         DropdownMenuItem(
