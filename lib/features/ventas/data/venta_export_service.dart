@@ -282,13 +282,14 @@ class VentaExportService {
         children: [
           _filaTotalFormal('Subtotal', formatearMoneda(venta.subtotal)),
           if (venta.descuentoGlobal > 0) _filaTotalFormal('Descuento global', '${_formatoCantidad(venta.descuentoGlobal)}%'),
-          if (descuentosYRebajas > 0) _filaTotalFormal('Descuentos y rebajas', formatearMoneda(descuentosYRebajas)),
+          if (descuentosYRebajas > 0 || esFacturable) _filaTotalFormal('Descuentos y rebajas otorgados', formatearMoneda(descuentosYRebajas)),
           _filaTotalFormal('Importe exento', formatearMoneda(0)),
           _filaTotalFormal('Importe exonerado', formatearMoneda(0)),
           if (esFacturable) ...[
             _filaTotalFormal('Gravado 15%', formatearMoneda(venta.subtotal)),
             _filaTotalFormal('Gravado 18%', formatearMoneda(0)),
             _filaTotalFormal('ISV (15%)', formatearMoneda(venta.impuesto)),
+            _filaTotalFormal('ISV (18%)', formatearMoneda(0)),
           ],
           pw.Divider(color: _colorBorde, height: 10),
           _filaTotalFormal('TOTAL', formatearMoneda(venta.totalAPagar), destacado: true),
@@ -455,11 +456,14 @@ class VentaExportService {
             _separador(),
             _filaTotal('SUBTOTAL:', venta.subtotal, angosto: esAngosto),
             if (venta.descuentoGlobal > 0) pw.Text('Descuento global: ${_formatoCantidad(venta.descuentoGlobal)}%', style: pw.TextStyle(fontSize: fSmall)),
-            if (descuentosYRebajas > 0) _filaTotal('Descuentos y rebajas:', descuentosYRebajas, angosto: esAngosto),
+            if (descuentosYRebajas > 0 || esFacturable) _filaTotal('Descuentos y rebajas:', descuentosYRebajas, angosto: esAngosto),
             if (esFacturable) ...[
+              _filaTotal('Importe exonerado:', 0, angosto: esAngosto),
+              _filaTotal('Importe exento:', 0, angosto: esAngosto),
               _filaTotal('Gravado 15%:', venta.subtotal, angosto: esAngosto),
               _filaTotal('Gravado 18%:', 0, angosto: esAngosto),
               _filaTotal('ISV 15%:', venta.impuesto, angosto: esAngosto),
+              _filaTotal('ISV 18%:', 0, angosto: esAngosto),
             ],
             _filaTotal('TOTAL A PAGAR:', venta.totalAPagar, negrita: true, angosto: esAngosto),
             pw.SizedBox(height: 6),
@@ -513,6 +517,7 @@ class VentaExportService {
     if (venta.regExonerado.isNotEmpty) alto += 6.0;
     if (venta.regSag.isNotEmpty) alto += 6.0;
     if (venta.descuentoGlobal > 0) alto += 6.0;
+    if (venta.llevaIsv) alto += 24.0;
     if (negocio.rangoPrefijo.isNotEmpty || negocio.rangoDesde.isNotEmpty) alto += 10.0;
     if (negocio.fechaLimiteEmision != null) alto += 6.0;
 

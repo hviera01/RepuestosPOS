@@ -303,11 +303,14 @@ class VentaTicketEscPosService {
 
     bytes += _filaTotal(generador, 'SUBTOTAL:', venta.subtotal);
     if (venta.descuentoGlobal > 0) bytes += _texto(generador, 'Descuento global: ${_formatoCantidad(venta.descuentoGlobal)}%');
-    if (descuentosYRebajas > 0) bytes += _filaTotal(generador, 'Descuentos y rebajas:', descuentosYRebajas);
+    if (descuentosYRebajas > 0 || esFacturable) bytes += _filaTotal(generador, 'Descuentos y rebajas:', descuentosYRebajas);
     if (esFacturable) {
+      bytes += _filaTotal(generador, 'Importe exonerado:', 0);
+      bytes += _filaTotal(generador, 'Importe exento:', 0);
       bytes += _filaTotal(generador, 'Gravado 15%:', venta.subtotal);
       bytes += _filaTotal(generador, 'Gravado 18%:', 0);
       bytes += _filaTotal(generador, 'ISV 15%:', venta.impuesto);
+      bytes += _filaTotal(generador, 'ISV 18%:', 0);
     }
     bytes += _filaTotal(generador, 'TOTAL A PAGAR:', venta.totalAPagar, negrita: true);
     bytes += generador.emptyLines(1);
