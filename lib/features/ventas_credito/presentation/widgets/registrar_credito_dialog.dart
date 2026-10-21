@@ -328,7 +328,7 @@ class _RegistrarCreditoDialogState
                                     decimal: true,
                                   ),
                               style: GoogleFonts.poppins(fontSize: 14),
-                              decoration: _decoracion('Monto total'),
+                              decoration: _decoracion('Monto total').copyWith(prefixText: 'L. '),
                             ),
                           ),
                         ),

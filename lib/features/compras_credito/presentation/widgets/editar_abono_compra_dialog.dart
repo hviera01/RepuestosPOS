@@ -165,7 +165,7 @@ class _EditarAbonoCompraDialogState extends ConsumerState<EditarAbonoCompraDialo
                         autofocus: true,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         style: GoogleFonts.poppins(fontSize: 14),
-                        decoration: _decoracion('Monto abonado'),
+                        decoration: _decoracion('Monto abonado').copyWith(prefixText: 'L. '),
                         onChanged: (_) => setState(() {}),
                       ),
                     ),

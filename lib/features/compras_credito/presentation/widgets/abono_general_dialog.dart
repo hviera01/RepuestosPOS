@@ -206,7 +206,7 @@ class _AbonoGeneralDialogState extends ConsumerState<AbonoGeneralDialog> {
                       controller: _montoController,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       style: GoogleFonts.poppins(fontSize: 14),
-                      decoration: _decoracion('Monto a abonar'),
+                      decoration: _decoracion('Monto a abonar').copyWith(prefixText: 'L. '),
                       onChanged: (_) => setState(() {}),
                     ),
                     ),

@@ -266,7 +266,7 @@ class _RegistrarAbonoDialogState extends ConsumerState<RegistrarAbonoDialog> {
                           decimal: true,
                         ),
                         style: GoogleFonts.poppins(fontSize: 14),
-                        decoration: _decoracion('Monto abonado'),
+                        decoration: _decoracion('Monto abonado').copyWith(prefixText: 'L. '),
                         onChanged: (_) => setState(() {}),
                       ),
                     ),

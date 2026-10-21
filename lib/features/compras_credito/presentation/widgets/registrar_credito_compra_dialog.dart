@@ -205,7 +205,7 @@ class _RegistrarCreditoCompraDialogState extends ConsumerState<RegistrarCreditoC
                             controller: _montoTotalController,
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             style: GoogleFonts.poppins(fontSize: 14),
-                            decoration: _decoracion('Monto total'),
+                            decoration: _decoracion('Monto total').copyWith(prefixText: 'L. '),
                           ),
                           ),
                         ),
