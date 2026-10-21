@@ -27,6 +27,8 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
   final _busquedaController = TextEditingController();
   final _montoController = TextEditingController();
   final _descripcionController = TextEditingController();
+  final _beneficiarioController = TextEditingController();
+  final _comprobanteController = TextEditingController();
 
   late DateTime _fechaInicio;
   late DateTime _fechaFin;
@@ -39,7 +41,7 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
   String _idEditando = '';
   DateTime _fechaEgreso = DateTime.now();
   String _metodoPago = 'Efectivo';
-  String _categoria = 'Negocio';
+  String _categoria = 'Otros gastos';
   bool _esPagado = true;
   DateTime _fechaPago = DateTime.now();
 
@@ -53,8 +55,7 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
     'Abono Compra Crédito',
     'Egreso Manual',
   ];
-  static const _metodos = ['Efectivo', 'Transferencia', 'Tarjeta'];
-  static const _categorias = ['Negocio', 'Casa'];
+  static const _metodos = ['Efectivo', 'Transferencia', 'Tarjeta', 'Cheque'];
 
   @override
   void initState() {
@@ -70,6 +71,8 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
     _busquedaController.dispose();
     _montoController.dispose();
     _descripcionController.dispose();
+    _beneficiarioController.dispose();
+    _comprobanteController.dispose();
     super.dispose();
   }
 
@@ -129,8 +132,10 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
     _idEditando = '';
     _montoController.clear();
     _descripcionController.clear();
+    _beneficiarioController.clear();
+    _comprobanteController.clear();
     _metodoPago = 'Efectivo';
-    _categoria = 'Negocio';
+    _categoria = 'Otros gastos';
     _esPagado = true;
     _fechaEgreso = DateTime.now();
     _fechaPago = DateTime.now();
@@ -158,15 +163,15 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
       categoria: _categoria,
       esPagado: _esPagado,
       fechaPago: _esPagado ? _fechaPago : null,
+      beneficiario: _beneficiarioController.text.trim(),
+      comprobante: _comprobanteController.text.trim(),
     );
     try {
       final repo = ref.read(egresoRepositoryProvider);
       if (_idEditando.isEmpty) {
         await repo.crear(egreso);
-        _mostrarMensaje('Egreso registrado');
       } else {
         await repo.actualizar(egreso);
-        _mostrarMensaje('Egreso actualizado');
       }
       setState(_limpiarFormulario);
       await _cargar();
@@ -201,7 +206,6 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
     if (confirmar != true) return;
     try {
       await ref.read(egresoRepositoryProvider).eliminar(_idEditando);
-      _mostrarMensaje('Egreso eliminado');
       setState(_limpiarFormulario);
       await _cargar();
     } catch (e) {
@@ -219,8 +223,10 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
       _fechaEgreso = m.fecha;
       _montoController.text = m.egreso.toStringAsFixed(2);
       _descripcionController.text = m.descripcion;
+      _beneficiarioController.text = m.beneficiario;
+      _comprobanteController.text = m.comprobante;
       _metodoPago = _metodos.contains(m.metodoPago) ? m.metodoPago : 'Efectivo';
-      _categoria = _categorias.contains(m.categoria) ? m.categoria : 'Negocio';
+      _categoria = m.categoria.isEmpty ? 'Otros gastos' : m.categoria;
       _esPagado = m.esPagado;
       _fechaPago = m.fechaPago ?? DateTime.now();
     });
@@ -384,134 +390,152 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
     );
   }
 
+  Future<void> _nuevaCategoria() async {
+    final controlador = TextEditingController();
+    final nombre = await showDialog<String>(
+      useRootNavigator: false,
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Nueva categoría de egreso'),
+        content: TextField(
+          controller: controlador,
+          autofocus: true,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: const InputDecoration(labelText: 'Nombre de la categoría', hintText: 'Ej. Seguros, Capacitación, Licencias'),
+          onSubmitted: (v) => Navigator.pop(context, v),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => Navigator.pop(context, controlador.text), child: const Text('Crear')),
+        ],
+      ),
+    );
+    controlador.dispose();
+    if (nombre == null || nombre.trim().isEmpty) return;
+    try {
+      await ref.read(egresoCategoriaRepositoryProvider).crear(nombre);
+      ref.invalidate(egresoCategoriasProvider);
+      if (mounted) setState(() => _categoria = nombre.trim());
+    } catch (e) {
+      _mostrarMensaje('$e', esError: true);
+    }
+  }
+
   Widget _formularioEgreso() {
-    final formatoFecha = DateFormat('dd/MM/yyyy HH:mm');
+    final formatoFecha = DateFormat('dd/MM/yyyy');
+    final categorias = ref.watch(egresoCategoriasProvider).value ?? const <String>[];
+    final opcionesCategoria = {...categorias, if (_categoria.isNotEmpty) _categoria}.toList()..sort();
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFC7CBD3)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            _idEditando.isEmpty ? 'Registrar egreso manual' : 'Editar egreso',
-            style: GoogleFonts.poppins(
-              fontSize: 14.5,
-              fontWeight: FontWeight.w700,
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(_idEditando.isEmpty ? Icons.add_card_outlined : Icons.edit_note_outlined, size: 20, color: Marca.primario),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _idEditando.isEmpty ? 'Registrar egreso' : 'Editar egreso',
+                    style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 12),
-          _campoTexto(
-            'Monto',
-            _montoController,
-            teclado: const TextInputType.numberWithOptions(decimal: true),
-          ),
-          const SizedBox(height: 10),
-          _campoTexto('Descripción', _descripcionController),
-          const SizedBox(height: 10),
-          _dropdown(
-            'Método de pago',
-            _metodoPago,
-            _metodos,
-            (v) => setState(() => _metodoPago = v!),
-          ),
-          const SizedBox(height: 10),
-          _dropdown(
-            'Categoría',
-            _categoria,
-            _categorias,
-            (v) => setState(() => _categoria = v!),
-          ),
-          const SizedBox(height: 10),
-          InkWell(
-            onTap: () async {
-              final fecha = await showDatePicker(
-                context: context,
-                initialDate: _fechaEgreso,
-                firstDate: DateTime(2000),
-                lastDate: DateTime(2100),
-              );
-              if (fecha == null) return;
-              setState(
-                () => _fechaEgreso = DateTime(
-                  fecha.year,
-                  fecha.month,
-                  fecha.day,
-                  _fechaEgreso.hour,
-                  _fechaEgreso.minute,
-                ),
-              );
-            },
-            child: _campoEstatico('Fecha', formatoFecha.format(_fechaEgreso)),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Checkbox(
-                value: _esPagado,
-                onChanged: (v) => setState(() => _esPagado = v ?? true),
-              ),
-              Text('Pagado', style: GoogleFonts.poppins(fontSize: 12.5)),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _eliminarEgreso,
-                  icon: const Icon(Icons.delete_outline, size: 16),
-                  label: Text(
-                    'Eliminar',
-                    style: GoogleFonts.poppins(fontSize: 12.5),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Marca.primario,
-                    side: const BorderSide(color: Color(0xFFB6BCC7)),
-                    padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+            const SizedBox(height: 4),
+            Text('Gastos del negocio: alquiler, servicios, planilla, fletes y más.', style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade600)),
+            const SizedBox(height: 14),
+            InkWell(
+              onTap: () async {
+                final fecha = await showDatePicker(context: context, initialDate: _fechaEgreso, firstDate: DateTime(2000), lastDate: DateTime(2100));
+                if (fecha == null) return;
+                setState(() => _fechaEgreso = DateTime(fecha.year, fecha.month, fecha.day, _fechaEgreso.hour, _fechaEgreso.minute));
+              },
+              child: _campoEstatico('Fecha del gasto', formatoFecha.format(_fechaEgreso)),
+            ),
+            const SizedBox(height: 10),
+            _campoTexto('Monto (L.)', _montoController, teclado: const TextInputType.numberWithOptions(decimal: true)),
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: _dropdown(
+                    'Categoría',
+                    opcionesCategoria.contains(_categoria) ? _categoria : null,
+                    opcionesCategoria,
+                    (v) => setState(() => _categoria = v ?? _categoria),
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: _registrarEgreso,
-                  icon: Icon(
-                    _idEditando.isEmpty ? Icons.add : Icons.save_outlined,
-                    size: 16,
-                  ),
-                  label: Text(
-                    _idEditando.isEmpty ? 'Registrar' : 'Guardar',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Marca.primario,
-                    padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                const SizedBox(width: 6),
+                IconButton.filledTonal(
+                  tooltip: 'Crear una categoría nueva',
+                  onPressed: _nuevaCategoria,
+                  icon: const Icon(Icons.add, size: 20),
                 ),
-              ),
-            ],
-          ),
-          if (_idEditando.isNotEmpty) ...[
+              ],
+            ),
+            const SizedBox(height: 10),
+            _campoTexto('Concepto / descripción', _descripcionController),
+            const SizedBox(height: 10),
+            _campoTexto('Pagado a (proveedor o beneficiario)', _beneficiarioController),
+            const SizedBox(height: 10),
+            _campoTexto('No. de comprobante o factura', _comprobanteController),
+            const SizedBox(height: 10),
+            _dropdown('Forma de pago', _metodoPago, _metodos, (v) => setState(() => _metodoPago = v!)),
+            const SizedBox(height: 6),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+              value: _esPagado,
+              onChanged: (v) => setState(() => _esPagado = v),
+              title: Text(_esPagado ? 'Pagado' : 'Pendiente de pago', style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600)),
+              subtitle: Text(_esPagado ? 'Cuenta en la caja y en los reportes.' : 'Todavía no sale dinero; no cuenta en la caja.', style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade600)),
+            ),
             const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => setState(_limpiarFormulario),
-              child: const Text('Cancelar edición'),
+            Row(
+              children: [
+                if (_idEditando.isNotEmpty)
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _eliminarEgreso,
+                      icon: const Icon(Icons.delete_outline, size: 16),
+                      label: Text('Eliminar', style: GoogleFonts.poppins(fontSize: 12.5)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Marca.primario,
+                        side: const BorderSide(color: Color(0xFFB6BCC7)),
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
+                if (_idEditando.isNotEmpty) const SizedBox(width: 10),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: _registrarEgreso,
+                    icon: Icon(_idEditando.isEmpty ? Icons.add : Icons.save_outlined, size: 16),
+                    label: Text(_idEditando.isEmpty ? 'Registrar egreso' : 'Guardar cambios', style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Marca.primario,
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ),
+              ],
             ),
+            if (_idEditando.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              TextButton(onPressed: () => setState(_limpiarFormulario), child: const Text('Cancelar edición')),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -548,7 +572,7 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
           child: _selectorGenerico(
             'Categoría',
             _categoriaFiltro,
-            _categorias,
+            ref.watch(egresoCategoriasProvider).value ?? const <String>[],
             (v) => setState(() => _categoriaFiltro = v),
           ),
         ),
@@ -791,7 +815,7 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
 
   Widget _dropdown(
     String etiqueta,
-    String valor,
+    String? valor,
     List<String> opciones,
     void Function(String?) onChanged,
   ) {

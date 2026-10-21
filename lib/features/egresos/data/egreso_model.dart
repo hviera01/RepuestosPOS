@@ -9,6 +9,8 @@ class EgresoModel {
   final bool esPagado;
   final DateTime? fechaPago;
   final DateTime? fechaRegistro;
+  final String beneficiario;
+  final String comprobante;
 
   EgresoModel({
     this.id = '',
@@ -21,6 +23,8 @@ class EgresoModel {
     required this.esPagado,
     this.fechaPago,
     this.fechaRegistro,
+    this.beneficiario = '',
+    this.comprobante = '',
   });
 
   Map<String, dynamic> toMap() {
@@ -33,6 +37,8 @@ class EgresoModel {
       'categoria': categoria,
       'es_pagado': esPagado,
       'fecha_pago': fechaPago?.toIso8601String(),
+      'beneficiario': beneficiario,
+      'comprobante': comprobante,
     };
   }
 
@@ -44,14 +50,16 @@ class EgresoModel {
       descripcion: data['descripcion'] ?? '',
       usuario: data['usuario'] ?? '',
       metodoPago: data['metodo_pago'] ?? 'Efectivo',
-      categoria: data['categoria'] ?? 'Negocio',
+      categoria: data['categoria'] ?? 'Otros gastos',
       esPagado: data['es_pagado'] ?? true,
       fechaPago: data['fecha_pago'] == null ? null : DateTime.parse(data['fecha_pago'] as String),
       fechaRegistro: data['fecha_registro'] == null ? null : DateTime.parse(data['fecha_registro'] as String),
+      beneficiario: data['beneficiario'] ?? '',
+      comprobante: data['comprobante'] ?? '',
     );
   }
 
-  String get textoBusqueda => '$descripcion $usuario $metodoPago $categoria';
+  String get textoBusqueda => '$descripcion $usuario $metodoPago $categoria $beneficiario $comprobante';
 }
 
 class MovimientoFinanciero {
@@ -66,6 +74,8 @@ class MovimientoFinanciero {
   final DateTime? fechaPago;
   final String usuario;
   final String idEgreso;
+  final String beneficiario;
+  final String comprobante;
 
   MovimientoFinanciero({
     required this.fecha,
@@ -79,6 +89,8 @@ class MovimientoFinanciero {
     this.fechaPago,
     this.usuario = '',
     this.idEgreso = '',
+    this.beneficiario = '',
+    this.comprobante = '',
   });
 
   bool get esEgresoManual => tipoMovimiento == 'Egreso Manual';

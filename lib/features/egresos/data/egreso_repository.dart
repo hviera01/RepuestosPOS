@@ -7,6 +7,35 @@ import '../../reportes/data/reporte_repository.dart';
 import '../../ventas_credito/data/venta_credito_repository.dart';
 import '../../compras_credito/data/compra_credito_repository.dart';
 
+class EgresoCategoriaRepository with ConRedMixin {
+  final _db = Supabase.instance.client;
+
+  Future<List<String>> obtenerActivas() {
+    return conRed(() async {
+      final filas = await _db.from('egreso_categorias').select('nombre').eq('estado', true).order('nombre');
+      return filas.map((f) => f['nombre'] as String).toList();
+    });
+  }
+
+  Future<void> crear(String nombre) {
+    return conRedExito('Categoría creada correctamente', () async {
+      final limpio = nombre.trim();
+      if (limpio.isEmpty) throw Exception('Escriba el nombre de la categoría');
+      final existe = await _db.from('egreso_categorias').select('id, estado').ilike('nombre', limpio).limit(1);
+      if (existe.isNotEmpty) {
+        if (existe.first['estado'] == true) throw Exception('Ya existe una categoría con ese nombre');
+        await _db.from('egreso_categorias').update({'estado': true}).eq('id', existe.first['id'] as String);
+        return;
+      }
+      await _db.from('egreso_categorias').insert({'nombre': limpio});
+    });
+  }
+
+  Future<void> quitar(String nombre) {
+    return conRedExito('Categoría eliminada de la lista', () => _db.from('egreso_categorias').update({'estado': false}).eq('nombre', nombre));
+  }
+}
+
 class EgresoRepository with ConRedMixin {
   final _db = Supabase.instance.client;
   final _reporteRepository = ReporteRepository();
@@ -137,6 +166,8 @@ class EgresoRepository with ConRedMixin {
         fechaPago: e.fechaPago,
         usuario: e.usuario,
         idEgreso: e.id,
+        beneficiario: e.beneficiario,
+        comprobante: e.comprobante,
       ));
     }
 
