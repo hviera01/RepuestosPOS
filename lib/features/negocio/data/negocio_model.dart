@@ -88,6 +88,8 @@ class NegocioModel {
   final String impresoraEtiquetasUrl;
   final String impresoraEtiquetasNombre;
   final bool facturaImprimirCopia;
+  final bool logoEnTicket;
+  final bool logoEnPdf;
   final bool facturaPreciosConIsv;
   final String modoImpresion;
   final String impresoraRedIp;
@@ -122,6 +124,8 @@ class NegocioModel {
     this.impresoraEtiquetasUrl = '',
     this.impresoraEtiquetasNombre = '',
     this.facturaImprimirCopia = true,
+    this.logoEnTicket = true,
+    this.logoEnPdf = true,
     this.facturaPreciosConIsv = false,
     this.modoImpresion = ModoImpresion.preguntar,
     this.impresoraRedIp = '',
@@ -161,6 +165,8 @@ class NegocioModel {
       impresoraEtiquetasUrl: data['impresora_etiquetas_url'] ?? '',
       impresoraEtiquetasNombre: data['impresora_etiquetas_nombre'] ?? '',
       facturaImprimirCopia: data['factura_imprimir_copia'] ?? true,
+      logoEnTicket: data['logo_en_ticket'] ?? true,
+      logoEnPdf: data['logo_en_pdf'] ?? true,
       facturaPreciosConIsv: data['factura_precios_con_isv'] ?? false,
       modoImpresion: data['modo_impresion'] ?? ModoImpresion.preguntar,
       impresoraRedIp: data['impresora_red_ip'] ?? '',
@@ -198,6 +204,8 @@ class NegocioModel {
       'impresora_etiquetas_url': impresoraEtiquetasUrl,
       'impresora_etiquetas_nombre': impresoraEtiquetasNombre,
       'factura_imprimir_copia': facturaImprimirCopia,
+      'logo_en_ticket': logoEnTicket,
+      'logo_en_pdf': logoEnPdf,
       'factura_precios_con_isv': facturaPreciosConIsv,
       'modo_impresion': modoImpresion,
       'impresora_red_ip': impresoraRedIp,
@@ -234,6 +242,8 @@ class NegocioModel {
     String? impresoraEtiquetasUrl,
     String? impresoraEtiquetasNombre,
     bool? facturaImprimirCopia,
+    bool? logoEnTicket,
+    bool? logoEnPdf,
     bool? facturaPreciosConIsv,
     String? modoImpresion,
     String? impresoraRedIp,
@@ -271,6 +281,8 @@ class NegocioModel {
       impresoraEtiquetasNombre:
           impresoraEtiquetasNombre ?? this.impresoraEtiquetasNombre,
       facturaImprimirCopia: facturaImprimirCopia ?? this.facturaImprimirCopia,
+      logoEnTicket: logoEnTicket ?? this.logoEnTicket,
+      logoEnPdf: logoEnPdf ?? this.logoEnPdf,
       facturaPreciosConIsv: facturaPreciosConIsv ?? this.facturaPreciosConIsv,
       modoImpresion: modoImpresion ?? this.modoImpresion,
       impresoraRedIp: impresoraRedIp ?? this.impresoraRedIp,

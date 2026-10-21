@@ -21,7 +21,7 @@ class VentaExportService {
   Future<Uint8List> generarPdfDetalleVenta(VentaModel venta, NegocioModel negocio, {bool? preciosConIsv}) async {
     final conIsv = preciosConIsv ?? negocio.facturaPreciosConIsv;
     final doc = pw.Document();
-    final logo = decodificarLogoPdf(negocio.logoColorBase64);
+    final logo = negocio.logoEnPdf ? decodificarLogoPdf(negocio.logoColorBase64) : null;
     final formatoDia = DateFormat('dd/MM/yyyy');
     final esCotizacion = venta.tipoDocumento == 'Cotizacion';
 
@@ -329,7 +329,7 @@ class VentaExportService {
 
   Future<Uint8List> generarPdfFactura(VentaModel venta, NegocioModel negocio, {bool? forzarCopia, PdfPageFormat? formatoImpresora}) async {
     final doc = pw.Document();
-    final logo = decodificarLogoPdf(negocio.logoBnBase64, maxDimension: 400);
+    final logo = negocio.logoEnTicket ? decodificarLogoPdf(negocio.logoBnBase64, maxDimension: 400) : null;
     final anchoMm = _anchoValidoDesdeFormato(formatoImpresora);
 
     if (forzarCopia != null) {
@@ -346,7 +346,7 @@ class VentaExportService {
 
   Future<Uint8List> generarPdfFacturasPorSeparado(List<VentaModel> ventas, NegocioModel negocio, {PdfPageFormat? formatoImpresora}) async {
     final doc = pw.Document();
-    final logo = decodificarLogoPdf(negocio.logoBnBase64, maxDimension: 400);
+    final logo = negocio.logoEnTicket ? decodificarLogoPdf(negocio.logoBnBase64, maxDimension: 400) : null;
     final anchoMm = _anchoValidoDesdeFormato(formatoImpresora);
     for (final venta in ventas) {
       doc.addPage(_construirPaginaTicket(venta, negocio, logo, esCopia: false, anchoMm: anchoMm));

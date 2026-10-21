@@ -638,21 +638,22 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
         children: [
           _tituloSeccion('Datos del negocio', Icons.store_outlined),
           const SizedBox(height: 18),
-          Wrap(
-            spacing: 20,
-            runSpacing: 16,
-            children: [
-              NegocioLogoPicker(
-                titulo: 'Logo a color',
-                base64Actual: widget.modelo.logoColorBase64,
-                esColor: true,
-              ),
-              NegocioLogoPicker(
-                titulo: 'Logo blanco y negro',
-                base64Actual: widget.modelo.logoBnBase64,
-                esColor: false,
-              ),
-            ],
+          NegocioLogoPicker(
+            logoColorBase64: widget.modelo.logoColorBase64,
+            logoBnBase64: widget.modelo.logoBnBase64,
+          ),
+          const SizedBox(height: 12),
+          _filaSwitchFactura(
+            titulo: 'Incluir el logo en el ticket impreso',
+            descripcion: 'Si lo apaga, el ticket de la impresora térmica sale sin logo.',
+            valor: widget.modelo.logoEnTicket,
+            onChanged: (v) => ref.read(negocioRepositoryProvider).establecerLogoEnTicket(v),
+          ),
+          _filaSwitchFactura(
+            titulo: 'Incluir el logo en la factura en PDF',
+            descripcion: 'Si lo apaga, el PDF (carta) sale sin logo.',
+            valor: widget.modelo.logoEnPdf,
+            onChanged: (v) => ref.read(negocioRepositoryProvider).establecerLogoEnPdf(v),
           ),
           const SizedBox(height: 20),
           LayoutBuilder(

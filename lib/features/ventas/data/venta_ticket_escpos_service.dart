@@ -50,7 +50,7 @@ class VentaTicketEscPosService {
     final perfil = await CapabilityProfile.load();
     final paperSize = _paperSizePara(negocio);
     final generador = Generator(paperSize, perfil);
-    final logo = decodificarLogoEscPos(negocio.logoBnBase64, maxDimension: paperSize == PaperSize.mm58 ? 280 : 420);
+    final logo = !negocio.logoEnTicket ? null : decodificarLogoEscPos(negocio.logoBnBase64, maxDimension: paperSize == PaperSize.mm58 ? 280 : 420);
     final anchoDescripcion = _anchoDescripcionPara(paperSize);
     final anchoTexto = _anchoTextoPara(paperSize);
 

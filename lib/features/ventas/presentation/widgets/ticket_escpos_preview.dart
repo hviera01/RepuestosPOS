@@ -76,7 +76,7 @@ class TicketEscPosPreview extends StatelessWidget {
       );
     }
 
-    final logoDecodificado = decodificarLogoEscPos(negocio.logoBnBase64);
+    final logoDecodificado = negocio.logoEnTicket ? decodificarLogoEscPos(negocio.logoBnBase64) : null;
     final Uint8List? logoBytes = logoDecodificado == null ? null : Uint8List.fromList(img.encodePng(logoDecodificado));
 
     final anchoContenedor = negocio.anchoTicketMm == 58 ? 320.0 * 384 / 576 : 320.0;
