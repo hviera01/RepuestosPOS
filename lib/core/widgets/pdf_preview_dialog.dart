@@ -90,6 +90,12 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
     }
   }
 
+  Future<Uint8List>? _pdfCache;
+
+  Future<Uint8List> _obtenerPdf() => _pdfCache ??= widget.generarPdf();
+
+  Future<Uint8List> _construirPdf(PdfPageFormat formato) => _obtenerPdf();
+
   @override
   Widget build(BuildContext context) {
     final tamano = MediaQuery.of(context).size;
@@ -222,7 +228,7 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: PdfPreview(
-          build: (format) => widget.generarPdf(),
+          build: _construirPdf,
           pdfFileName: widget.nombreArchivo,
           canChangeOrientation: false,
           canChangePageFormat: false,
