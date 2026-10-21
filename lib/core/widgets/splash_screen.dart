@@ -1,6 +1,6 @@
 import '../theme/marca.dart';
 import 'package:flutter/material.dart';
-import 'logo_generico.dart';
+import 'logo_danli.dart';
 
 class SplashScreen extends StatefulWidget {
   final Widget siguiente;
@@ -60,7 +60,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const LogoGenerico(tamano: 130, color: Colors.white),
+              const LogoDanli(tamano: 230, radio: 32, sombra: true),
             ],
           ),
         ),

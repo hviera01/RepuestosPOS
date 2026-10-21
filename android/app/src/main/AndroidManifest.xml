@@ -24,7 +24,7 @@
         android:usesPermissionFlags="neverForLocation"
         tools:targetApi="s"/>
     <application
-        android:label="Repuestos POS"
+        android:label="Danli Autoparts"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -1,5 +1,5 @@
 name: repuestos_pos
-description: "Sistema de ventas, compras e inventario de Repuestos POS"
+description: "Sistema de ventas, compras e inventario de Danli Autoparts"
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 version: 1.0.6+6
@@ -57,17 +57,20 @@ flutter:
 
   uses-material-design: true
 
+  assets:
+    - assets/images/
+
 flutter_launcher_icons:
   android: true
   ios: false
   image_path: assets/icono/icono.png
-  adaptive_icon_background: "#303846"
+  adaptive_icon_background: "#0B0B0B"
   adaptive_icon_foreground: assets/icono/icono_primer_plano.png
   web:
     generate: true
     image_path: assets/icono/icono.png
-    background_color: "#303846"
-    theme_color: "#303846"
+    background_color: "#0B0B0B"
+    theme_color: "#0B0B0B"
   windows:
     generate: true
     image_path: assets/icono/icono.png

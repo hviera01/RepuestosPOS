@@ -63,7 +63,7 @@ class RepuestosApp extends ConsumerWidget {
 
     return MaterialApp(
       scaffoldMessengerKey: mensajeroGlobal,
-      title: 'Repuestos POS',
+      title: 'Danli Autoparts',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorSchemeSeed: Marca.primario,

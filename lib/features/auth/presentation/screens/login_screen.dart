@@ -1,7 +1,6 @@
 import '../../../../core/theme/marca.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
-import '../../../../core/widgets/logo_generico.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/utils/face_id_storage.dart';
@@ -10,6 +9,7 @@ import '../../../../core/utils/webauthn.dart';
 import '../../../../core/widgets/face_id_icon.dart';
 import '../../providers/auth_provider.dart';
 import '../widgets/fondo_login.dart';
+import '../../../../core/widgets/logo_danli.dart';
 
 bool get _esWebMovil =>
     kIsWeb &&
@@ -108,7 +108,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (conLogo) ...[
-          Center(child: RotationTransition(turns: _giro, child: LogoGenerico(tamano: 72, color: Marca.primario))),
+          const Center(child: LogoDanli(tamano: 150, radio: 26, sombra: true)),
           const SizedBox(height: 22),
         ],
         Text(
@@ -245,6 +245,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                 fit: StackFit.expand,
                 children: [
                   FondoLoginArte(giro: _giro),
+                  Center(child: animar(const LogoDanli(tamano: 380, radio: 40, sombra: true))),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(56, 52, 56, 52),
                     child: animar(
@@ -253,9 +254,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                         children: [
                           Row(
                             children: [
-                              RotationTransition(turns: _giro, child: LogoGenerico(tamano: 46, color: Colors.white)),
+                              const LogoDanli(tamano: 52, radio: 12),
                               const SizedBox(width: 14),
-                              Text('REPUESTOS', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: 3, color: Colors.white)),
+                              Text('DANLI AUTOPARTS', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: 3, color: Colors.white)),
                             ],
                           ),
                         ],

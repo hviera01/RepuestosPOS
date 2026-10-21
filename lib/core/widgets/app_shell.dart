@@ -8,7 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:printing/printing.dart';
 import '../providers/actualizacion_provider.dart';
-import 'logo_generico.dart';
+import 'logo_danli.dart';
 import '../providers/tabs_provider.dart';
 import '../models/tab_item.dart';
 import '../services/actualizacion_service.dart';
@@ -346,7 +346,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                             setState(() => _menuAbierto = !_menuAbierto),
                       ),
                       const SizedBox(width: 4),
-                      const LogoGenerico(tamano: 34, color: Colors.white),
+                      const LogoDanli(tamano: 42, radio: 9),
                       if (!esAngosto && (ref.watch(negocioStreamProvider).value?.nombre ?? '').isNotEmpty) ...[
                         const SizedBox(width: 12),
                         Text(

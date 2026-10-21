@@ -24,6 +24,7 @@ Uint8List? _convertir(Uint8List bytes) {
     );
   }
   var gris = img.grayscale(trabajo);
+  if (_fondoOscuro(gris)) gris = img.invert(gris);
   gris = img.normalize(gris, min: 0, max: 255);
   gris = img.adjustColor(gris, contrast: 1.35, brightness: 1.02);
   return Uint8List.fromList(img.encodePng(gris));
@@ -44,4 +45,22 @@ String logoBnDesdeColorBase64(String colorBase64) {
   } catch (_) {
     return colorBase64;
   }
+}
+
+bool _fondoOscuro(img.Image gris) {
+  var suma = 0.0;
+  var n = 0;
+  void muestra(int x, int y) {
+    suma += gris.getPixel(x, y).luminanceNormalized;
+    n++;
+  }
+  for (var i = 0; i < gris.width; i += 4) {
+    muestra(i, 0);
+    muestra(i, gris.height - 1);
+  }
+  for (var j = 0; j < gris.height; j += 4) {
+    muestra(0, j);
+    muestra(gris.width - 1, j);
+  }
+  return n > 0 && suma / n < 0.35;
 }

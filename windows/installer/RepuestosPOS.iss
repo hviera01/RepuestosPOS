@@ -1,4 +1,4 @@
-#define MyAppName "Repuestos POS"
+#define MyAppName "Danli Autoparts"
 #define MyAppVersion "6"
 #define MyAppExeName "repuestos_pos.exe"
 #define MyReleaseDir "..\..\build\windows\x64\runner\Release"
@@ -9,7 +9,7 @@ AppId={#MyAppId}
 AppName={#MyAppName}
 AppVerName={#MyAppName} version {#MyAppVersion}
 AppVersion={#MyAppVersion}
-AppPublisher=Repuestos POS
+AppPublisher=Danli Autoparts
 AppPublisherURL=https://github.com/hviera01/RepuestosPOS
 AppSupportURL=https://github.com/hviera01/RepuestosPOS
 AppUpdatesURL=https://github.com/hviera01/RepuestosPOS/releases

@@ -17,4 +17,14 @@ void main() {
     final centro = salida.getPixel(salida.width ~/ 2, salida.height ~/ 2);
     expect(centro.r < 140, isTrue);
   });
+
+  test('un logo con fondo negro sale con fondo blanco para no gastar tinta en el ticket', () async {
+    final logo = img.Image(width: 200, height: 200, numChannels: 4);
+    img.fill(logo, color: img.ColorRgba8(0, 0, 0, 255));
+    img.fillCircle(logo, x: 100, y: 100, radius: 50, color: img.ColorRgba8(250, 200, 20, 255));
+    final resultado = await convertirLogoABlancoYNegro(Uint8List.fromList(img.encodePng(logo)));
+    final salida = img.decodePng(resultado!)!;
+    expect(salida.getPixel(2, 2).r > 220, isTrue);
+    expect(salida.getPixel(salida.width ~/ 2, salida.height ~/ 2).r < 140, isTrue);
+  });
 }

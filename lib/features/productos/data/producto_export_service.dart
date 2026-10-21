@@ -121,7 +121,7 @@ class ProductoExportService {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Center(child: pw.Text('REPUESTOS', style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold))),
+              pw.Center(child: pw.Text('DANLI AUTOPARTS', style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold))),
               pw.Center(child: pw.Text('Listado de Inventario', style: const pw.TextStyle(fontSize: 9))),
               pw.SizedBox(height: 8),
               pw.Divider(),
