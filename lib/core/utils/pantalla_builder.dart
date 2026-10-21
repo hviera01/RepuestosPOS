@@ -27,6 +27,7 @@ import '../../features/compras/presentation/screens/detalle_compra_screen.dart';
 import '../../features/compras/presentation/screens/hacer_pedido_screen.dart';
 import '../../features/compras/providers/carrito_compra_provider.dart';
 import '../../features/caja/presentation/screens/caja_screen.dart';
+import '../../features/resumen_dia/presentation/screens/resumen_dia_screen.dart';
 import '../../features/egresos/presentation/screens/ingresos_egresos_screen.dart';
 import '../../features/dispositivos/presentation/screens/dispositivos_screen.dart';
 import '../../features/promociones/presentation/screens/promociones_screen.dart';
@@ -160,6 +161,8 @@ Widget _construirContenidoPantalla(
       return const ReporteFinancieroScreen();
     case 'cierre_caja':
       return const CajaScreen();
+    case 'resumen_dia':
+      return const ResumenDiaScreen();
     case 'ingresos_egresos':
       return const IngresosEgresosScreen();
     case 'dispositivos':

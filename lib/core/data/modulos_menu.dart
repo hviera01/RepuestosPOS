@@ -132,6 +132,7 @@ List<ModuloMenu> obtenerModulos() {
         SubModulo(titulo: 'Reporte de Compras', icono: Icons.trending_down_outlined, moduleKey: 'reporte_compras'),
         SubModulo(titulo: 'Traslados', icono: Icons.sync_alt_outlined, moduleKey: 'reporte_traslados'),
         SubModulo(titulo: 'Reporte Financiero', icono: Icons.account_balance_outlined, moduleKey: 'reporte_financiero', soloAdmin: true),
+        SubModulo(titulo: 'Resumen del Día', icono: Icons.today_outlined, moduleKey: 'resumen_dia'),
         SubModulo(titulo: 'Caja', icono: Icons.point_of_sale_outlined, moduleKey: 'cierre_caja'),
         SubModulo(titulo: 'Ingresos-Egresos', icono: Icons.swap_vert_outlined, moduleKey: 'ingresos_egresos'),
       ],
