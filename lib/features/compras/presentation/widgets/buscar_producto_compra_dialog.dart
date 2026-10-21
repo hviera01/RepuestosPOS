@@ -43,6 +43,18 @@ class _BuscarProductoCompraDialogState
   @override
   void initState() {
     super.initState();
+    _focusBusqueda.onKeyEvent = (nodo, evento) {
+      if (evento is! KeyDownEvent) return KeyEventResult.ignored;
+      if (evento.logicalKey == LogicalKeyboardKey.arrowDown) {
+        _moverSeleccion(1);
+        return KeyEventResult.handled;
+      }
+      if (evento.logicalKey == LogicalKeyboardKey.arrowUp) {
+        _moverSeleccion(-1);
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    };
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _focusBusqueda.requestFocus();
     });
@@ -132,6 +144,7 @@ class _BuscarProductoCompraDialogState
   }
 
   void _buscarYElegirPrimero() {
+    _focusBusqueda.requestFocus();
     final texto = _busquedaController.text.trim();
     if (texto.isNotEmpty && texto == _busquedaAplicada && _listaActual.isNotEmpty) {
       final resaltado = _listaActual.where((p) => p.id == _filaSeleccionada).toList();
@@ -279,6 +292,7 @@ class _BuscarProductoCompraDialogState
                                   border: InputBorder.none,
                                   isDense: true,
                                 ),
+                                onEditingComplete: () {},
                                 onSubmitted: (_) => _buscarYElegirPrimero(),
                               ),
                             ),

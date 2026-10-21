@@ -88,6 +88,18 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   @override
   void initState() {
     super.initState();
+    _focusBusqueda.onKeyEvent = (nodo, evento) {
+      if (evento is! KeyDownEvent) return KeyEventResult.ignored;
+      if (evento.logicalKey == LogicalKeyboardKey.arrowDown) {
+        _moverSeleccion(1);
+        return KeyEventResult.handled;
+      }
+      if (evento.logicalKey == LogicalKeyboardKey.arrowUp) {
+        _moverSeleccion(-1);
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    };
     if (_esWebMovil) {
       _columnaOrden = 'existencia';
       _ordenAscendente = false;
@@ -307,6 +319,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   }
 
   void _buscarYElegirPrimero() {
+    _focusBusqueda.requestFocus();
     final texto = limpiarCodigoEscaneado(_busquedaController.text);
     if (texto.isNotEmpty && texto == _busquedaAplicada && _listaActual.isNotEmpty) {
       final resaltado = _listaActual.where((p) => p.id == _filaSeleccionada).toList();
@@ -478,6 +491,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                                   border: InputBorder.none,
                                   isDense: true,
                                 ),
+                                onEditingComplete: () {},
                                 onSubmitted: (_) => _buscarYElegirPrimero(),
                               ),
                             ),

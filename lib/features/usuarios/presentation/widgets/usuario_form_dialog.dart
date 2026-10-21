@@ -168,7 +168,7 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
     final editando = widget.usuario != null;
     final tamano = MediaQuery.of(context).size;
     final esMovil = tamano.width < 500;
-    final margenH = esMovil ? 12.0 : ((tamano.width - 820) / 2).clamp(12.0, 2000.0);
+    final margenH = esMovil ? 12.0 : 28.0;
     return Dialog.fullscreen(
       backgroundColor: const Color(0xFFF2F3F7),
       child: SingleChildScrollView(
@@ -216,7 +216,17 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                 ],
               ),
               const SizedBox(height: 24),
-              CampoTecladoCompacto(
+              LayoutBuilder(
+                builder: (context, cons) {
+                  final columnas = cons.maxWidth >= 700 ? 2 : 1;
+                  final ancho = (cons.maxWidth - (columnas - 1) * 16) / columnas;
+                  return Wrap(
+                    spacing: 16,
+                    runSpacing: 14,
+                    children: [
+                      SizedBox(
+                        width: ancho,
+                        child: CampoTecladoCompacto(
                 controller: _documentoController,
                 numerico: false,
                 child: TextField(
@@ -229,8 +239,10 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                   decoration: _decoracion('Código de acceso'),
                 ),
               ),
-              const SizedBox(height: 14),
-              CampoTecladoCompacto(
+                      ),
+                      SizedBox(
+                        width: ancho,
+                        child: CampoTecladoCompacto(
                 controller: _nombreController,
                 numerico: false,
                 child: TextField(
@@ -242,8 +254,10 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                   decoration: _decoracion('Nombre completo'),
                 ),
               ),
-              const SizedBox(height: 14),
-              TextField(
+                      ),
+                      SizedBox(
+                        width: ancho,
+                        child: TextField(
                 controller: _claveController,
                 obscureText: true,
                 style: GoogleFonts.poppins(fontSize: 14),
@@ -251,8 +265,10 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                   editando ? 'Nueva contraseña (opcional)' : 'Contraseña',
                 ),
               ),
-              const SizedBox(height: 14),
-              DropdownButtonFormField<String>(
+                      ),
+                      SizedBox(
+                        width: ancho,
+                        child: DropdownButtonFormField<String>(
                 initialValue: _rol,
                 decoration: _decoracion('Rol'),
                 items: Roles.todos
@@ -277,6 +293,11 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                         : {};
                   }
                 }),
+              ),
+                      ),
+                    ],
+                  );
+                },
               ),
               if (_rol == Roles.encargado || _rol == Roles.empleado) ...[
                 const SizedBox(height: 18),
@@ -436,10 +457,11 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
     return _seccionPermisos(
       titulo: 'Pantallas permitidas',
       subtitulo: 'Qué va a poder ver este usuario en el menú lateral.',
-      contenido: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      contenido: Wrap(
+        spacing: 28,
+        runSpacing: 8,
         children: obtenerModulos().map((modulo) {
-          return Padding(
+          return SizedBox(width: 250, child: Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -455,7 +477,7 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                     )),
               ],
             ),
-          );
+          ));
         }).toList(),
       ),
     );
