@@ -21,6 +21,7 @@ import '../../features/dispositivos/providers/dispositivos_provider.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/negocio/providers/negocio_provider.dart';
 import '../utils/device_id.dart';
+import '../utils/recargar_pagina.dart';
 import '../../features/productos/providers/productos_provider.dart';
 import '../../features/traslados/data/impresion_en_vivo_traslado_service.dart';
 import '../../features/traslados/data/traslado_model.dart';
@@ -410,6 +411,12 @@ class _AppShellState extends ConsumerState<AppShell> {
                           ),
                         ),
                       ],
+                      if (kIsWeb)
+                        IconButton(
+                          icon: const Icon(Icons.refresh, color: Colors.white, size: 22),
+                          tooltip: 'Refrescar (Ctrl+F5)',
+                          onPressed: recargarPagina,
+                        ),
                       const SizedBox(width: 8),
                       IconButton(
                         icon: const Icon(

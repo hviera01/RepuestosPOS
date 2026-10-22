@@ -1,3 +1,5 @@
+import '../../../core/services/ticket_generico.dart';
+import '../../negocio/data/negocio_model.dart';
 import 'dart:typed_data';
 import '../../../core/utils/segundo_plano.dart';
 import 'package:excel/excel.dart' as xls;
@@ -106,6 +108,30 @@ class ProductoExportService {
       ),
     );
     return doc.save();
+  }
+
+  List<LineaTicket> lineasTicket(
+    List<ProductoModel> lista,
+    Map<String, String> mapaCategorias,
+    Set<String> campos,
+    NegocioModel negocio,
+  ) {
+    return [
+      if (negocio.nombre.isNotEmpty) LTexto(negocio.nombre.toUpperCase(), alineacion: AlineacionTicket.centro, negrita: true),
+      const LTexto('Listado de Inventario', alineacion: AlineacionTicket.centro),
+      const LSeparador(),
+      for (final p in lista) ...[
+        if (campos.contains('codigo')) LTexto('Codigo: ${p.codigo}'),
+        LTexto(p.nombre, negrita: true),
+        if (campos.contains('descripcion') && p.descripcion.isNotEmpty) LTexto(p.descripcion),
+        if (campos.contains('categoria')) LTexto('Categoria: ${mapaCategorias[p.idCategoria] ?? '-'}'),
+        if (campos.contains('existencia')) LTexto('Existencia: ${p.stock}'),
+        if (campos.contains('precioVenta')) LPar('P. Venta', formatearMoneda(p.precioVenta)),
+        if (campos.contains('precioCompra')) LPar('P. Compra', formatearMoneda(p.precioCompra)),
+        const LSeparador(),
+      ],
+      const LEspacio(),
+    ];
   }
 
   Future<Uint8List> generarPdfTicket(

@@ -768,9 +768,14 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
     final tamano = MediaQuery.of(context).size;
     final esMovil = tamano.width < 760;
 
+    Widget cuerpo(Widget hijo) => esMovil ? hijo : Expanded(child: hijo);
+    Widget envolver(Widget columna) => esMovil
+        ? SingleChildScrollView(keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag, child: columna)
+        : columna;
+
     final contenido = Padding(
       padding: EdgeInsets.all(esMovil ? 14 : 24),
-      child: Column(
+      child: envolver(Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           widget.esDialogo
@@ -927,8 +932,8 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Expanded(
-            child: _cargando
+          cuerpo(
+            _cargando
                 ? Center(
                     child: CircularProgressIndicator(color: Marca.primario),
                   )
@@ -959,10 +964,12 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
                       ],
                     ),
                   )
-                : SingleChildScrollView(child: _detalle(_venta!, esMovil)),
+                : esMovil
+                    ? _detalle(_venta!, esMovil)
+                    : SingleChildScrollView(child: _detalle(_venta!, esMovil)),
           ),
         ],
-      ),
+      )),
     );
 
     if (widget.esDialogo) {

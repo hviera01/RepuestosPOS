@@ -22,6 +22,7 @@ import '../widgets/ajuste_stock_dialog.dart';
 import '../widgets/historial_stock_dialog.dart';
 import '../../../../core/widgets/pdf_preview_dialog.dart';
 import '../widgets/ticket_opciones_dialog.dart';
+import '../../../../core/services/recibos_tickets.dart';
 import 'package:printing/printing.dart';
 import '../../../negocio/data/negocio_model.dart';
 import '../../../negocio/providers/negocio_provider.dart';
@@ -372,14 +373,16 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     showDialog(
       useRootNavigator: false,
       context: context,
-      builder: (context) => PdfPreviewDialog(
+      builder: (context) => RecibosTickets.dialogo(
         titulo: 'Vista previa · Ticket',
-        nombreArchivo: 'ticket_inventario.pdf',
-        generarPdf: () => _servicioExport.generarPdfTicket(
+        archivo: 'ticket_inventario.pdf',
+        pdf: () => _servicioExport.generarPdfTicket(
           _listaActual,
           mapaCategorias,
           campos,
         ),
+        copias: [_servicioExport.lineasTicket(_listaActual, mapaCategorias, campos, negocio)],
+        negocio: negocio,
         impresora: impresora,
       ),
     );

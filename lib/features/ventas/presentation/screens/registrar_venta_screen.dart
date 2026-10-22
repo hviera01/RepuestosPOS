@@ -2719,6 +2719,10 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _barraSuperiorDynamics(carrito, esMovil),
+          if (esMovil) ...[
+            const SizedBox(height: 6),
+            _barraAtajosMovil(),
+          ],
           const SizedBox(height: 6),
           Offstage(offstage: true, child: _campoCodigoBarras()),
           Expanded(
@@ -2981,6 +2985,32 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
         ),
         visualDensity: VisualDensity.compact,
         splashRadius: 16,
+      ),
+    );
+  }
+
+  Widget _barraAtajosMovil() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _botonCompacto(icono: Icons.pause_circle_outline, texto: 'Guardar en Espera', onPressed: _guardarEnEspera),
+          const SizedBox(width: 6),
+          _botonCompacto(icono: Icons.list_alt_outlined, texto: 'Ver en Espera', onPressed: _verEnEspera),
+          const SizedBox(width: 6),
+          Badge(
+            label: Text('$_cantidadPendientesImpresion'),
+            backgroundColor: const Color(0xFFE0A63C),
+            isLabelVisible: _cantidadPendientesImpresion > 0,
+            child: _botonCompacto(icono: Icons.print_disabled_outlined, texto: 'Pendientes de Impresión', onPressed: _verPendientesImpresion),
+          ),
+          const SizedBox(width: 6),
+          _botonCompacto(icono: Icons.receipt_long_outlined, texto: 'Ver Facturas', onPressed: _verFacturas),
+          const SizedBox(width: 6),
+          _botonCompacto(icono: Icons.find_in_page_outlined, texto: 'Ver Perdidas', onPressed: _verPerdidas),
+          const SizedBox(width: 6),
+          _botonCompacto(icono: Icons.delete_sweep_outlined, texto: 'Limpiar Venta', onPressed: _confirmarLimpiar),
+        ],
       ),
     );
   }

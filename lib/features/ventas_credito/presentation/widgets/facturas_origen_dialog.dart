@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:printing/printing.dart';
 import '../../data/venta_credito_model.dart';
+import '../../../ventas/data/venta_ticket_escpos_service.dart';
+import '../../../ventas/presentation/widgets/ticket_escpos_preview.dart';
 import '../../providers/ventas_credito_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/widgets/pdf_preview_dialog.dart';
@@ -132,6 +134,20 @@ class _FacturasOrigenDialogState extends ConsumerState<FacturasOrigenDialog> {
       useRootNavigator: false,
       context: context,
       builder: (context) => PdfPreviewDialog(
+        generarTicketEscPos: () async => [
+          for (final v in _ventasOrigen) ...await VentaTicketEscPosService().generarTicket(v, negocio),
+        ],
+        nombreImpresoraWindows: negocio.impresoraUsbUsarDriverWindows ? null : negocio.impresoraTermicaNombre,
+        vistaPreviaTicket: () => SingleChildScrollView(
+          child: Column(
+            children: [
+              for (final v in _ventasOrigen) ...[
+                TicketEscPosPreview(venta: v, negocio: negocio, esCopia: false),
+                const SizedBox(height: 14),
+              ],
+            ],
+          ),
+        ),
         titulo: 'Vista previa · Facturas por separado',
         nombreArchivo: 'facturas_${widget.credito.numeroDocumento}.pdf',
         generarPdf: () => VentaExportService().generarPdfFacturasPorSeparado(
@@ -227,6 +243,9 @@ class _FacturasOrigenDialogState extends ConsumerState<FacturasOrigenDialog> {
       useRootNavigator: false,
       context: context,
       builder: (context) => PdfPreviewDialog(
+        generarTicketEscPos: () => VentaTicketEscPosService().generarTicket(ventaSintetica, negocio),
+        nombreImpresoraWindows: negocio.impresoraUsbUsarDriverWindows ? null : negocio.impresoraTermicaNombre,
+        vistaPreviaTicket: () => TicketEscPosPreview(venta: ventaSintetica, negocio: negocio, esCopia: false),
         titulo: 'Vista previa · ${ventaSintetica.numeroDocumento}',
         nombreArchivo: 'venta_${ventaSintetica.numeroDocumento}.pdf',
         generarPdf: () =>
