@@ -8,9 +8,17 @@ class PresenciaImpresionRepository {
 
   Future<void> enviarLatido() async {
     try {
-      await _db.from('presencia').upsert({'id': _id, 'ultimo_latido': DateTime.now().toIso8601String()});
+      await _db.from('presencia').upsert({'id': _id, 'ultimo_latido': DateTime.now().toUtc().toIso8601String()});
     } catch (_) {
     }
+  }
+
+  static bool latidoReciente(DateTime latido, DateTime ahora) {
+    final comoInstante = ahora.difference(latido).abs();
+    if (comoInstante < umbralConectada) return true;
+    final utc = latido.toUtc();
+    final comoHoraLocal = DateTime(utc.year, utc.month, utc.day, utc.hour, utc.minute, utc.second, utc.millisecond);
+    return ahora.difference(comoHoraLocal).abs() < umbralConectada;
   }
 
   Future<bool> estaConectada() async {
@@ -19,7 +27,7 @@ class PresenciaImpresionRepository {
       if (filas.isEmpty) return false;
       final texto = filas.first['ultimo_latido'] as String?;
       if (texto == null) return false;
-      return DateTime.now().difference(DateTime.parse(texto)) < umbralConectada;
+      return latidoReciente(DateTime.parse(texto), DateTime.now());
     } catch (_) {
       return false;
     }
