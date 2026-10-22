@@ -38,6 +38,8 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
   final _servicioExport = VentaCreditoExportService();
   String? _filaSeleccionada;
   final Set<String> _seleccionadosParaUnir = {};
+
+  int get _cantidadSeleccionUnible => _seleccionadosParaUnir.where((id) => _listaCompleta.any((c) => c.id == id && !c.liquidada)).length;
   List<VentaCreditoModel> _listaCompleta = [];
   List<VentaCreditoModel> _listaActual = [];
 
@@ -536,7 +538,7 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
                             ),
                           ),
                           OutlinedButton.icon(
-                            onPressed: _seleccionadosParaUnir.length >= 2
+                            onPressed: _cantidadSeleccionUnible >= 2
                                 ? _unirFacturas
                                 : null,
                             icon: const Icon(
@@ -544,9 +546,9 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
                               size: 18,
                             ),
                             label: Text(
-                              _seleccionadosParaUnir.isEmpty
+                              _cantidadSeleccionUnible == 0
                                   ? 'Unir Facturas'
-                                  : 'Unir Facturas (${_seleccionadosParaUnir.length})',
+                                  : 'Unir Facturas ($_cantidadSeleccionUnible)',
                               style: GoogleFonts.poppins(fontSize: 13),
                             ),
                             style: OutlinedButton.styleFrom(

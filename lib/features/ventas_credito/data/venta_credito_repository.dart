@@ -156,28 +156,18 @@ class VentaCreditoRepository with ConRedMixin {
     required String nombreCliente,
     required DateTime fechaVencimiento,
   }) {
-    return conRed(() async {
-      final total = redondearMoneda(facturas.fold<double>(0, (s, f) => s + f.saldoPendiente));
-      for (final factura in facturas) {
-        await _db.from('ventas_credito').update({'saldo_pendiente': 0, 'fusionada': true}).eq('id', factura.id);
+    return conRedExito('Facturas unidas correctamente', () async {
+      try {
+        await _db.rpc('unir_facturas_credito', params: {
+          'p_ids': facturas.map((f) => f.id).toList(),
+          'p_documento': documentoCliente,
+          'p_nombre': nombreCliente,
+          'p_vencimiento': fechaVencimiento.toIso8601String(),
+          'p_numero': _generarNumeroDocumento(),
+        });
+      } on PostgrestException catch (e) {
+        throw Exception(e.message);
       }
-      final facturasOrigenPlanas = <FacturaOrigenModel>[
-        for (final factura in facturas)
-          if (factura.esFusion)
-            ...factura.facturasOrigen
-          else
-            FacturaOrigenModel(id: factura.id, numeroDocumento: factura.numeroDocumento, saldoPendiente: factura.saldoPendiente),
-      ];
-      await _db.from('ventas_credito').insert({
-        'documento_cliente': documentoCliente.isEmpty ? 'N/A' : documentoCliente,
-        'nombre_cliente': nombreCliente,
-        'numero_documento': _generarNumeroDocumento(),
-        'monto_total': total,
-        'saldo_pendiente': total,
-        'fecha_vencimiento': fechaVencimiento.toIso8601String(),
-        'sin_venta_origen': true,
-        'facturas_origen': facturasOrigenPlanas.map((f) => f.toMap()).toList(),
-      });
     });
   }
 

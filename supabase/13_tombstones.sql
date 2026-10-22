@@ -1,7 +1,7 @@
 create or replace function tg_limpiar_eliminado() returns trigger
 language plpgsql as $$
 begin
-  delete from eliminados where tabla = tg_table_name and id_fila = new.id;
+  delete from eliminados where tabla = tg_table_name and id_fila::text = new.id::text;
   return new;
 end;
 $$;
