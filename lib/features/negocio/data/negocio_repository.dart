@@ -6,6 +6,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/data/base_repository.dart';
 import '../../../core/data/tabla_sincronizada.dart';
 import '../../../core/utils/reintentos.dart';
+import 'dart:async';
+import '../../../core/utils/impresora_local.dart';
 import 'negocio_model.dart';
 
 class NegocioRepository with ConRedMixin {
@@ -25,8 +27,42 @@ class NegocioRepository with ConRedMixin {
     intervaloRespaldo: const Duration(minutes: 3),
   );
 
+  static final _cambiosLocales = StreamController<void>.broadcast();
+
+  static NegocioModel _conLocal(NegocioModel n) => n.copyWith(
+        impresoraTermicaUrl: ImpresoraLocal.termicaUrl,
+        impresoraTermicaNombre: ImpresoraLocal.termicaNombre,
+        impresoraEtiquetasUrl: ImpresoraLocal.etiquetasUrl,
+        impresoraEtiquetasNombre: ImpresoraLocal.etiquetasNombre,
+        impresoraRedIp: ImpresoraLocal.redIp,
+        impresoraRedPuerto: ImpresoraLocal.redPuerto,
+        impresoraBluetoothId: ImpresoraLocal.bluetoothId,
+        impresoraBluetoothNombre: ImpresoraLocal.bluetoothNombre,
+        impresoraUsbUsarDriverWindows: ImpresoraLocal.usarDriverWindows,
+      );
+
   Stream<NegocioModel> obtenerNegocio() {
-    return _tabla.observar().map((lista) => lista.isEmpty ? const NegocioModel() : lista.first);
+    late StreamController<NegocioModel> control;
+    NegocioModel? ultimo;
+    StreamSubscription<List<NegocioModel>>? s1;
+    StreamSubscription<void>? s2;
+    control = StreamController<NegocioModel>(
+      onListen: () {
+        s1 = _tabla.observar().listen((lista) {
+          ultimo = lista.isEmpty ? const NegocioModel() : lista.first;
+          control.add(_conLocal(ultimo!));
+        }, onError: control.addError);
+        s2 = _cambiosLocales.stream.listen((_) {
+          final u = ultimo;
+          if (u != null) control.add(_conLocal(u));
+        });
+      },
+      onCancel: () async {
+        await s1?.cancel();
+        await s2?.cancel();
+      },
+    );
+    return control.stream;
   }
 
   Future<void> sincronizarAhora() => _tabla.sincronizar();
@@ -44,18 +80,18 @@ class NegocioRepository with ConRedMixin {
     if (cache != null &&
         cacheFecha != null &&
         DateTime.now().difference(cacheFecha) < _vigenciaCache) {
-      return cache;
+      return _conLocal(cache);
     }
     final local = _tabla.actual;
-    if (local.isNotEmpty && _tabla.sincronizadoAlgunaVez) return local.first;
+    if (local.isNotEmpty && _tabla.sincronizadoAlgunaVez) return _conLocal(local.first);
     try {
       final filas = await _db.from('negocio_config').select().limit(1).timeout(const Duration(seconds: 8));
       final negocio = NegocioModel.fromMap(filas.isEmpty ? null : filas.first);
       _cache = negocio;
       _cacheFecha = DateTime.now();
-      return negocio;
+      return _conLocal(negocio);
     } catch (_) {
-      return cache ?? const NegocioModel();
+      return _conLocal(cache ?? const NegocioModel());
     }
   }
 
@@ -72,7 +108,7 @@ class NegocioRepository with ConRedMixin {
       final negocio = NegocioModel.fromMap(filas.isEmpty ? null : filas.first);
       _cache = negocio;
       _cacheFecha = DateTime.now();
-      return negocio;
+      return _conLocal(negocio);
     });
   }
 
@@ -173,12 +209,14 @@ class NegocioRepository with ConRedMixin {
     });
   }
 
-  Future<void> actualizarImpresoraTermica(String url, String nombre) {
-    return _guardar({'impresora_termica_url': url, 'impresora_termica_nombre': nombre});
+  Future<void> actualizarImpresoraTermica(String url, String nombre) async {
+    ImpresoraLocal.termica(url, nombre);
+    _cambiosLocales.add(null);
   }
 
-  Future<void> actualizarImpresoraEtiquetas(String url, String nombre) {
-    return _guardar({'impresora_etiquetas_url': url, 'impresora_etiquetas_nombre': nombre});
+  Future<void> actualizarImpresoraEtiquetas(String url, String nombre) async {
+    ImpresoraLocal.etiquetas(url, nombre);
+    _cambiosLocales.add(null);
   }
 
   Future<void> establecerReciboAbonoImprimirCopia(bool valor) {
@@ -201,20 +239,23 @@ class NegocioRepository with ConRedMixin {
     return _guardar({'imprimir_facturas': valor});
   }
 
-  Future<void> actualizarImpresoraRed(String ip, int puerto) {
-    return _guardar({'impresora_red_ip': ip, 'impresora_red_puerto': puerto});
+  Future<void> actualizarImpresoraRed(String ip, int puerto) async {
+    ImpresoraLocal.red(ip, puerto);
+    _cambiosLocales.add(null);
   }
 
-  Future<void> actualizarImpresoraBluetooth(String id, String nombre) {
-    return _guardar({'impresora_bluetooth_id': id, 'impresora_bluetooth_nombre': nombre});
+  Future<void> actualizarImpresoraBluetooth(String id, String nombre) async {
+    ImpresoraLocal.bluetooth(id, nombre);
+    _cambiosLocales.add(null);
   }
 
   Future<void> establecerAnchoTicketMm(int mm) {
     return _guardar({'ancho_ticket_mm': mm});
   }
 
-  Future<void> establecerImpresoraUsbUsarDriverWindows(bool valor) {
-    return _guardar({'impresora_usb_usar_driver_windows': valor});
+  Future<void> establecerImpresoraUsbUsarDriverWindows(bool valor) async {
+    ImpresoraLocal.driverWindows(valor);
+    _cambiosLocales.add(null);
   }
 
   Future<void> establecerPcPrincipalHostname(String hostname) {

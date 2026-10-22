@@ -1,5 +1,6 @@
 import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/usuario_model.dart';
@@ -228,9 +229,10 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                         width: ancho,
                         child: CampoTecladoCompacto(
                 controller: _documentoController,
-                numerico: false,
+                numerico: true,
                 child: TextField(
-                  inputFormatters: [mayusculasInputFormatter],
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   autocorrect: false,
                   enableSuggestions: false,
                   controller: _documentoController,
@@ -260,6 +262,8 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                         child: TextField(
                 controller: _claveController,
                 obscureText: true,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 style: GoogleFonts.poppins(fontSize: 14),
                 decoration: _decoracion(
                   editando ? 'Nueva contraseña (opcional)' : 'Contraseña',

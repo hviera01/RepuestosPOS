@@ -989,7 +989,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
           _tituloSeccion('Impresoras', Icons.print_outlined),
           const SizedBox(height: 6),
           Text(
-            'Elegí qué impresora usar para los recibos térmicos y para las etiquetas de productos. Se usarán en todo el sistema.',
+            'Elegí qué impresora usar para los recibos térmicos y para las etiquetas de productos. Esta elección vale solo para este equipo: cada computadora, celular o tableta tiene la suya.',
             style: GoogleFonts.poppins(
               fontSize: 12.5,
               color: Colors.grey.shade600,

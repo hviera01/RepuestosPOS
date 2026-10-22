@@ -1,4 +1,5 @@
 import 'core/utils/avisos.dart';
+import 'core/utils/impresora_local.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,6 +40,7 @@ Future<void> main() async {
   );
   await AlmacenLocal.iniciar();
   await Marca.cargarGuardado();
+  await ImpresoraLocal.iniciar();
   await OperacionesService.instancia.iniciar();
   ImagenProductoNetwork.precalentar();
   runApp(const ProviderScope(child: RepuestosApp()));
