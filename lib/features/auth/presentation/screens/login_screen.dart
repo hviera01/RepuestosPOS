@@ -256,7 +256,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                             children: [
                               const LogoDanli(tamano: 52, radio: 12),
                               const SizedBox(width: 14),
-                              Text('DANLI AUTOPARTS', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: 3, color: Colors.white)),
+                              Text('AUTOPARTS', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: 3, color: Colors.white)),
                             ],
                           ),
                         ],

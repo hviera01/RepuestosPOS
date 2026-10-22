@@ -1149,8 +1149,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                             flex: 12,
                             child: Text(
                               producto.codigo,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.poppins(
                                 fontSize: 12.5,
                                 color: const Color(0xFF3F434A),
@@ -1185,8 +1183,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                                   ),
                                 Text(
                                   producto.nombre,
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.poppins(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.w600,
@@ -1203,8 +1199,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                                 producto.descripcion.isEmpty
                                     ? '-'
                                     : producto.descripcion,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.poppins(
                                   fontSize: 12,
                                   color: Colors.grey.shade600,
@@ -1216,8 +1210,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                               flex: 17,
                               child: Text(
                                 mapaCategorias[producto.idCategoria] ?? '-',
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.poppins(
                                   fontSize: 12.5,
                                   color: const Color(0xFF3F434A),
@@ -1493,8 +1485,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                                 ),
                               Text(
                                 p.nombre,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
@@ -1505,8 +1495,6 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                                 const SizedBox(height: 2),
                                 Text(
                                   p.descripcion,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.poppins(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w600,

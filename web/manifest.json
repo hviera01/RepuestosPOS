@@ -1,11 +1,11 @@
 {
-    "name": "Danli Autoparts - Sistema de Ventas",
-    "short_name": "Danli Autoparts",
+    "name": "Autoparts - Sistema de Ventas",
+    "short_name": "Autoparts",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0B0B0B",
     "theme_color": "#0B0B0B",
-    "description": "Sistema de ventas, compras e inventario de Danli Autoparts",
+    "description": "Sistema de ventas, compras e inventario de Autoparts",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

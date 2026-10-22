@@ -24,7 +24,7 @@
         android:usesPermissionFlags="neverForLocation"
         tools:targetApi="s"/>
     <application
-        android:label="Danli Autoparts"
+        android:label="Autoparts"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -63,7 +63,7 @@ class RepuestosApp extends ConsumerWidget {
 
     return MaterialApp(
       scaffoldMessengerKey: mensajeroGlobal,
-      title: 'Danli Autoparts',
+      title: 'Autoparts',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorSchemeSeed: Marca.primario,

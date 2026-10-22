@@ -1,4 +1,4 @@
-#define MyAppName "Danli Autoparts"
+#define MyAppName "Autoparts"
 #define MyAppVersion "7"
 #define MyAppExeName "repuestos_pos.exe"
 #define MyReleaseDir "..\..\build\windows\x64\runner\Release"
@@ -9,7 +9,7 @@ AppId={#MyAppId}
 AppName={#MyAppName}
 AppVerName={#MyAppName} version {#MyAppVersion}
 AppVersion={#MyAppVersion}
-AppPublisher=Danli Autoparts
+AppPublisher=Autoparts
 AppPublisherURL=https://github.com/hviera01/RepuestosPOS
 AppSupportURL=https://github.com/hviera01/RepuestosPOS
 AppUpdatesURL=https://github.com/hviera01/RepuestosPOS/releases
@@ -39,6 +39,10 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "Crear un acceso directo en el Escritorio"; GroupDescription: "Accesos directos:"
+
+[InstallDelete]
+Type: files; Name: "{autodesktop}\Danli Autoparts.lnk"
+Type: filesandordirs; Name: "{autoprograms}\Danli Autoparts"
 
 [Files]
 Source: "{#MyReleaseDir}\*"; DestDir: "{app}"; Flags: ignoreversion; Excludes: "data\*"

@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.repuestos.pos" "\0"
-            VALUE "FileDescription", "Danli Autoparts" "\0"
+            VALUE "FileDescription", "Autoparts" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "repuestos_pos" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.repuestos.pos. All rights reserved." "\0"
             VALUE "OriginalFilename", "repuestos_pos.exe" "\0"
-            VALUE "ProductName", "Danli Autoparts" "\0"
+            VALUE "ProductName", "Autoparts" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

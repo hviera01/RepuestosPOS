@@ -29,7 +29,7 @@ Future<String?> registrarCredencial({required String usuarioId, required String 
   final credentials = _navigator.getProperty('credentials'.toJS) as JSObject?;
   if (credentials == null) return null;
 
-  final rp = JSObject()..setProperty('name'.toJS, 'Danli Autoparts'.toJS);
+  final rp = JSObject()..setProperty('name'.toJS, 'Autoparts'.toJS);
 
   final user = JSObject()
     ..setProperty('id'.toJS, _bytesAleatorios(16).toJS)

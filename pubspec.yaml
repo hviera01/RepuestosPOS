@@ -1,5 +1,5 @@
 name: repuestos_pos
-description: "Sistema de ventas, compras e inventario de Danli Autoparts"
+description: "Sistema de ventas, compras e inventario de Autoparts"
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 version: 1.0.7+7

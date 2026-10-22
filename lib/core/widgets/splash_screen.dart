@@ -1,4 +1,3 @@
-import '../theme/marca.dart';
 import 'package:flutter/material.dart';
 import 'logo_danli.dart';
 
@@ -12,22 +11,17 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
-  late final AnimationController _controlador;
-  late final Animation<double> _opacidad;
-  late final Animation<double> _escala;
+  late final AnimationController _barra;
 
   @override
   void initState() {
     super.initState();
-    _controlador = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
-    _opacidad = CurvedAnimation(parent: _controlador, curve: const Interval(0, 0.7, curve: Curves.easeOut));
-    _escala = Tween<double>(begin: 0.85, end: 1.0).animate(CurvedAnimation(parent: _controlador, curve: Curves.easeOutBack));
-    _controlador.forward();
+    _barra = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100))..repeat();
     _irASiguiente();
   }
 
   Future<void> _irASiguiente() async {
-    await Future<void>.delayed(const Duration(milliseconds: 1300));
+    await Future<void>.delayed(const Duration(milliseconds: 1500));
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
@@ -40,29 +34,42 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   void dispose() {
-    _controlador.dispose();
+    _barra.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Marca.primario,
+      backgroundColor: const Color(0xFF0B0B0B),
       body: Center(
-        child: AnimatedBuilder(
-          animation: _controlador,
-          builder: (context, child) {
-            return Opacity(
-              opacity: _opacidad.value,
-              child: Transform.scale(scale: _escala.value, child: child),
-            );
-          },
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const LogoDanli(tamano: 230, radio: 32, sombra: true),
-            ],
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const LogoDanli(tamano: 168, radio: 28),
+            const SizedBox(height: 22),
+            const Text(
+              'Cargando el sistema…',
+              style: TextStyle(color: Color(0xFFCFCFCF), fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.3),
+            ),
+            const SizedBox(height: 14),
+            Container(
+              width: 150,
+              height: 3,
+              decoration: BoxDecoration(color: const Color(0xFF2A2A2A), borderRadius: BorderRadius.circular(3)),
+              clipBehavior: Clip.hardEdge,
+              child: AnimatedBuilder(
+                animation: _barra,
+                builder: (context, _) => FractionallySizedBox(
+                  alignment: Alignment(-2.5 + 5 * _barra.value, 0),
+                  widthFactor: 0.4,
+                  child: Container(
+                    decoration: BoxDecoration(color: const Color(0xFFF2A93B), borderRadius: BorderRadius.circular(3)),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
