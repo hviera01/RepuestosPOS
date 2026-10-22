@@ -170,6 +170,24 @@ class VentaRepository with ConRedMixin {
     }
   }
 
+  Future<List<VentaModel>> solicitudesImpresionEnVivoPendientes() async {
+    try {
+      final filas = await _db.from('ventas').select().eq('solicitud_impresion_en_vivo', true);
+      return filas.map((d) => VentaModel.fromMap(d['id'] as String, d, const [])).toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<List<VentaModel>> solicitudesGuiaEnvioPendientes() async {
+    try {
+      final filas = await _db.from('ventas').select().eq('solicitud_impresion_guia_envio', true);
+      return filas.map((d) => VentaModel.fromMap(d['id'] as String, d, const [])).toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
   Future<({bool reclamada, bool? esCopia})> reclamarSolicitudImpresionEnVivo(String id) async {
     try {
       final filas = await _db
@@ -181,7 +199,14 @@ class VentaRepository with ConRedMixin {
       if (filas.isEmpty) return (reclamada: false, esCopia: null);
       return (reclamada: true, esCopia: filas.first['solicitud_impresion_es_copia'] as bool?);
     } catch (_) {
-      return (reclamada: false, esCopia: null);
+      try {
+        final fila = await _db.from('ventas').select('solicitud_impresion_en_vivo, solicitud_impresion_es_copia').eq('id', id).maybeSingle();
+        if (fila == null || fila['solicitud_impresion_en_vivo'] != true) return (reclamada: false, esCopia: null);
+        await marcarSolicitudImpresionEnVivo(id, false);
+        return (reclamada: true, esCopia: fila['solicitud_impresion_es_copia'] as bool?);
+      } catch (_) {
+        return (reclamada: false, esCopia: null);
+      }
     }
   }
 
@@ -196,7 +221,14 @@ class VentaRepository with ConRedMixin {
       if (filas.isEmpty) return (reclamada: false, grande: false);
       return (reclamada: true, grande: (filas.first['solicitud_impresion_guia_grande'] as bool?) ?? false);
     } catch (_) {
-      return (reclamada: false, grande: false);
+      try {
+        final fila = await _db.from('ventas').select('solicitud_impresion_guia_envio, solicitud_impresion_guia_grande').eq('id', id).maybeSingle();
+        if (fila == null || fila['solicitud_impresion_guia_envio'] != true) return (reclamada: false, grande: false);
+        await marcarSolicitudImpresionGuiaEnvio(id, false, grande: (fila['solicitud_impresion_guia_grande'] as bool?) ?? false);
+        return (reclamada: true, grande: (fila['solicitud_impresion_guia_grande'] as bool?) ?? false);
+      } catch (_) {
+        return (reclamada: false, grande: false);
+      }
     }
   }
 

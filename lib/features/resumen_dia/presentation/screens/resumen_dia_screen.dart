@@ -186,7 +186,7 @@ class _ResumenDiaScreenState extends ConsumerState<ResumenDiaScreen> {
   Widget _tarjeta(String titulo, Widget hijo, {IconData? icono}) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(MediaQuery.of(context).size.width < 720 ? 12 : 16),
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFE0E2E8))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,17 +202,17 @@ class _ResumenDiaScreenState extends ConsumerState<ResumenDiaScreen> {
     );
   }
 
-  Widget _kpi(String titulo, String valor, {Color? color}) {
+  Widget _kpi(String titulo, String valor, {Color? color, bool movil = false, double? ancho}) {
     return Container(
-      width: 200,
-      padding: const EdgeInsets.all(14),
+      width: ancho ?? 200,
+      padding: EdgeInsets.symmetric(horizontal: movil ? 10 : 14, vertical: movil ? 8 : 14),
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFE0E2E8))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(titulo.toUpperCase(), style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.4, color: Colors.grey.shade600)),
-          const SizedBox(height: 6),
-          Text(valor, style: GoogleFonts.poppins(fontSize: 19, fontWeight: FontWeight.w800, color: color ?? const Color(0xFF1A1A1A))),
+          Text(titulo.toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: movil ? 9 : 10, fontWeight: FontWeight.w700, letterSpacing: 0.3, color: Colors.grey.shade600)),
+          SizedBox(height: movil ? 2 : 6),
+          FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(valor, style: GoogleFonts.poppins(fontSize: movil ? 15 : 19, fontWeight: FontWeight.w800, color: color ?? const Color(0xFF1A1A1A)))),
         ],
       ),
     );
@@ -261,7 +261,7 @@ class _ResumenDiaScreenState extends ConsumerState<ResumenDiaScreen> {
       LineaTotal('Cheque', 0, r.cheque),
       LineaTotal('Crédito', 0, r.credito),
     ];
-    final tokens = _busquedaOps.toLowerCase().split(RegExp(r's+')).where((t) => t.isNotEmpty).toList();
+    final tokens = _busquedaOps.toLowerCase().split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
     final filtradas = r.operaciones.where((o) {
       if (_filtroTipo != 'Todo' && o.tipo != _filtroTipo) return false;
       if (tokens.isEmpty) return true;
@@ -270,21 +270,23 @@ class _ResumenDiaScreenState extends ConsumerState<ResumenDiaScreen> {
     }).toList();
     final operaciones = _mostrarTodasOperaciones ? filtradas : filtradas.take(40).toList();
     final tipos = <String>['Todo', ...{for (final o in r.operaciones) o.tipo}];
+    final movil = MediaQuery.of(context).size.width < 720;
+    final anchoKpi = movil ? (MediaQuery.of(context).size.width - 24 - 8) / 2 : 200.0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Wrap(
-          spacing: 12,
-          runSpacing: 12,
+          spacing: movil ? 8 : 12,
+          runSpacing: movil ? 8 : 12,
           children: [
-            _kpi('Ventas del periodo', formatearMoneda(r.totalVentas)),
-            _kpi('Cantidad de ventas', '${r.cantidadVentas}'),
-            _kpi('Ticket promedio', formatearMoneda(r.ticketPromedio)),
-            _kpi('Utilidad bruta', formatearMoneda(r.utilidadBruta), color: const Color(0xFF1E7B4B)),
-            _kpi('Entró en efectivo', formatearMoneda(r.entradasEfectivo)),
-            _kpi('Salió en efectivo', formatearMoneda(r.salidasEfectivo), color: const Color(0xFFC62828)),
-            _kpi('Neto en efectivo', formatearMoneda(r.netoEfectivo)),
-            _kpi('ISV cobrado', formatearMoneda(r.impuesto)),
+            _kpi('Ventas del periodo', formatearMoneda(r.totalVentas), movil: movil, ancho: anchoKpi),
+            _kpi('Cantidad de ventas', '${r.cantidadVentas}', movil: movil, ancho: anchoKpi),
+            _kpi('Ticket promedio', formatearMoneda(r.ticketPromedio), movil: movil, ancho: anchoKpi),
+            _kpi('Utilidad bruta', formatearMoneda(r.utilidadBruta), color: const Color(0xFF1E7B4B), movil: movil, ancho: anchoKpi),
+            _kpi('Entró en efectivo', formatearMoneda(r.entradasEfectivo), movil: movil, ancho: anchoKpi),
+            _kpi('Salió en efectivo', formatearMoneda(r.salidasEfectivo), color: const Color(0xFFC62828), movil: movil, ancho: anchoKpi),
+            _kpi('Neto en efectivo', formatearMoneda(r.netoEfectivo), movil: movil, ancho: anchoKpi),
+            _kpi('ISV cobrado', formatearMoneda(r.impuesto), movil: movil, ancho: anchoKpi),
           ],
         ),
         const SizedBox(height: 14),
@@ -406,18 +408,24 @@ class _ResumenDiaScreenState extends ConsumerState<ResumenDiaScreen> {
     final hoy = DateTime.now();
     final ayer = hoy.subtract(const Duration(days: 1));
     final usuarios = ref.watch(usuariosStreamProvider).value ?? const [];
+    final movil = MediaQuery.of(context).size.width < 720;
     return Container(
       color: const Color(0xFFF2F3F7),
       child: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(movil ? 12 : 20),
         children: [
           Row(
             children: [
-              Expanded(child: Text('Resumen del Día', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700))),
-              OutlinedButton.icon(onPressed: _resumen == null ? null : () => _exportar(false), icon: const Icon(Icons.picture_as_pdf_outlined, size: 18), label: const Text('PDF')),
-              const SizedBox(width: 8),
-              OutlinedButton.icon(onPressed: _resumen == null ? null : () => _exportar(true), icon: const Icon(Icons.receipt_long_outlined, size: 18), label: const Text('Ticket')),
-              const SizedBox(width: 8),
+              Expanded(child: Text('Resumen del Día', style: GoogleFonts.poppins(fontSize: movil ? 18 : 22, fontWeight: FontWeight.w700))),
+              if (movil) ...[
+                IconButton(onPressed: _resumen == null ? null : () => _exportar(false), icon: const Icon(Icons.picture_as_pdf_outlined, size: 20), tooltip: 'PDF'),
+                IconButton(onPressed: _resumen == null ? null : () => _exportar(true), icon: const Icon(Icons.receipt_long_outlined, size: 20), tooltip: 'Ticket'),
+              ] else ...[
+                OutlinedButton.icon(onPressed: _resumen == null ? null : () => _exportar(false), icon: const Icon(Icons.picture_as_pdf_outlined, size: 18), label: const Text('PDF')),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(onPressed: _resumen == null ? null : () => _exportar(true), icon: const Icon(Icons.receipt_long_outlined, size: 18), label: const Text('Ticket')),
+                const SizedBox(width: 8),
+              ],
               IconButton(onPressed: () => _cargar(), icon: const Icon(Icons.refresh), tooltip: 'Actualizar'),
             ],
           ),
@@ -436,6 +444,7 @@ class _ResumenDiaScreenState extends ConsumerState<ResumenDiaScreen> {
               if (_esAdmin)
                 DropdownButton<String?>(
                   value: _usuarioFiltro,
+                  isDense: true,
                   hint: const Text('Todos los usuarios'),
                   items: [
                     const DropdownMenuItem(value: null, child: Text('Todos los usuarios')),

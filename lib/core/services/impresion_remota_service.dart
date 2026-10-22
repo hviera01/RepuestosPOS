@@ -16,6 +16,11 @@ class ImpresionRemotaService {
     });
   }
 
+  Future<List<String>> pendientes() async {
+    final filas = await _db.from('impresiones_remotas').select('id');
+    return [for (final f in filas) f['id'] as String];
+  }
+
   Stream<List<Map<String, dynamic>>> escuchar() =>
       _db.from('impresiones_remotas').stream(primaryKey: ['id']);
 

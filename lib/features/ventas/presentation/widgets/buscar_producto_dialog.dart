@@ -319,7 +319,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   }
 
   void _buscarYElegirPrimero() {
-    final movil = MediaQuery.of(context).size.width < 720;
+    final movil = MediaQuery.of(context).size.width < 720 || MediaQuery.of(context).viewInsets.bottom > 0 || defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
     if (movil) {
       FocusManager.instance.primaryFocus?.unfocus();
     } else {

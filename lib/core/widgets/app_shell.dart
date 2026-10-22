@@ -47,6 +47,7 @@ class _AppShellState extends ConsumerState<AppShell> {
       !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
   late bool _esPcPrincipal = _esEscritorio;
   Timer? _latidoTimer;
+  Timer? _sondeoTimer;
   Timer? _actualizacionTimer;
   final _servicioImpresionEnVivo = ImpresionEnVivoService();
   final _idsSolicitudEnProceso = <String>{};
@@ -115,12 +116,18 @@ class _AppShellState extends ConsumerState<AppShell> {
         final esEste = await esteEquipoEsPcPrincipal(negocio.pcPrincipalHostname);
         if (!mounted) return;
         if (esEste != _esPcPrincipal) setState(() => _esPcPrincipal = esEste);
-        if (esEste) presencia.enviarLatido();
+        if (esEste) {
+          presencia.enviarLatido();
+          unawaited(_revisarSolicitudesPendientes());
+        }
       } catch (_) {}
     }
 
     await evaluar();
     _latidoTimer = Timer.periodic(const Duration(seconds: 25), (_) => evaluar());
+    _sondeoTimer = Timer.periodic(const Duration(seconds: 6), (_) {
+      if (_esPcPrincipal) unawaited(_revisarSolicitudesPendientes());
+    });
   }
 
   Future<void> _calentarImpresion() async {
@@ -146,8 +153,24 @@ class _AppShellState extends ConsumerState<AppShell> {
   void dispose() {
     HardwareKeyboard.instance.removeHandler(_manejarEscape);
     _latidoTimer?.cancel();
+    _sondeoTimer?.cancel();
     _actualizacionTimer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _revisarSolicitudesPendientes() async {
+    final ventaRepo = ref.read(ventaRepositoryProvider);
+    for (final v in await ventaRepo.solicitudesImpresionEnVivoPendientes()) {
+      unawaited(_procesarSolicitudImpresionEnVivo(v));
+    }
+    try {
+      for (final id in await ImpresionRemotaService().pendientes()) {
+        unawaited(_procesarImpresionRemota(id));
+      }
+    } catch (_) {}
+    for (final v in await ventaRepo.solicitudesGuiaEnvioPendientes()) {
+      unawaited(_procesarSolicitudImpresionGuiaEnvio(v));
+    }
   }
 
   Future<void> _procesarImpresionRemota(String id) async {

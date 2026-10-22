@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import '../../../../core/theme/marca.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/utils/busqueda_producto.dart';
@@ -144,7 +145,15 @@ class _BuscarProductoCompraDialogState
   }
 
   void _buscarYElegirPrimero() {
-    _focusBusqueda.requestFocus();
+    final tactil = MediaQuery.of(context).size.width < 720 ||
+        MediaQuery.of(context).viewInsets.bottom > 0 ||
+        defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS;
+    if (tactil) {
+      FocusManager.instance.primaryFocus?.unfocus();
+    } else {
+      _focusBusqueda.requestFocus();
+    }
     final texto = _busquedaController.text.trim();
     if (texto.isNotEmpty && texto == _busquedaAplicada && _listaActual.isNotEmpty) {
       final resaltado = _listaActual.where((p) => p.id == _filaSeleccionada).toList();
