@@ -41,12 +41,12 @@ const cuerpo = capitulos
   .map(([t, c], i) => `<h2 class="capitulo" id="cap${i + 1}"><span class="num">${i + 1}</span>${t}</h2>${c}`)
   .join('\n');
 
-const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Manual de usuario - Repuestos POS</title><style>${css}</style></head><body>
+const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Manual de usuario - Autoparts</title><style>${css}</style></head><body>
 <section class="portada">
-  ${H.ENGRANAJE.replace('fill="#fff"', 'fill="#303846"').replace('r="14" fill="#303846"', 'r="14" fill="#fff"')}
+  <img src="capturas/logo.png" style="width:34mm;height:34mm;border-radius:7mm;margin-bottom:12mm">
   <h1>Manual de usuario</h1>
   <div class="linea"></div>
-  <div class="sub">Repuestos POS</div>
+  <div class="sub">Autoparts</div>
   <div class="pie">${fecha}</div>
 </section>
 ${toc}
@@ -56,7 +56,7 @@ ${cuerpo}
 const salidaHtml = path.join(__dirname, 'manual.html');
 fs.writeFileSync(salidaHtml, html);
 
-const salidaPdf = path.join(__dirname, 'Manual_de_Usuario_Repuestos_POS.pdf');
+const salidaPdf = path.join(__dirname, 'Manual_de_Usuario_Autoparts.pdf');
 const chrome = process.env.CHROME || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 execFileSync(chrome, [
   '--headless=new',

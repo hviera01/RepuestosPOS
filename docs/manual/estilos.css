@@ -161,3 +161,16 @@ table.mini td.num, table.mini th.num { text-align: right; }
 .sin-corte { break-inside: avoid; }
 code { background: var(--pri-claro); border-radius: 3px; padding: 0 1.5mm; font-family: Consolas, monospace; font-size: 9.5pt; }
 .pt { display: block; page-break-after: always; }
+
+.cap { position: relative; overflow: hidden; border: 1px solid var(--borde); border-radius: 6px; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+.cap img { display: block; width: 100%; }
+.cap .marca-num { transform: translate(-50%, -50%); }
+.cap-movil { margin: 0 auto; }
+.par-movil { display: flex; gap: 8mm; justify-content: center; align-items: flex-start; }
+.par-movil .cap { flex: 0 0 auto; }
+.pie-par { font-size: 9pt; color: #6b7280; text-align: center; margin: 1.5mm 0 4mm; }
+h3, h4 { break-after: avoid; }
+.figura { break-after: avoid; }
+.leyenda { break-inside: avoid; }
+.cap img { max-width: none; }
+.bloque-fig { break-inside: avoid; }

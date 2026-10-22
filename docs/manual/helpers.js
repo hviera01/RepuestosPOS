@@ -61,7 +61,7 @@ function tabla(cols, filas, numericas = []) {
 function figura(contenido, pie, leyenda) {
   let h = `<div class="figura">${contenido}<div class="pie">${pie}</div></div>`;
   if (leyenda && leyenda.length) h += `<ol class="leyenda">${leyenda.map((l) => `<li><span>${l}</span></li>`).join('')}</ol>`;
-  return h;
+  return '<div class="bloque-fig">' + h + '</div>';
 }
 
 const aviso = (t, titulo = 'Importante') => `<div class="aviso"><b>${titulo}</b>${t}</div>`;
