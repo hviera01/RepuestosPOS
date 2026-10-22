@@ -170,6 +170,36 @@ class VentaRepository with ConRedMixin {
     }
   }
 
+  Future<({bool reclamada, bool? esCopia})> reclamarSolicitudImpresionEnVivo(String id) async {
+    try {
+      final filas = await _db
+          .from('ventas')
+          .update({'solicitud_impresion_en_vivo': false})
+          .eq('id', id)
+          .eq('solicitud_impresion_en_vivo', true)
+          .select('solicitud_impresion_es_copia');
+      if (filas.isEmpty) return (reclamada: false, esCopia: null);
+      return (reclamada: true, esCopia: filas.first['solicitud_impresion_es_copia'] as bool?);
+    } catch (_) {
+      return (reclamada: false, esCopia: null);
+    }
+  }
+
+  Future<({bool reclamada, bool grande})> reclamarSolicitudImpresionGuiaEnvio(String id) async {
+    try {
+      final filas = await _db
+          .from('ventas')
+          .update({'solicitud_impresion_guia_envio': false})
+          .eq('id', id)
+          .eq('solicitud_impresion_guia_envio', true)
+          .select('solicitud_impresion_guia_grande');
+      if (filas.isEmpty) return (reclamada: false, grande: false);
+      return (reclamada: true, grande: (filas.first['solicitud_impresion_guia_grande'] as bool?) ?? false);
+    } catch (_) {
+      return (reclamada: false, grande: false);
+    }
+  }
+
   Stream<List<VentaModel>> obtenerVentasConSolicitudImpresionEnVivo() {
     return conRedStream(() => _db
         .from('ventas')

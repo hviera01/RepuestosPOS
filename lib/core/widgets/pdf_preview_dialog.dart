@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
+import '../services/impresion_remota_service.dart';
 import '../services/impresora_usb_windows_service.dart';
 import '../utils/impresion_calentamiento.dart';
 
@@ -88,6 +89,25 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
     } finally {
       if (mounted) setState(() => _imprimiendo = false);
     }
+  }
+
+  Future<void> _enviarALaPrincipal() async {
+    final servicio = ImpresionRemotaService();
+    setState(() => _imprimiendo = true);
+    String mensaje;
+    try {
+      if (!await servicio.hayPcPrincipal()) {
+        mensaje = 'La caja principal no está conectada: abrí el sistema en esa PC e intentá de nuevo';
+      } else {
+        await servicio.enviar(await widget.generarTicketEscPos!(), widget.titulo);
+        mensaje = 'Se envió la orden de impresión a la caja principal';
+      }
+    } catch (_) {
+      mensaje = 'No se pudo enviar la orden a la caja principal';
+    }
+    if (!mounted) return;
+    setState(() => _imprimiendo = false);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensaje)));
   }
 
   Future<Uint8List>? _pdfCache;
@@ -255,6 +275,27 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
           style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600),
         ),
         const SizedBox(height: 16),
+        if (widget.generarTicketEscPos != null) ...[
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _imprimiendo ? null : _enviarALaPrincipal,
+              icon: _imprimiendo
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.print, size: 18),
+              label: Text(
+                'Imprimir en la caja principal',
+                style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: Marca.primario,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
         SizedBox(
           width: double.infinity,
           child: FilledButton.icon(

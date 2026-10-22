@@ -22,6 +22,8 @@ import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/negocio/providers/negocio_provider.dart';
 import '../utils/device_id.dart';
 import '../utils/recargar_pagina.dart';
+import '../services/impresion_remota_service.dart';
+import '../services/impresora_usb_windows_service.dart';
 import '../../features/productos/providers/productos_provider.dart';
 import '../../features/traslados/data/impresion_en_vivo_traslado_service.dart';
 import '../../features/traslados/data/traslado_model.dart';
@@ -148,12 +150,36 @@ class _AppShellState extends ConsumerState<AppShell> {
     super.dispose();
   }
 
+  Future<void> _procesarImpresionRemota(String id) async {
+    if (_idsSolicitudEnProceso.contains('raw_$id')) return;
+    _idsSolicitudEnProceso.add('raw_$id');
+    try {
+      final bytes = await ImpresionRemotaService().reclamar(id);
+      if (bytes == null) return;
+      final negocio = await ref.read(negocioRepositoryProvider).obtenerNegocioActual();
+      final ok = negocio.impresoraTermicaNombre.isNotEmpty &&
+          !negocio.impresoraUsbUsarDriverWindows &&
+          ImpresoraUsbWindowsService().imprimir(nombreImpresora: negocio.impresoraTermicaNombre, bytes: bytes);
+      if (!ok && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Llegó una orden de impresión desde otro dispositivo pero no se pudo imprimir en esta impresora.'),
+            duration: Duration(seconds: 8),
+          ),
+        );
+      }
+    } finally {
+      _idsSolicitudEnProceso.remove('raw_$id');
+    }
+  }
+
   Future<void> _procesarSolicitudImpresionEnVivo(VentaModel venta) async {
     if (_idsSolicitudEnProceso.contains(venta.id)) return;
     _idsSolicitudEnProceso.add(venta.id);
     try {
       final ventaRepo = ref.read(ventaRepositoryProvider);
-      unawaited(ventaRepo.marcarSolicitudImpresionEnVivo(venta.id, false));
+      final reclamo = await ventaRepo.reclamarSolicitudImpresionEnVivo(venta.id);
+      if (!reclamo.reclamada) return;
       final futureDetalle = ventaRepo.obtenerDetalleVenta(venta.id);
       final futureNegocio = ref
           .read(negocioRepositoryProvider)
@@ -164,7 +190,7 @@ class _AppShellState extends ConsumerState<AppShell> {
       final ok = await _servicioImpresionEnVivo.imprimirSilencioso(
         ventaCompleta,
         negocio,
-        forzarCopia: ventaCompleta.solicitudImpresionEsCopia,
+        forzarCopia: reclamo.esCopia,
       );
       if (ok) {
         await ventaRepo.marcarPendienteImpresion(venta.id, false);
@@ -189,14 +215,15 @@ class _AppShellState extends ConsumerState<AppShell> {
     _idsSolicitudEnProceso.add(idProceso);
     try {
       final ventaRepo = ref.read(ventaRepositoryProvider);
-      unawaited(ventaRepo.marcarSolicitudImpresionGuiaEnvio(venta.id, false));
+      final reclamo = await ventaRepo.reclamarSolicitudImpresionGuiaEnvio(venta.id);
+      if (!reclamo.reclamada) return;
       final negocio = await ref
           .read(negocioRepositoryProvider)
           .obtenerNegocioActual();
       final ok = await _servicioImpresionEnVivo.imprimirGuiaSilencioso(
         venta,
         negocio,
-        grande: venta.solicitudImpresionGuiaGrande,
+        grande: reclamo.grande,
       );
       if (!ok && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -218,7 +245,8 @@ class _AppShellState extends ConsumerState<AppShell> {
     _idsSolicitudTrasladoEnProceso.add(traslado.id);
     try {
       final trasladoRepo = ref.read(trasladoRepositoryProvider);
-      unawaited(trasladoRepo.marcarSolicitudImpresionEnVivo(traslado.id, false));
+      final reclamo = await trasladoRepo.reclamarSolicitudImpresionEnVivo(traslado.id);
+      if (!reclamo.reclamada) return;
       final futureCompleto = trasladoRepo.obtenerPorId(traslado.id);
       final futureNegocio = ref.read(negocioRepositoryProvider).obtenerNegocioActual();
       if (ref.read(productosStreamProvider).value == null) {
@@ -235,7 +263,7 @@ class _AppShellState extends ConsumerState<AppShell> {
         trasladoCompleto,
         negocio,
         codigos,
-        forzarCopia: traslado.solicitudImpresionEsCopia,
+        forzarCopia: reclamo.esCopia,
       );
       if (!ok && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -262,6 +290,14 @@ class _AppShellState extends ConsumerState<AppShell> {
         (previous, next) {
           for (final venta in next.value ?? const <VentaModel>[]) {
             unawaited(_procesarSolicitudImpresionEnVivo(venta));
+          }
+        },
+      );
+      ref.listen<AsyncValue<List<Map<String, dynamic>>>>(
+        impresionesRemotasProvider,
+        (previous, next) {
+          for (final fila in next.value ?? const <Map<String, dynamic>>[]) {
+            unawaited(_procesarImpresionRemota(fila['id'] as String));
           }
         },
       );

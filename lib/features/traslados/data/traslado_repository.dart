@@ -99,6 +99,17 @@ class TrasladoRepository with ConRedMixin {
     }
   }
 
+  Future<({bool reclamada, bool? esCopia})> reclamarSolicitudImpresionEnVivo(String id) async {
+    try {
+      final fila = await _db.from('traslados').select('solicitud_impresion_en_vivo, solicitud_impresion_es_copia').eq('id', id).maybeSingle();
+      if (fila == null || fila['solicitud_impresion_en_vivo'] != true) return (reclamada: false, esCopia: null);
+      await marcarSolicitudImpresionEnVivo(id, false);
+      return (reclamada: true, esCopia: fila['solicitud_impresion_es_copia'] as bool?);
+    } catch (_) {
+      return (reclamada: false, esCopia: null);
+    }
+  }
+
   Stream<List<TrasladoModel>> obtenerTrasladosConSolicitudImpresionEnVivo() {
     return conRedStream(() => _db
         .from('traslados')
