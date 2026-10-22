@@ -232,6 +232,7 @@
 
   function vistaGuia(g) {
     const ver = (g.ver || []).map((id) => porId['a/' + id]).filter(Boolean);
+    const conImagenes = ver.some((a) => /<img /.test(a.html));
     const movil = g.img && /^img\/m_/.test(g.img);
     app.innerHTML = `
       <div class="migas"><a href="#/">← Volver al inicio</a></div>
@@ -240,8 +241,8 @@
         <h1>${esc(g.titulo)}</h1>
         <ol class="pasos-guia">${g.pasos.map((p) => `<li><span>${p}</span></li>`).join('')}</ol>
         ${g.nota ? `<div class="nota-guia">${g.nota}</div>` : ''}
-        ${g.img ? `<div class="guia-img ${movil ? 'movil' : ''}"><img src="${g.img}" alt="Captura de pantalla: ${esc(g.titulo)}" loading="lazy"></div>` : ''}
-        ${ver.length ? `<div class="mas"><h3>Más información en el manual</h3><div class="lista">${ver.map((a) => `<a class="item" href="#/a/${a.id}"><div class="t">${esc(a.titulo)}</div><div class="s">${esc(a.capTitulo)}</div></a>`).join('')}</div></div>` : ''}
+        ${g.img && !conImagenes ? `<div class="guia-img ${movil ? 'movil' : ''}"><img src="${g.img}" alt="Captura de pantalla: ${esc(g.titulo)}" loading="lazy"></div>` : ''}
+        ${ver.map((a) => `<div class="mas"><h3>Explicación completa: ${esc(a.titulo)}</h3><div class="cuerpo">${a.html}</div><p><a href="#/a/${a.id}">Abrir este tema en el manual (capítulo ${a.cap})</a></p></div>`).join('')}
       </article>`;
     window.scrollTo(0, 0);
   }
