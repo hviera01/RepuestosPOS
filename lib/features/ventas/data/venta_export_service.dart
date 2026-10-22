@@ -304,7 +304,7 @@ class VentaExportService {
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Divider(color: _colorBorde),
-        if (!esCotizacion) ...[
+        if (venta.tipoDocumento == 'Factura') ...[
           pw.Text('CAI: ${negocio.cai.isEmpty ? 'N/D' : negocio.cai}', style: estiloFiscal),
           pw.Text('Rango autorizado: ${negocio.rangoPrefijo}${negocio.rangoDesde} al ${negocio.rangoPrefijo}${negocio.rangoHasta}', style: estiloFiscal),
           pw.Text('Fecha límite de emisión: ${negocio.fechaLimiteEmision != null ? formatoDia.format(negocio.fechaLimiteEmision!) : 'N/D'}', style: estiloFiscal),
@@ -400,14 +400,14 @@ class VentaExportService {
         return pw.Padding(
           padding: const pw.EdgeInsets.only(bottom: 6),
           child: pw.Text(
-            '${(tiposDocumento[venta.tipoDocumento] ?? venta.tipoDocumento).toUpperCase()} ${negocio.rangoPrefijo}${venta.numeroDocumento} (continuación)',
+            '${(tiposDocumento[venta.tipoDocumento] ?? venta.tipoDocumento).toUpperCase()} ${venta.tipoDocumento == 'Factura' ? negocio.rangoPrefijo : ''}${venta.numeroDocumento} (continuación)',
             style: pw.TextStyle(fontSize: fNormal, fontWeight: pw.FontWeight.bold),
           ),
         );
       },
       build: (context) {
         return [
-            if (logo != null) pw.Center(child: pw.Image(logo, width: 140)),
+            if (logo != null) pw.Center(child: pw.Image(logo, width: 70)),
             if (negocio.nombre.isNotEmpty)
               ..._encabezadoNombreNegocio(negocio.nombre),
             if (negocio.eslogan.isNotEmpty)
@@ -417,10 +417,10 @@ class VentaExportService {
             if (negocio.rtn.isNotEmpty) pw.Center(child: pw.Text('RTN: ${negocio.rtn}', style: pw.TextStyle(fontSize: fSmall))),
             if (negocio.telefono.isNotEmpty) pw.Center(child: pw.Text('Tel: ${negocio.telefono}', style: pw.TextStyle(fontSize: fSmall))),
             if (negocio.correo.isNotEmpty) pw.Center(child: pw.Text('Email: ${negocio.correo}', style: pw.TextStyle(fontSize: fSmall))),
-            if (negocio.cai.isNotEmpty) pw.Center(child: pw.Text('CAI: ${negocio.cai}', style: pw.TextStyle(fontSize: fSmall))),
+            if (venta.tipoDocumento == 'Factura' && negocio.cai.isNotEmpty) pw.Center(child: pw.Text('CAI: ${negocio.cai}', style: pw.TextStyle(fontSize: fSmall))),
             pw.SizedBox(height: 6),
             _separador(),
-            pw.Text('${(tiposDocumento[venta.tipoDocumento] ?? venta.tipoDocumento).toUpperCase()} ${negocio.rangoPrefijo}${venta.numeroDocumento}', style: pw.TextStyle(fontSize: fNormal)),
+            pw.Text('${(tiposDocumento[venta.tipoDocumento] ?? venta.tipoDocumento).toUpperCase()} ${venta.tipoDocumento == 'Factura' ? negocio.rangoPrefijo : ''}${venta.numeroDocumento}', style: pw.TextStyle(fontSize: fNormal)),
             pw.Text('Fecha: ${venta.fechaRegistro != null ? formatoFecha.format(venta.fechaRegistro!) : '-'}', style: pw.TextStyle(fontSize: fNormal)),
             pw.Text('Atendido por: ${venta.usuarioRegistro}', style: pw.TextStyle(fontSize: fNormal)),
             pw.Text('Condición: ${venta.condicion}', style: pw.TextStyle(fontSize: fNormal)),
@@ -484,9 +484,9 @@ class VentaExportService {
                   pw.Text('${pago.metodoPago}: ${formatearMoneda(pago.monto)}', style: pw.TextStyle(fontSize: fNormal)),
             ],
             _separador(),
-            if (negocio.rangoPrefijo.isNotEmpty || negocio.rangoDesde.isNotEmpty)
+            if (venta.tipoDocumento == 'Factura' && (negocio.rangoPrefijo.isNotEmpty || negocio.rangoDesde.isNotEmpty))
               pw.Text('Rango Aut.: ${negocio.rangoPrefijo}${negocio.rangoDesde} al ${negocio.rangoPrefijo}${negocio.rangoHasta}', style: pw.TextStyle(fontSize: fSmall)),
-            if (negocio.fechaLimiteEmision != null)
+            if (venta.tipoDocumento == 'Factura' && negocio.fechaLimiteEmision != null)
               pw.Text('Fecha Límite: ${formatoDia.format(negocio.fechaLimiteEmision!)}', style: pw.TextStyle(fontSize: fSmall)),
             pw.SizedBox(height: 4),
             pw.Center(child: pw.Text('¡GRACIAS POR SU COMPRA!', style: pw.TextStyle(fontSize: fNormal))),
@@ -510,7 +510,7 @@ class VentaExportService {
     if (negocio.rtn.isNotEmpty) alto += 6.0;
     if (negocio.telefono.isNotEmpty) alto += 6.0;
     if (negocio.correo.isNotEmpty) alto += 6.0;
-    if (negocio.cai.isNotEmpty) alto += 6.0;
+    if (venta.tipoDocumento == 'Factura' && negocio.cai.isNotEmpty) alto += 6.0;
 
     if (venta.condicion == 'Credito' && venta.fechaVencimiento != null) alto += 6.0;
     if (venta.oc.isNotEmpty) alto += 6.0;
@@ -518,8 +518,8 @@ class VentaExportService {
     if (venta.regSag.isNotEmpty) alto += 6.0;
     if (venta.descuentoGlobal > 0) alto += 6.0;
     if (venta.llevaIsv) alto += 24.0;
-    if (negocio.rangoPrefijo.isNotEmpty || negocio.rangoDesde.isNotEmpty) alto += 10.0;
-    if (negocio.fechaLimiteEmision != null) alto += 6.0;
+    if (venta.tipoDocumento == 'Factura' && (negocio.rangoPrefijo.isNotEmpty || negocio.rangoDesde.isNotEmpty)) alto += 10.0;
+    if (venta.tipoDocumento == 'Factura' && negocio.fechaLimiteEmision != null) alto += 6.0;
 
     if (venta.metodoPago == 'Mixto') alto += venta.pagosMixtos.length * 6.0;
 

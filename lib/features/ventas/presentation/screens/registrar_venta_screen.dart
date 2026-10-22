@@ -5209,7 +5209,10 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
                           'Productos en la venta',
@@ -5218,12 +5221,10 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        const SizedBox(width: 14),
                         _selectorPrecioIsvCarrito(
                           compacto: true,
                           alCambiarExtra: () => setDialogState(() {}),
                         ),
-                        const SizedBox(width: 10),
                         OutlinedButton.icon(
                           onPressed: _agregarProductoDesdeBusqueda,
                           icon: const Icon(Icons.add, size: 18),
@@ -5246,7 +5247,6 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                             ),
                           ),
                         ),
-                        const Spacer(),
                         IconButton(
                           tooltip: 'Cerrar',
                           icon: const Icon(Icons.close),
@@ -5254,6 +5254,30 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                         ),
                       ],
                     ),
+                    if (tamano.width < 720) ...[
+                      const SizedBox(height: 8),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _botonCompacto(icono: Icons.pause_circle_outline, texto: 'Guardar en Espera', onPressed: _guardarEnEspera),
+                            const SizedBox(width: 6),
+                            _botonCompacto(icono: Icons.list_alt_outlined, texto: 'Ver en Espera', onPressed: _verEnEspera),
+                            const SizedBox(width: 6),
+                            _botonCompacto(icono: Icons.receipt_long_outlined, texto: 'Ver Facturas', onPressed: _verFacturas),
+                            const SizedBox(width: 6),
+                            Badge(
+                              label: Text('$_cantidadPendientesImpresion'),
+                              backgroundColor: const Color(0xFFE0A63C),
+                              isLabelVisible: _cantidadPendientesImpresion > 0,
+                              child: _botonCompacto(icono: Icons.print_disabled_outlined, texto: 'Pendientes de Impresión', onPressed: _verPendientesImpresion),
+                            ),
+                            const SizedBox(width: 6),
+                            _botonCompacto(icono: Icons.delete_sweep_outlined, texto: 'Limpiar Venta', onPressed: _confirmarLimpiar),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 14),
                     _encabezadoTablaCarrito(),
                     Divider(height: 18, color: Colors.grey.shade300),

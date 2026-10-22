@@ -1,3 +1,4 @@
+import '../../../../core/services/recibos_tickets.dart';
 import '../../../../core/theme/marca.dart';
 import '../../../../core/utils/permisos_usuario.dart';
 import 'dart:io' show Platform;
@@ -628,14 +629,12 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
     showDialog(
       useRootNavigator: false,
       context: context,
-      builder: (context) => PdfPreviewDialog(
+      builder: (context) => RecibosTickets.dialogo(
         titulo: 'Vista previa · Recibo de abono',
-        nombreArchivo: 'recibo_${credito.numeroDocumento}.pdf',
-        generarPdf: () => VentaCreditoExportService().generarPdfRecibo(
-          credito,
-          abono,
-          negocio,
-        ),
+        archivo: 'recibo_${credito.numeroDocumento}.pdf',
+        pdf: () => VentaCreditoExportService().generarPdfRecibo(credito, abono, negocio),
+        copias: RecibosTickets.ventaCopias(credito, abono, negocio),
+        negocio: negocio,
         impresora: impresora,
       ),
     );

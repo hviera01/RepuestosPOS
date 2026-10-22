@@ -1,3 +1,4 @@
+import '../../../../core/services/recibos_tickets.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -205,11 +206,12 @@ class _CajaScreenState extends ConsumerState<CajaScreen> with SingleTickerProvid
       await showDialog(
         useRootNavigator: false,
         context: context,
-        builder: (context) => PdfPreviewDialog(
+        builder: (context) => RecibosTickets.dialogo(
           titulo: 'Ticket · Cierre de caja',
-          nombreArchivo: 'caja_ticket.pdf',
-          generarPdf: () => _export.generarTicket(caja, negocio),
-          generarPdfConFormato: (formato) => _export.generarTicket(caja, negocio, formatoImpresora: formato),
+          archivo: 'caja_ticket.pdf',
+          pdf: () => _export.generarTicket(caja, negocio),
+          copias: [_export.lineasTicket(caja, negocio)],
+          negocio: negocio,
           impresora: impresora,
         ),
       );

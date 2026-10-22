@@ -1,3 +1,4 @@
+import '../../../../core/services/recibos_tickets.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -130,11 +131,12 @@ class _ResumenDiaScreenState extends ConsumerState<ResumenDiaScreen> {
       await showDialog(
         useRootNavigator: false,
         context: context,
-        builder: (context) => PdfPreviewDialog(
+        builder: (context) => RecibosTickets.dialogo(
           titulo: 'Ticket · Resumen del día',
-          nombreArchivo: 'resumen_dia_ticket.pdf',
-          generarPdf: () => _export.generarTicket(r, negocio, usuario: usuario),
-          generarPdfConFormato: (formato) => _export.generarTicket(r, negocio, usuario: usuario, formatoImpresora: formato),
+          archivo: 'resumen_dia_ticket.pdf',
+          pdf: () => _export.generarTicket(r, negocio, usuario: usuario),
+          copias: [_export.lineasTicket(r, negocio, usuario: usuario)],
+          negocio: negocio,
           impresora: impresora,
         ),
       );

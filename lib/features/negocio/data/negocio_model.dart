@@ -95,6 +95,7 @@ class NegocioModel {
   final String impresoraEtiquetasUrl;
   final String impresoraEtiquetasNombre;
   final bool facturaImprimirCopia;
+  final bool reciboAbonoImprimirCopia;
   final bool logoEnTicket;
   final bool logoEnPdf;
   final bool facturaPreciosConIsv;
@@ -131,6 +132,7 @@ class NegocioModel {
     this.impresoraEtiquetasUrl = '',
     this.impresoraEtiquetasNombre = '',
     this.facturaImprimirCopia = true,
+    this.reciboAbonoImprimirCopia = false,
     this.logoEnTicket = true,
     this.logoEnPdf = true,
     this.facturaPreciosConIsv = false,
@@ -172,6 +174,7 @@ class NegocioModel {
       impresoraEtiquetasUrl: data['impresora_etiquetas_url'] ?? '',
       impresoraEtiquetasNombre: data['impresora_etiquetas_nombre'] ?? '',
       facturaImprimirCopia: data['factura_imprimir_copia'] ?? true,
+      reciboAbonoImprimirCopia: data['recibo_abono_imprimir_copia'] ?? false,
       logoEnTicket: data['logo_en_ticket'] ?? true,
       logoEnPdf: data['logo_en_pdf'] ?? true,
       facturaPreciosConIsv: data['factura_precios_con_isv'] ?? false,
@@ -211,6 +214,7 @@ class NegocioModel {
       'impresora_etiquetas_url': impresoraEtiquetasUrl,
       'impresora_etiquetas_nombre': impresoraEtiquetasNombre,
       'factura_imprimir_copia': facturaImprimirCopia,
+      'recibo_abono_imprimir_copia': reciboAbonoImprimirCopia,
       'logo_en_ticket': logoEnTicket,
       'logo_en_pdf': logoEnPdf,
       'factura_precios_con_isv': facturaPreciosConIsv,
@@ -249,6 +253,7 @@ class NegocioModel {
     String? impresoraEtiquetasUrl,
     String? impresoraEtiquetasNombre,
     bool? facturaImprimirCopia,
+    bool? reciboAbonoImprimirCopia,
     bool? logoEnTicket,
     bool? logoEnPdf,
     bool? facturaPreciosConIsv,
@@ -288,6 +293,7 @@ class NegocioModel {
       impresoraEtiquetasNombre:
           impresoraEtiquetasNombre ?? this.impresoraEtiquetasNombre,
       facturaImprimirCopia: facturaImprimirCopia ?? this.facturaImprimirCopia,
+      reciboAbonoImprimirCopia: reciboAbonoImprimirCopia ?? this.reciboAbonoImprimirCopia,
       logoEnTicket: logoEnTicket ?? this.logoEnTicket,
       logoEnPdf: logoEnPdf ?? this.logoEnPdf,
       facturaPreciosConIsv: facturaPreciosConIsv ?? this.facturaPreciosConIsv,

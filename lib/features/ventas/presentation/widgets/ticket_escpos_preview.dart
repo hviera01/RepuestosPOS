@@ -76,7 +76,7 @@ class TicketEscPosPreview extends StatelessWidget {
       );
     }
 
-    final logoDecodificado = negocio.logoEnTicket ? decodificarLogoEscPos(negocio.logoBnBase64) : null;
+    final logoDecodificado = negocio.logoEnTicket ? decodificarLogoEscPos(negocio.logoBnBase64, maxDimension: negocio.anchoTicketMm == 58 ? 130 : 180) : null;
     final Uint8List? logoBytes = logoDecodificado == null ? null : Uint8List.fromList(img.encodePng(logoDecodificado));
 
     final anchoContenedor = negocio.anchoTicketMm == 58 ? 320.0 * 384 / 576 : 320.0;
@@ -91,7 +91,7 @@ class TicketEscPosPreview extends StatelessWidget {
           if (logoBytes != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 2),
-              child: Center(child: Image.memory(logoBytes, width: 170)),
+              child: Center(child: Image.memory(logoBytes, width: 100)),
             ),
           if (negocio.nombre.isNotEmpty) ..._encabezadoNombreNegocio(negocio.nombre, linea),
           if (negocio.eslogan.isNotEmpty) linea(negocio.eslogan, centrado: true),
@@ -99,10 +99,10 @@ class TicketEscPosPreview extends StatelessWidget {
           if (negocio.rtn.isNotEmpty) linea('RTN: ${negocio.rtn}', centrado: true),
           if (negocio.telefono.isNotEmpty) linea('Tel: ${negocio.telefono}', centrado: true),
           if (negocio.correo.isNotEmpty) linea('Email: ${negocio.correo}', centrado: true),
-          if (negocio.cai.isNotEmpty) linea('CAI: ${negocio.cai}', centrado: true),
+          if (venta.tipoDocumento == 'Factura' && negocio.cai.isNotEmpty) linea('CAI: ${negocio.cai}', centrado: true),
           const SizedBox(height: 6),
           separador(),
-          linea('${(tiposDocumento[venta.tipoDocumento] ?? venta.tipoDocumento).toUpperCase()} ${negocio.rangoPrefijo}${venta.numeroDocumento}', negrita: true),
+          linea('${(tiposDocumento[venta.tipoDocumento] ?? venta.tipoDocumento).toUpperCase()} ${venta.tipoDocumento == 'Factura' ? negocio.rangoPrefijo : ''}${venta.numeroDocumento}', negrita: true),
           linea('Fecha: ${venta.fechaRegistro != null ? formatoFecha.format(venta.fechaRegistro!) : '-'}'),
           linea('Atendido por: ${venta.usuarioRegistro}'),
           linea('Condición: ${venta.condicion}'),
@@ -158,9 +158,9 @@ class TicketEscPosPreview extends StatelessWidget {
               for (final pago in venta.pagosMixtos) linea('${pago.metodoPago}: ${formatearMoneda(pago.monto)}'),
           ],
           separador(),
-          if (negocio.rangoPrefijo.isNotEmpty || negocio.rangoDesde.isNotEmpty)
+          if (venta.tipoDocumento == 'Factura' && (negocio.rangoPrefijo.isNotEmpty || negocio.rangoDesde.isNotEmpty))
             linea('Rango Aut.: ${negocio.rangoPrefijo}${negocio.rangoDesde} al ${negocio.rangoPrefijo}${negocio.rangoHasta}'),
-          if (negocio.fechaLimiteEmision != null) linea('Fecha Límite: ${formatoDia.format(negocio.fechaLimiteEmision!)}'),
+          if (venta.tipoDocumento == 'Factura' && negocio.fechaLimiteEmision != null) linea('Fecha Límite: ${formatoDia.format(negocio.fechaLimiteEmision!)}'),
           const SizedBox(height: 6),
           linea('¡GRACIAS POR SU COMPRA!', centrado: true, negrita: true),
           const SizedBox(height: 10),

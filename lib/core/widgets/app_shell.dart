@@ -40,8 +40,9 @@ class _AppShellState extends ConsumerState<AppShell> {
   bool _menuAbierto = false;
   bool _dialogoActualizacionAbierto = false;
 
-  bool _esPcPrincipal =
+  final bool _esEscritorio =
       !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
+  late bool _esPcPrincipal = _esEscritorio;
   Timer? _latidoTimer;
   Timer? _actualizacionTimer;
   final _servicioImpresionEnVivo = ImpresionEnVivoService();
@@ -80,7 +81,7 @@ class _AppShellState extends ConsumerState<AppShell> {
       }
     });
 
-    if (_esPcPrincipal) {
+    if (_esEscritorio) {
       _confirmarPcPrincipal();
       _calentarImpresion();
     }
@@ -103,21 +104,20 @@ class _AppShellState extends ConsumerState<AppShell> {
   }
 
   Future<void> _confirmarPcPrincipal() async {
-    final negocio = await ref
-        .read(negocioRepositoryProvider)
-        .obtenerNegocioActual();
-    final esEste = await esteEquipoEsPcPrincipal(negocio.pcPrincipalHostname);
-    if (!mounted) return;
-    if (!esEste) {
-      setState(() => _esPcPrincipal = false);
-      return;
-    }
     final presencia = ref.read(presenciaImpresionRepositoryProvider);
-    presencia.enviarLatido();
-    _latidoTimer = Timer.periodic(
-      const Duration(seconds: 25),
-      (_) => presencia.enviarLatido(),
-    );
+    Future<void> evaluar() async {
+      try {
+        final negocio = ref.read(negocioStreamProvider).value ??
+            await ref.read(negocioRepositoryProvider).obtenerNegocioActual();
+        final esEste = await esteEquipoEsPcPrincipal(negocio.pcPrincipalHostname);
+        if (!mounted) return;
+        if (esEste != _esPcPrincipal) setState(() => _esPcPrincipal = esEste);
+        if (esEste) presencia.enviarLatido();
+      } catch (_) {}
+    }
+
+    await evaluar();
+    _latidoTimer = Timer.periodic(const Duration(seconds: 25), (_) => evaluar());
   }
 
   Future<void> _calentarImpresion() async {

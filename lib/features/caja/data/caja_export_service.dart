@@ -1,3 +1,4 @@
+import '../../../core/services/ticket_generico.dart';
 import 'dart:typed_data';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -29,6 +30,43 @@ class CajaExportService {
       ['Gastos pagados en efectivo${nota(c.config.gastos)}', -c.gastos],
       ['Pagos a proveedores en efectivo${nota(c.config.pagosProveedores)}', -c.pagosProveedores],
       ['Compras en efectivo${nota(c.config.comprasEfectivo)}', -c.comprasEfectivo],
+    ];
+  }
+
+  List<LineaTicket> lineasTicket(CajaModel c, NegocioModel negocio) {
+    final fecha = DateFormat('dd/MM/yyyy HH:mm');
+    LPar par(String a, double v, {bool negrita = false}) => LPar(a, formatearMoneda(v), negrita: negrita);
+    return [
+      ...TicketGenerico.encabezado(negocio),
+      const LSeparador(),
+      LTexto(titulo(c), alineacion: AlineacionTicket.centro, negrita: true),
+      const LSeparador(),
+      LTexto('Cajero: ${c.usuario}'),
+      LTexto('Desde: ${fecha.format(c.desdeEfectivo)}'),
+      LTexto('Hasta: ${fecha.format(c.hastaEn ?? c.cerradaEn ?? DateTime.now())}'),
+      if (c.cerradaEn != null) LTexto('Cerrada: ${fecha.format(c.cerradaEn!)}'),
+      const LSeparador(),
+      const LTexto('EFECTIVO', negrita: true),
+      for (final r in _filas(c)) par(r[0] as String, r[1] as double),
+      const LSeparador(),
+      par('Efectivo esperado', c.efectivoEsperado, negrita: true),
+      if (!c.abierta) ...[
+        par('Efectivo contado', c.montoCierre ?? 0, negrita: true),
+        par('Diferencia', c.diferencia, negrita: true),
+      ],
+      const LSeparador(),
+      LTexto('VENTAS (${c.cantidadVentas})', negrita: true),
+      par('Efectivo', c.ventasEfectivo),
+      par('Tarjeta', c.ventasTarjeta),
+      par('Transferencia', c.ventasTransferencia),
+      par('Cheque', c.ventasCheque),
+      par('Credito', c.ventasCredito),
+      par('Total ventas', c.totalVentas, negrita: true),
+      const LSeparador(),
+      par('Abonos con otros metodos', c.abonosOtros),
+      if (c.notas.isNotEmpty) ...[const LSeparador(), const LTexto('Notas de apertura:', negrita: true), LTexto(c.notas)],
+      if (c.notasCierre.isNotEmpty) ...[const LSeparador(), const LTexto('Notas de cierre:', negrita: true), LTexto(c.notasCierre)],
+      const LEspacio(),
     ];
   }
 

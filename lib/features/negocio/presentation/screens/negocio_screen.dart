@@ -1590,6 +1590,16 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
           ),
           Divider(color: Colors.grey.shade200, height: 28),
           _filaSwitchFactura(
+            titulo: 'Imprimir copia del recibo de abono',
+            descripcion:
+                'Si lo activa, cada recibo de abono (de clientes y de proveedores) sale primero como ORIGINAL y después como COPIA, ambos con espacio para firma. Si lo apaga, sale solo el original.',
+            valor: widget.modelo.reciboAbonoImprimirCopia,
+            onChanged: (v) => ref
+                .read(negocioRepositoryProvider)
+                .establecerReciboAbonoImprimirCopia(v),
+          ),
+          Divider(color: Colors.grey.shade200, height: 28),
+          _filaSwitchFactura(
             titulo: 'Mostrar precios con ISV incluido',
             descripcion:
                 'El precio unitario y el importe de cada producto en el ticket se muestran con ISV incluido (el total y el desglose de ISV no cambian).',

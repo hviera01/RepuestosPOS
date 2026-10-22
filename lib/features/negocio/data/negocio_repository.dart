@@ -181,6 +181,10 @@ class NegocioRepository with ConRedMixin {
     return _guardar({'impresora_etiquetas_url': url, 'impresora_etiquetas_nombre': nombre});
   }
 
+  Future<void> establecerReciboAbonoImprimirCopia(bool valor) {
+    return _guardar({'recibo_abono_imprimir_copia': valor});
+  }
+
   Future<void> establecerFacturaImprimirCopia(bool valor) {
     return _guardar({'factura_imprimir_copia': valor});
   }

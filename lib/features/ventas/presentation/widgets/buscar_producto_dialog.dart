@@ -319,7 +319,12 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   }
 
   void _buscarYElegirPrimero() {
-    _focusBusqueda.requestFocus();
+    final movil = MediaQuery.of(context).size.width < 720;
+    if (movil) {
+      FocusManager.instance.primaryFocus?.unfocus();
+    } else {
+      _focusBusqueda.requestFocus();
+    }
     final texto = limpiarCodigoEscaneado(_busquedaController.text);
     if (texto.isNotEmpty && texto == _busquedaAplicada && _listaActual.isNotEmpty) {
       final resaltado = _listaActual.where((p) => p.id == _filaSeleccionada).toList();
@@ -412,7 +417,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.all(esMovil ? 14 : 24),
-          child: Column(
+          child: _envolverMovil(esMovil, Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -551,8 +556,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                 ],
               ),
               const SizedBox(height: 16),
-              Expanded(
-                child: Container(
+              _expandirSiEscritorio(esMovil, Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
@@ -607,14 +611,16 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                         }
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: esMovil ? MainAxisSize.min : MainAxisSize.max,
                           children: [
                             if (!esMovil) ...[
                               _encabezadoTabla(),
                               const SizedBox(height: 10),
                               Divider(height: 1, color: Colors.grey.shade300),
                             ],
-                            Expanded(
-                              child: ListView.separated(
+                            _expandirSiEscritorio(esMovil, ListView.separated(
+                                shrinkWrap: esMovil,
+                                physics: esMovil ? const NeverScrollableScrollPhysics() : null,
                                 itemCount: lista.length,
                                 separatorBuilder: (context, i) => Divider(
                                   height: 1,
@@ -638,8 +644,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                                           mapaProductos,
                                         );
                                 },
-                              ),
-                            ),
+                              )),
                           ],
                         );
                       },
@@ -656,14 +661,22 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                       ),
                     ),
                   ),
-                ),
-              ),
+                )),
             ],
-          ),
+          )),
         ),
       ),
     );
   }
+
+  Widget _envolverMovil(bool movil, Widget hijo) => movil
+      ? SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: hijo,
+        )
+      : hijo;
+
+  Widget _expandirSiEscritorio(bool movil, Widget hijo) => movil ? hijo : Expanded(child: hijo);
 
   Widget _selectorSeccion() {
     Widget opcion(String texto, bool combos) {

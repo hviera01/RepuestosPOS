@@ -1,3 +1,4 @@
+import '../../../core/services/ticket_generico.dart';
 import 'dart:typed_data';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -26,6 +27,51 @@ class ResumenDiaExportService {
         ('ISV cobrado', formatearMoneda(r.impuesto)),
         ('Unidades vendidas', r.unidades.toStringAsFixed(r.unidades == r.unidades.roundToDouble() ? 0 : 2)),
       ];
+
+  List<LineaTicket> lineasTicket(ResumenOperaciones r, NegocioModel negocio, {String? usuario}) {
+    LPar par(String a, String b, {bool negrita = false}) => LPar(a, b, negrita: negrita);
+    return [
+      ...TicketGenerico.encabezado(negocio),
+      const LSeparador(),
+      const LTexto('RESUMEN DEL DIA', alineacion: AlineacionTicket.centro, negrita: true),
+      LTexto(_periodo(r), alineacion: AlineacionTicket.centro),
+      if (usuario != null) LTexto('Usuario: $usuario', alineacion: AlineacionTicket.centro),
+      const LSeparador(),
+      for (final (a, b) in _filasPrincipales(r)) par(a, b),
+      const LSeparador(),
+      const LTexto('FORMAS DE PAGO', negrita: true),
+      par('Efectivo', formatearMoneda(r.efectivo)),
+      par('Tarjeta', formatearMoneda(r.tarjeta)),
+      par('Transferencia', formatearMoneda(r.transferencia)),
+      par('Cheque', formatearMoneda(r.cheque)),
+      par('Credito', formatearMoneda(r.credito)),
+      const LSeparador(),
+      const LTexto('DINERO EN EFECTIVO', negrita: true),
+      par('Entradas', formatearMoneda(r.entradasEfectivo)),
+      par('Salidas', formatearMoneda(r.salidasEfectivo)),
+      par('Neto', formatearMoneda(r.netoEfectivo), negrita: true),
+      const LSeparador(),
+      const LTexto('OTRAS OPERACIONES', negrita: true),
+      par('Abonos de clientes (${r.abonosClientesCantidad})', formatearMoneda(r.abonosClientesTotal)),
+      par('Compras (${r.comprasCantidad})', formatearMoneda(r.comprasTotal)),
+      par('Pagos a proveedores (${r.abonosProveedoresCantidad})', formatearMoneda(r.abonosProveedoresTotal)),
+      par('Egresos (${r.egresosCantidad})', formatearMoneda(r.egresosTotal)),
+      par('Traslados (${r.trasladosCantidad})', '${r.trasladosUnidades.toStringAsFixed(0)} u.'),
+      par('Ventas anuladas (${r.anuladasCantidad})', formatearMoneda(r.anuladasTotal)),
+      par('Cotizaciones (${r.cotizacionesCantidad})', formatearMoneda(r.cotizacionesTotal)),
+      if (r.porUsuario.isNotEmpty) ...[
+        const LSeparador(),
+        const LTexto('POR USUARIO', negrita: true),
+        for (final u in r.porUsuario) par('${u.etiqueta} (${u.cantidad})', formatearMoneda(u.total)),
+      ],
+      if (r.topProductos.isNotEmpty) ...[
+        const LSeparador(),
+        const LTexto('MAS VENDIDOS', negrita: true),
+        for (final p in r.topProductos.take(5)) par('${p.cantidad} x ${p.etiqueta}', formatearMoneda(p.total)),
+      ],
+      const LEspacio(),
+    ];
+  }
 
   Future<Uint8List> generarTicket(ResumenOperaciones r, NegocioModel negocio, {String? usuario, PdfPageFormat? formatoImpresora}) async {
     final doc = pw.Document();

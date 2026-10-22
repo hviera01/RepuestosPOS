@@ -50,7 +50,7 @@ class VentaTicketEscPosService {
     final perfil = await CapabilityProfile.load();
     final paperSize = _paperSizePara(negocio);
     final generador = Generator(paperSize, perfil);
-    final logo = !negocio.logoEnTicket ? null : decodificarLogoEscPos(negocio.logoBnBase64, maxDimension: paperSize == PaperSize.mm58 ? 280 : 420);
+    final logo = !negocio.logoEnTicket ? null : decodificarLogoEscPos(negocio.logoBnBase64, maxDimension: paperSize == PaperSize.mm58 ? 130 : 180);
     final anchoDescripcion = _anchoDescripcionPara(paperSize);
     final anchoTexto = _anchoTextoPara(paperSize);
 
@@ -74,7 +74,7 @@ class VentaTicketEscPosService {
 
     if (grande) {
       final imagen = await _renderizarGuiaRotada(venta, negocio);
-      bytes += generador.image(imagen);
+      bytes += generador.imageRaster(imagen, align: PosAlign.center);
       bytes += generador.emptyLines(2);
       bytes += generador.cut();
       return bytes;
@@ -109,7 +109,7 @@ class VentaTicketEscPosService {
     }
 
     bytes += generador.hr();
-    bytes += _texto(generador, '${tiposDocumento[venta.tipoDocumento] ?? venta.tipoDocumento} ${negocio.rangoPrefijo}${venta.numeroDocumento}');
+    bytes += _texto(generador, '${tiposDocumento[venta.tipoDocumento] ?? venta.tipoDocumento} ${venta.tipoDocumento == 'Factura' ? negocio.rangoPrefijo : ''}${venta.numeroDocumento}');
     bytes += _texto(generador, 'Fecha: ${venta.fechaRegistro != null ? formatoFecha.format(venta.fechaRegistro!) : '-'}');
     if (venta.nombreCliente.isNotEmpty && venta.nombreCliente != venta.envioNombre) {
       bytes += _texto(generador, 'Comprador: ${venta.nombreCliente}');
@@ -131,7 +131,7 @@ class VentaTicketEscPosService {
       if (venta.envioTelefono.isNotEmpty) _SeccionGuiaGrande('TELEFONO', venta.envioTelefono, fontEtiqueta: 26, fontValor: 65, maxAnchoValor: 400),
       _SeccionGuiaGrande(
         negocio.nombre.isEmpty ? '' : negocio.nombre.toUpperCase(),
-        '${tiposDocumento[venta.tipoDocumento] ?? venta.tipoDocumento} ${negocio.rangoPrefijo}${venta.numeroDocumento}',
+        '${tiposDocumento[venta.tipoDocumento] ?? venta.tipoDocumento} ${venta.tipoDocumento == 'Factura' ? negocio.rangoPrefijo : ''}${venta.numeroDocumento}',
         fontEtiqueta: 22,
         fontValor: 28,
         maxAnchoValor: 500,
@@ -247,7 +247,7 @@ class VentaTicketEscPosService {
 
     List<int> bytes = [];
 
-    if (logo != null) bytes += generador.image(logo);
+    if (logo != null) bytes += generador.imageRaster(logo, align: PosAlign.center);
     if (negocio.nombre.isNotEmpty) {
       bytes += _encabezadoNombreNegocio(generador, negocio.nombre, anchoTexto);
     }
@@ -256,11 +256,11 @@ class VentaTicketEscPosService {
     if (negocio.rtn.isNotEmpty) bytes += _texto(generador, 'RTN: ${negocio.rtn}', styles: const PosStyles(align: PosAlign.center), maxAncho: anchoTexto);
     if (negocio.telefono.isNotEmpty) bytes += _texto(generador, 'Tel: ${negocio.telefono}', styles: const PosStyles(align: PosAlign.center), maxAncho: anchoTexto);
     if (negocio.correo.isNotEmpty) bytes += _texto(generador, 'Email: ${negocio.correo}', styles: const PosStyles(align: PosAlign.center), maxAncho: anchoTexto);
-    if (negocio.cai.isNotEmpty) bytes += _texto(generador, 'CAI: ${negocio.cai}', styles: const PosStyles(align: PosAlign.center), maxAncho: anchoTexto);
+    if (venta.tipoDocumento == 'Factura' && negocio.cai.isNotEmpty) bytes += _texto(generador, 'CAI: ${negocio.cai}', styles: const PosStyles(align: PosAlign.center), maxAncho: anchoTexto);
     bytes += generador.emptyLines(1);
     bytes += generador.hr();
 
-    bytes += _texto(generador, '${(tiposDocumento[venta.tipoDocumento] ?? venta.tipoDocumento).toUpperCase()} ${negocio.rangoPrefijo}${venta.numeroDocumento}', styles: const PosStyles(bold: true), maxAncho: anchoTexto);
+    bytes += _texto(generador, '${(tiposDocumento[venta.tipoDocumento] ?? venta.tipoDocumento).toUpperCase()} ${venta.tipoDocumento == 'Factura' ? negocio.rangoPrefijo : ''}${venta.numeroDocumento}', styles: const PosStyles(bold: true), maxAncho: anchoTexto);
     bytes += _texto(generador, 'Fecha: ${venta.fechaRegistro != null ? formatoFecha.format(venta.fechaRegistro!) : '-'}', maxAncho: anchoTexto);
     bytes += _texto(generador, 'Atendido por: ${venta.usuarioRegistro}', maxAncho: anchoTexto);
     bytes += _texto(generador, 'Condicion: ${venta.condicion}', maxAncho: anchoTexto);
@@ -335,10 +335,10 @@ class VentaTicketEscPosService {
     }
     bytes += generador.hr();
 
-    if (negocio.rangoPrefijo.isNotEmpty || negocio.rangoDesde.isNotEmpty) {
+    if (venta.tipoDocumento == 'Factura' && (negocio.rangoPrefijo.isNotEmpty || negocio.rangoDesde.isNotEmpty)) {
       bytes += _texto(generador, 'Rango Aut.: ${negocio.rangoPrefijo}${negocio.rangoDesde} al ${negocio.rangoPrefijo}${negocio.rangoHasta}', maxAncho: anchoTexto);
     }
-    if (negocio.fechaLimiteEmision != null) {
+    if (venta.tipoDocumento == 'Factura' && negocio.fechaLimiteEmision != null) {
       bytes += _texto(generador, 'Fecha Limite: ${formatoDia.format(negocio.fechaLimiteEmision!)}', maxAncho: anchoTexto);
     }
     bytes += generador.emptyLines(1);
