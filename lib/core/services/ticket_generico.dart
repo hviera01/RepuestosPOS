@@ -152,7 +152,7 @@ class TicketGenerico {
     salida += g.reset();
     for (final lineas in copias) {
       if (logo != null) {
-        salida += g.imageRaster(logo, align: PosAlign.center);
+        salida += rasterEscPos(logo);
       }
       for (final r in renderizar(lineas, columnas)) {
         if (r.separador) {

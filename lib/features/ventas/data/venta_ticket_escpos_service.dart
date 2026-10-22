@@ -74,7 +74,7 @@ class VentaTicketEscPosService {
 
     if (grande) {
       final imagen = await _renderizarGuiaRotada(venta, negocio);
-      bytes += generador.imageRaster(imagen, align: PosAlign.center);
+      bytes += rasterEscPos(imagen);
       bytes += generador.emptyLines(2);
       bytes += generador.cut();
       return bytes;
@@ -247,7 +247,7 @@ class VentaTicketEscPosService {
 
     List<int> bytes = [];
 
-    if (logo != null) bytes += generador.imageRaster(logo, align: PosAlign.center);
+    if (logo != null) bytes += rasterEscPos(logo);
     if (negocio.nombre.isNotEmpty) {
       bytes += _encabezadoNombreNegocio(generador, negocio.nombre, anchoTexto);
     }
