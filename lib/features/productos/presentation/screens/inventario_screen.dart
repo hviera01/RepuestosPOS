@@ -1551,6 +1551,34 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                       ),
                     ),
                   ],
+                  if (p.marca.isNotEmpty) ...[
+                    Divider(height: 1, color: Colors.grey.shade200),
+                    _filaDatoTarjeta(
+                      'MARCA',
+                      Text(
+                        p.marca,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF1565C0),
+                        ),
+                      ),
+                    ),
+                  ],
+                  if (p.origen.isNotEmpty) ...[
+                    Divider(height: 1, color: Colors.grey.shade200),
+                    _filaDatoTarjeta(
+                      'ORIGEN',
+                      Text(
+                        p.origen,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF2E7D32),
+                        ),
+                      ),
+                    ),
+                  ],
                   Divider(height: 1, color: Colors.grey.shade200),
                   _filaDatoTarjeta(
                     'EXISTENCIA',

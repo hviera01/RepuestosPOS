@@ -57,6 +57,8 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
   bool _escribiendoNombre = false;
   final _descripcionController = TextEditingController();
   final _ubicacionController = TextEditingController();
+  final _marcaController = TextEditingController();
+  final _origenController = TextEditingController();
   final _stockController = TextEditingController(text: '0');
   final _precioCompraController = TextEditingController(text: '0');
   final _precioVentaController = TextEditingController(text: '0');
@@ -119,6 +121,8 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
       _nombreAuto = p.nombreAutomatico;
       _descripcionController.text = p.descripcion;
       _ubicacionController.text = p.ubicacion;
+      _marcaController.text = p.marca;
+      _origenController.text = p.origen;
       _stockController.text = p.stock.toString();
       _precioCompraController.text = p.precioCompra.toString();
       _precioVentaController.text = p.precioVenta.toString();
@@ -167,6 +171,8 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
     _nombreBaseController.dispose();
     _descripcionController.dispose();
     _ubicacionController.dispose();
+    _marcaController.dispose();
+    _origenController.dispose();
     _stockController.dispose();
     _precioCompraController.dispose();
     _precioVentaController.dispose();
@@ -325,6 +331,8 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
               nombreBase: _nombreBaseController.text,
               nombreAutomatico: _nombreAuto,
               compatibilidad: _compat,
+              marca: _marcaController.text,
+              origen: _origenController.text,
             )
             .timeout(const Duration(seconds: 12)),
       );
@@ -360,6 +368,8 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
             nombreBase: _nombreBaseController.text,
             nombreAutomatico: _nombreAuto,
             compatibilidad: _compat,
+            marca: _marcaController.text,
+            origen: _origenController.text,
           )
           .timeout(const Duration(seconds: 12));
       return true;
@@ -742,6 +752,40 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
           style: GoogleFonts.poppins(fontSize: 14),
           decoration: _decoracion('Ubicación física (opcional, ej. PASILLO 2 - ESTANTE B)'),
         ),
+      ),
+      const SizedBox(height: 14),
+      Row(
+        children: [
+          Expanded(
+            child: CampoTecladoCompacto(
+              controller: _marcaController,
+              numerico: false,
+              child: TextField(
+                inputFormatters: [mayusculasInputFormatter],
+                autocorrect: false,
+                enableSuggestions: false,
+                controller: _marcaController,
+                style: GoogleFonts.poppins(fontSize: 14),
+                decoration: _decoracion('Marca (opcional, ej. 555, KYB)'),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: CampoTecladoCompacto(
+              controller: _origenController,
+              numerico: false,
+              child: TextField(
+                inputFormatters: [mayusculasInputFormatter],
+                autocorrect: false,
+                enableSuggestions: false,
+                controller: _origenController,
+                style: GoogleFonts.poppins(fontSize: 14),
+                decoration: _decoracion('Origen (opcional, ej. JAPÓN)'),
+              ),
+            ),
+          ),
+        ],
       ),
       const SizedBox(height: 14),
       categoriasAsync.when(

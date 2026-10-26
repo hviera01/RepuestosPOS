@@ -36,6 +36,8 @@ class ProductoModel {
   final String nombreBase;
   final bool nombreAutomatico;
   final List<CompatibilidadModel> compatibilidad;
+  final String marca;
+  final String origen;
 
   ProductoModel({
     required this.id,
@@ -57,6 +59,8 @@ class ProductoModel {
     this.nombreBase = '',
     this.nombreAutomatico = false,
     this.compatibilidad = const [],
+    this.marca = '',
+    this.origen = '',
   });
 
   factory ProductoModel.fromMap(String id, Map<String, dynamic> data) {
@@ -84,10 +88,12 @@ class ProductoModel {
       compatibilidad: (data['compatibilidad'] as List<dynamic>? ?? [])
           .map((c) => CompatibilidadModel.fromMap(Map<String, dynamic>.from(c as Map)))
           .toList(),
+      marca: data['marca'] ?? '',
+      origen: data['origen'] ?? '',
     );
   }
 
-  String get textoBusqueda => '$codigo $codigoBarras $nombre $descripcion $ubicacion $textoVehiculos';
+  String get textoBusqueda => '$codigo $codigoBarras $nombre $descripcion $ubicacion $marca $origen $textoVehiculos';
 
   String get textoVehiculos => compatibilidad.map((c) => c.textoCompleto).join(' ');
 

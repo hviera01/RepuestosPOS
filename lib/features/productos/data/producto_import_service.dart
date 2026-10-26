@@ -11,6 +11,8 @@ class FilaImportacionProducto {
   final double precioVenta;
   final double precioCompra;
   final bool estado;
+  final String marca;
+  final String origen;
   final String? error;
 
   FilaImportacionProducto({
@@ -23,6 +25,8 @@ class FilaImportacionProducto {
     required this.precioVenta,
     required this.precioCompra,
     required this.estado,
+    this.marca = '',
+    this.origen = '',
     this.error,
   });
 
@@ -32,13 +36,15 @@ class FilaImportacionProducto {
 class ProductoImportService {
   static const _sinonimos = <String, List<String>>{
     'codigo': ['codigo'],
-    'nombre': ['nombre'],
-    'descripcion': ['descripcion'],
+    'nombre': ['nombre', 'descripcion'],
+    'descripcion': ['descripcion', 'detalle'],
     'categoria': ['categoria'],
-    'stock': ['stock', 'existencia'],
+    'stock': ['stock', 'existencia', 'cantidad'],
     'precioVenta': ['precioventa', 'preciodeventa'],
     'precioCompra': ['preciocompra', 'preciodecompra'],
     'estado': ['estado'],
+    'marca': ['marca', 'marcaorigen'],
+    'origen': ['origen', 'paisdeorigen'],
   };
 
   String _normalizar(String texto) {
@@ -148,6 +154,8 @@ class ProductoImportService {
         precioVenta: precioVenta ?? 0,
         precioCompra: precioCompra ?? 0,
         estado: _parseEstado(celda(fila, 'estado')),
+        marca: celda(fila, 'marca').trim(),
+        origen: celda(fila, 'origen').trim(),
         error: error,
       ));
     }

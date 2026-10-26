@@ -117,12 +117,16 @@ create table productos (
   imagen_url text not null default '',
   es_combo boolean not null default false,
   componentes jsonb not null default '[]'::jsonb,
-  fecha_registro timestamptz not null default now()
+  fecha_registro timestamptz not null default now(),
+  marca text not null default '',
+  origen text not null default ''
 );
 create unique index uq_productos_codigo on productos (codigo);
 create index idx_productos_id_categoria on productos (id_categoria);
 create index idx_productos_codigo_barras on productos (codigo_barras);
 create index idx_productos_nombre on productos (nombre);
+create index idx_productos_marca on productos (marca);
+create index idx_productos_origen on productos (origen);
 comment on table productos is 'Reemplaza la colección productos.';
 
 create table compras (

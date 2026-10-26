@@ -73,6 +73,8 @@ class ProductoRepository with ConRedMixin {
     String nombreBase = '',
     bool nombreAutomatico = false,
     List<CompatibilidadModel> compatibilidad = const [],
+    String marca = '',
+    String origen = '',
   }) {
     return conRedExito('Producto creado correctamente', () async {
       var codigoFinal = codigo.trim();
@@ -103,6 +105,8 @@ class ProductoRepository with ConRedMixin {
         'nombre_base': nombreBase.trim(),
         'nombre_automatico': nombreAutomatico,
         'compatibilidad': compatibilidad.map((c) => c.toMap()).toList(),
+        'marca': marca.trim(),
+        'origen': origen.trim(),
       }).select().single();
       } on PostgrestException catch (e) {
         throw _traducirDuplicado(e);
@@ -140,6 +144,8 @@ class ProductoRepository with ConRedMixin {
         nombreBase: nombreBase.trim(),
         nombreAutomatico: nombreAutomatico,
         compatibilidad: compatibilidad,
+        marca: marca.trim(),
+        origen: origen.trim(),
       );
     });
   }
@@ -163,6 +169,8 @@ class ProductoRepository with ConRedMixin {
     String? nombreBase,
     bool? nombreAutomatico,
     List<CompatibilidadModel>? compatibilidad,
+    String? marca,
+    String? origen,
   }) {
     return conRedExito('Producto actualizado correctamente', () async {
       final codigoFinal = codigo.trim().isEmpty ? _generarCodigo() : codigo.trim();
@@ -174,6 +182,7 @@ class ProductoRepository with ConRedMixin {
         'codigo_barras': codigoBarras.trim(),
         'nombre': nombre.trim(),
         'descripcion': descripcion.trim(),
+        'ubicacion': ubicacion.trim(),
         'id_categoria': idCategoria.isEmpty ? null : idCategoria,
         'precio_compra': precioCompra,
         'precio_venta': precioVenta,
@@ -187,6 +196,8 @@ class ProductoRepository with ConRedMixin {
       if (nombreBase != null) datos['nombre_base'] = nombreBase.trim();
       if (nombreAutomatico != null) datos['nombre_automatico'] = nombreAutomatico;
       if (compatibilidad != null) datos['compatibilidad'] = compatibilidad.map((c) => c.toMap()).toList();
+      if (marca != null) datos['marca'] = marca.trim();
+      if (origen != null) datos['origen'] = origen.trim();
       _tabla.aplicarLocal({'id': id, ...datos});
       try {
         final fila = await _db.from('productos').update(datos).eq('id', id).select().single();
@@ -249,6 +260,8 @@ class ProductoRepository with ConRedMixin {
           'precio_compra': fila.precioCompra,
           'precio_venta': fila.precioVenta,
           'estado': fila.estado,
+          'marca': fila.marca.trim(),
+          'origen': fila.origen.trim(),
         };
 
         if (idExistente != null) {

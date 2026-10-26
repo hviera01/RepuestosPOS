@@ -958,6 +958,24 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                         const SizedBox(width: 8),
                         badge,
                       ],
+                      if (p.marca.isNotEmpty || p.origen.isNotEmpty) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE3F2FD),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            [p.marca, p.origen].where((s) => s.isNotEmpty).join(' • '),
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF1565C0),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -1132,7 +1150,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '${p.codigo} · ${mapaCategorias[p.idCategoria] ?? '-'}${p.ubicacion.isEmpty ? '' : ' · ${p.ubicacion}'}',
+                          '${p.codigo}${p.marca.isEmpty ? '' : ' · ${p.marca}'}${p.origen.isEmpty ? '' : ' (${p.origen})'} · ${mapaCategorias[p.idCategoria] ?? '-'}${p.ubicacion.isEmpty ? '' : ' · ${p.ubicacion}'}',
                           softWrap: true,
                           style: GoogleFonts.poppins(
                             fontSize: 12,
