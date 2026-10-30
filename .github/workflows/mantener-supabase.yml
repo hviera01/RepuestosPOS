@@ -9,13 +9,11 @@ jobs:
   mantener:
     runs-on: ubuntu-latest
     steps:
-      - name: Reanudar el proyecto si esta pausado
+      - name: Tocar la base para que no se pause por inactividad
         env:
-          TOKEN: ${{ secrets.SUPABASE_MGMT_TOKEN }}
-          REF: ezdbvudlqwcuzutdfaij
+          URL: https://ezdbvudlqwcuzutdfaij.supabase.co
+          ANON: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZGJ2dWRscXdjdXp1dGRmYWlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDU4MjcsImV4cCI6MjEwODA4MTgyN30.EkCTB5_9qOufNwY6yIm1h3SI0xO7_1FT55lWjz1vjys
         run: |
-          estado=$(curl -sf -H "Authorization: Bearer $TOKEN" "https://api.supabase.com/v1/projects/$REF" | jq -r '.status')
-          echo "Estado actual: $estado"
-          if [ "$estado" != "ACTIVE_HEALTHY" ]; then
-            curl -sf -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{}' "https://api.supabase.com/v1/projects/$REF/restore"
-          fi
+          codigo=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$URL/rest/v1/rpc/iniciar_sesion" -H "apikey: $ANON" -H "Content-Type: application/json" -d '{"p_documento":"0","p_clave":"0"}')
+          echo "Respuesta de la base: $codigo"
+          if [ "$codigo" -ge 500 ] || [ "$codigo" -eq 000 ]; then exit 1; fi
