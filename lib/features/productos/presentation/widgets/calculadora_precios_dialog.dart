@@ -127,39 +127,61 @@ class _PanelFormula extends StatelessWidget {
         ],
       );
     });
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: const Color(0xFFF6F7F9), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE1E4EA))),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Precio = costo × (1 + porcentaje). Después se suma el ISV del producto y el resultado es el precio final, que es el que se guarda y se cobra.',
-            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600),
-          ),
-          const SizedBox(height: 8),
-          Wrap(spacing: 22, children: filas),
-          const SizedBox(height: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Redondeo del precio final', style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600)),
-              DropdownButton<RedondeoPrecio>(
-                value: redondeo,
-                isDense: true,
-                isExpanded: true,
-                onChanged: bloqueado ? null : (v) => onRedondeo(v ?? RedondeoPrecio.ninguno),
-                items: const [
-                  DropdownMenuItem(value: RedondeoPrecio.multiploCinco, child: Text('Hacia arriba al 5 (33 → 35, 27 → 30)', overflow: TextOverflow.ellipsis)),
-                  DropdownMenuItem(value: RedondeoPrecio.entero, child: Text('Hacia arriba al entero (33.40 → 34)', overflow: TextOverflow.ellipsis)),
-                  DropdownMenuItem(value: RedondeoPrecio.ninguno, child: Text('Sin redondear')),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
+    final desplegable = DropdownButton<RedondeoPrecio>(
+      value: redondeo,
+      isDense: true,
+      isExpanded: true,
+      onChanged: bloqueado ? null : (v) => onRedondeo(v ?? RedondeoPrecio.ninguno),
+      items: const [
+        DropdownMenuItem(value: RedondeoPrecio.multiploCinco, child: Text('Hacia arriba al 5 (33 → 35, 27 → 30)', overflow: TextOverflow.ellipsis)),
+        DropdownMenuItem(value: RedondeoPrecio.entero, child: Text('Hacia arriba al entero (33.40 → 34)', overflow: TextOverflow.ellipsis)),
+        DropdownMenuItem(value: RedondeoPrecio.ninguno, child: Text('Sin redondear')),
+      ],
     );
+    final etiquetaRedondeo = Text('Redondeo del precio final', style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600));
+    return LayoutBuilder(builder: (context, restr) {
+      final ancho = restr.maxWidth >= 900;
+      return Container(
+        padding: EdgeInsets.all(ancho ? 10 : 14),
+        decoration: BoxDecoration(color: const Color(0xFFF6F7F9), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE1E4EA))),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              ancho
+                  ? 'Precio = costo × (1 + porcentaje) + ISV del producto. El precio final es el que se guarda y se cobra.'
+                  : 'Precio = costo × (1 + porcentaje). Después se suma el ISV del producto y el resultado es el precio final, que es el que se guarda y se cobra.',
+              style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600),
+            ),
+            SizedBox(height: ancho ? 4 : 8),
+            if (ancho)
+              Wrap(
+                spacing: 22,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  ...filas,
+                  SizedBox(
+                    width: 420,
+                    child: Row(
+                      children: [
+                        etiquetaRedondeo,
+                        const SizedBox(width: 10),
+                        Expanded(child: desplegable),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+            else ...[
+              Wrap(spacing: 22, children: filas),
+              const SizedBox(height: 8),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [etiquetaRedondeo, desplegable]),
+            ],
+          ],
+        ),
+      );
+    });
   }
 }
 
@@ -330,6 +352,7 @@ class _CalculadoraPreciosDialogState extends ConsumerState<CalculadoraPreciosDia
   final Set<String> _seleccion = {};
   String _idCategoria = '';
   bool _aplicando = false;
+  bool? _formulaManual;
   int _avance = 0;
   int _total = 0;
   String? _error;
@@ -428,6 +451,7 @@ class _CalculadoraPreciosDialogState extends ConsumerState<CalculadoraPreciosDia
   Widget build(BuildContext context) {
     final tamano = MediaQuery.of(context).size;
     final esMovil = tamano.width < 720;
+    final formulaVisible = _formulaManual ?? tamano.height >= 700;
     final productosAsync = ref.watch(productosStreamProvider);
     final categorias = ref.watch(categoriasStreamProvider).asData?.value ?? const [];
     final todos = productosAsync.asData?.value ?? const <ProductoModel>[];
@@ -469,23 +493,36 @@ class _CalculadoraPreciosDialogState extends ConsumerState<CalculadoraPreciosDia
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 14, 24, 0),
-                          child: _PanelFormula(
-                            niveles: _niveles,
-                            cantidadNiveles: 3,
-                            redondeo: _redondeo,
-                            bloqueado: _aplicando,
-                            onCambio: () => setState(() {}),
-                            onRedondeo: (v) => setState(() => _redondeo = v),
+                        if (formulaVisible)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
+                            child: _PanelFormula(
+                              niveles: _niveles,
+                              cantidadNiveles: 3,
+                              redondeo: _redondeo,
+                              bloqueado: _aplicando,
+                              onCambio: () => setState(() {}),
+                              onRedondeo: (v) => setState(() => _redondeo = v),
+                            ),
                           ),
-                        ),
-                        Padding(padding: const EdgeInsets.fromLTRB(24, 12, 24, 0), child: _filtros(categorias, lista, esMovil)),
+                        Padding(padding: const EdgeInsets.fromLTRB(24, 8, 24, 0), child: _filtros(categorias, lista, esMovil)),
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 10, 24, 6),
-                          child: Text(
-                            '${_seleccion.length} seleccionados · ${lista.length} en la lista${sinCosto > 0 ? ' · $sinCosto sin costo no aparecen' : ''}',
-                            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600),
+                          padding: const EdgeInsets.fromLTRB(24, 2, 16, 2),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  '${_seleccion.length} seleccionados · ${lista.length} en la lista${sinCosto > 0 ? ' · $sinCosto sin costo no aparecen' : ''}${formulaVisible ? '' : ' · ${_resumenNiveles()}'}',
+                                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600),
+                                ),
+                              ),
+                              TextButton.icon(
+                                onPressed: () => setState(() => _formulaManual = !formulaVisible),
+                                icon: Icon(formulaVisible ? Icons.unfold_less : Icons.unfold_more, size: 18),
+                                label: Text(formulaVisible ? 'Ocultar fórmula' : 'Mostrar fórmula', style: GoogleFonts.poppins(fontSize: 12)),
+                                style: TextButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), visualDensity: VisualDensity.compact),
+                              ),
+                            ],
                           ),
                         ),
                         esMovil ? _tabla(lista) : Flexible(child: _tabla(lista)),
@@ -503,7 +540,7 @@ class _CalculadoraPreciosDialogState extends ConsumerState<CalculadoraPreciosDia
                 ),
               ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 10, 24, 20),
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 14),
               child: _resultado != null
                   ? Align(
                       alignment: Alignment.centerRight,
@@ -695,14 +732,20 @@ class _CalculadoraPreciosDialogState extends ConsumerState<CalculadoraPreciosDia
                       return InkWell(
                         onTap: _aplicando ? null : () => setState(() => marcado ? _seleccion.remove(p.id) : _seleccion.add(p.id)),
                         child: Container(
-                          constraints: const BoxConstraints(minHeight: 52),
-                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          constraints: const BoxConstraints(minHeight: 44),
+                          padding: const EdgeInsets.symmetric(vertical: 3),
                           decoration: BoxDecoration(color: marcado ? Marca.primario.withOpacity(0.05) : null, border: Border(bottom: BorderSide(color: Colors.grey.shade200))),
                           child: Row(
                             children: [
                               SizedBox(
                                 width: 48,
-                                child: Checkbox(value: marcado, activeColor: Marca.primario, onChanged: _aplicando ? null : (v) => setState(() => v == true ? _seleccion.add(p.id) : _seleccion.remove(p.id))),
+                                child: Checkbox(
+                                  value: marcado,
+                                  activeColor: Marca.primario,
+                                  visualDensity: VisualDensity.compact,
+                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  onChanged: _aplicando ? null : (v) => setState(() => v == true ? _seleccion.add(p.id) : _seleccion.remove(p.id)),
+                                ),
                               ),
                               SizedBox(
                                 width: anchoProducto,

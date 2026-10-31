@@ -115,9 +115,11 @@ ${figura(
 )}
 ${aviso('Nada se guarda hasta que presione <b>Aplicar</b> y confirme. Al aplicar, el precio nuevo <b>reemplaza</b> al precio actual de los repuestos marcados y no hay un botón para deshacerlo: revise la columna Se guardará antes de aplicar. Los repuestos sin precio de compra y los combos no aparecen en la lista porque no se puede calcular su precio.', 'Antes de aplicar')}
 ${consejo('Puede cambiar solo los Precios 2 y 3 sin tocar el Precio 1: deje marcados únicamente esos dos. Cada precio tiene su propio porcentaje, por ejemplo 45% para el público, 30% para talleres y 20% para mayoristas.')}
+${consejo('Para ver más repuestos a la vez en la tabla, presione <b>Ocultar fórmula</b> (arriba a la derecha de la tabla): el panel de porcentajes se esconde y la tabla crece. <b>Mostrar fórmula</b> lo vuelve a abrir. En pantallas bajas la fórmula arranca oculta.')}
 
 <h4>Calculadora dentro de la ficha del repuesto</h4>
-<p>Al crear o editar un repuesto, escriba primero el <b>Precio Compra</b> y presione <b>Calculadora</b> (debajo del Precio Venta). Se abre la misma calculadora para ese repuesto, con una sola fila. Al presionar <b>Usar estos precios</b> se llenan Precio Venta y, si los calculó, los niveles 2 y 3. Después presione <b>Guardar</b> para que queden en el repuesto.</p>
+<p>Al crear un repuesto nuevo, escriba primero el <b>Precio Compra</b> y presione <b>Calculadora</b> (debajo del Precio Venta). Se abre la misma calculadora para ese repuesto, con una sola fila. Al presionar <b>Usar estos precios</b> se llenan Precio Venta y, si los calculó, los niveles 2 y 3. Después presione <b>Guardar</b> para que queden en el repuesto.</p>
+${aviso('Este botón solo aparece al crear un repuesto nuevo. Para cambiar los precios de repuestos que ya existen, use la <b>Calculadora de precios</b> del Inventario: ahí puede marcar uno o varios y ver todos a la vez en la tabla.')}
 ${figura(
   captura('producto_calc_boton.png', [{ n: 1, x: 1050, y: 429 }, { n: 2, x: 1000, y: 480 }, { n: 3, x: 940, y: 549 }, { n: 4, x: 1012, y: 549 }]),
   'Ficha de un repuesto nuevo con el precio de compra escrito.',

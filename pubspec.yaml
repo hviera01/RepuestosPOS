@@ -2,7 +2,7 @@ name: repuestos_pos
 description: "Sistema de ventas, compras e inventario de Autoparts"
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.11+11
+version: 1.0.12+12
 
 environment:
   sdk: ^3.12.2

@@ -989,20 +989,22 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
               decoration: _decoracion('Impuesto (ISV)').copyWith(suffixText: '%'),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: OutlinedButton.icon(
-            onPressed: _abrirCalculadora,
-            icon: const Icon(Icons.calculate_outlined, size: 18),
-            label: Text('Calculadora', style: GoogleFonts.poppins(fontSize: 12.5)),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF1A1A1A),
-              side: const BorderSide(color: Color(0xFFB6BCC7)),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          if (widget.producto == null) ...[
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _abrirCalculadora,
+                icon: const Icon(Icons.calculate_outlined, size: 18),
+                label: Text('Calculadora', style: GoogleFonts.poppins(fontSize: 12.5)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF1A1A1A),
+                  side: const BorderSide(color: Color(0xFFB6BCC7)),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
             ),
-          ),
-          ),
+          ],
         ],
       ),
       const SizedBox(height: 6),
