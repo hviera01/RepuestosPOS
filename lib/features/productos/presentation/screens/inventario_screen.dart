@@ -13,10 +13,12 @@ import '../../providers/productos_provider.dart';
 import '../../../categorias/providers/categorias_provider.dart';
 import '../../../../core/utils/texto_utils.dart';
 import '../../../../core/utils/formato_moneda.dart';
+import '../../../../core/utils/columnas_tabla.dart';
 import '../../../../core/utils/exportador.dart';
 import '../widgets/producto_form_dialog.dart';
 import '../widgets/detalle_producto_dialog.dart';
 import '../widgets/importar_inventario_dialog.dart';
+import '../widgets/calculadora_precios_dialog.dart';
 import '../widgets/exportar_inventario_opciones_dialog.dart';
 import '../widgets/ajuste_stock_dialog.dart';
 import '../widgets/historial_stock_dialog.dart';
@@ -288,6 +290,21 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
       useRootNavigator: false,
       context: context,
       builder: (context) => HistorialStockDialog(producto: producto),
+    );
+  }
+
+  Future<void> _abrirCalculadoraPrecios() async {
+    final autorizado = (await verificarAccesoEspecial(
+      context,
+      ref,
+      PermisosEspeciales.inventarioEditarProducto,
+    )).autorizado;
+    if (!autorizado || !mounted) return;
+    showDialog(
+      useRootNavigator: false,
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const CalculadoraPreciosDialog(),
     );
   }
 
@@ -846,6 +863,50 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                         ),
                       ),
                       OutlinedButton.icon(
+                        onPressed: () => mostrarElegirColumnas(context, ConfigColumnasTabla.inventario, const {
+                          'descripcion': 'Descripción',
+                          'categoria': 'Categoría',
+                          'ubicacion': 'Ubicación',
+                          'marca': 'Marca',
+                          'origen': 'Origen',
+                          'codigoBarras': 'Código de barras',
+                          'existencia': 'Existencia',
+                          'precioVenta': 'Precio de venta (final)',
+                          'precioVenta2': 'Precio de venta 2',
+                          'precioVenta3': 'Precio de venta 3',
+                          'impuesto': 'ISV (porcentaje e importe incluido)',
+                          'precioCompra': 'Precio de compra',
+                          'estado': 'Estado',
+                        }),
+                        icon: const Icon(Icons.view_column_outlined, size: 18),
+                        label: Text('Columnas', style: GoogleFonts.poppins(fontSize: 13)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF1A1A1A),
+                          side: const BorderSide(color: Color(0xFFB6BCC7)),
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: _abrirCalculadoraPrecios,
+                        icon: const Icon(Icons.calculate_outlined, size: 18),
+                        label: Text(
+                          'Calculadora de precios',
+                          style: GoogleFonts.poppins(fontSize: 13),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF1A1A1A),
+                          side: const BorderSide(color: Color(0xFFB6BCC7)),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      OutlinedButton.icon(
                         key: _keyExcel,
                         onPressed: () => _exportarExcel(mapaCategorias),
                         icon: const Icon(Icons.grid_on_outlined, size: 18),
@@ -1060,12 +1121,34 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     Map<String, String> mapaCategorias,
     Map<String, ProductoModel> mapaProductos,
   ) {
+    return ValueListenableBuilder<Set<String>>(
+      valueListenable: ConfigColumnasTabla.inventario.visibles,
+      builder: (context, _, _) => _tablaInterna(lista, mapaCategorias, mapaProductos),
+    );
+  }
+
+  Widget _tablaInterna(
+    List<ProductoModel> lista,
+    Map<String, String> mapaCategorias,
+    Map<String, ProductoModel> mapaProductos,
+  ) {
+    final cols = ConfigColumnasTabla.inventario;
     return LayoutBuilder(
       builder: (context, constraints) {
         final ancho = constraints.maxWidth;
-        final mostrarDescripcion = ancho >= 1050;
-        final mostrarCategoria = ancho >= 850;
-        final mostrarUbicacion = ancho >= 760;
+        final mostrarDescripcion = ancho >= 1050 && cols.ver('descripcion');
+        final mostrarCategoria = ancho >= 850 && cols.ver('categoria');
+        final mostrarUbicacion = ancho >= 760 && cols.ver('ubicacion');
+        final verMarca = cols.ver('marca');
+        final verOrigen = cols.ver('origen');
+        final verCodigoBarras = cols.ver('codigoBarras');
+        final verExistencia = cols.ver('existencia');
+        final verPrecioVenta = cols.ver('precioVenta');
+        final verPrecioVenta2 = cols.ver('precioVenta2');
+        final verPrecioVenta3 = cols.ver('precioVenta3');
+        final verImpuesto = cols.ver('impuesto');
+        final verPrecioCompra = cols.ver('precioCompra');
+        final verEstado = cols.ver('estado');
 
         return Column(
           children: [
@@ -1096,23 +1179,32 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                     _celdaHeader(texto: 'CATEGORÍA', flex: 17),
                   if (mostrarUbicacion)
                     _celdaHeader(texto: 'UBICACIÓN', flex: 16),
-                  _celdaHeader(
-                    texto: 'EXISTENCIA',
-                    flex: 17,
-                    columnaOrdenKey: 'existencia',
-                    headerKey: _keyColumnaExistencia,
-                  ),
-                  _celdaHeader(
-                    texto: 'P. VENTA',
-                    flex: 14,
-                    columnaOrdenKey: 'precioVenta',
-                  ),
-                  _celdaHeader(
-                    texto: 'P. COMPRA',
-                    flex: 14,
-                    columnaOrdenKey: 'precioCompra',
-                  ),
-                  _celdaHeader(texto: 'ESTADO', flex: 11),
+                  if (verMarca) _celdaHeader(texto: 'MARCA', flex: 12),
+                  if (verOrigen) _celdaHeader(texto: 'ORIGEN', flex: 12),
+                  if (verCodigoBarras) _celdaHeader(texto: 'CÓD. BARRAS', flex: 15),
+                  if (verExistencia)
+                    _celdaHeader(
+                      texto: 'EXISTENCIA',
+                      flex: 17,
+                      columnaOrdenKey: 'existencia',
+                      headerKey: _keyColumnaExistencia,
+                    ),
+                  if (verPrecioVenta)
+                    _celdaHeader(
+                      texto: 'P. VENTA',
+                      flex: 14,
+                      columnaOrdenKey: 'precioVenta',
+                    ),
+                  if (verPrecioVenta2) _celdaHeader(texto: 'P. VENTA 2', flex: 14),
+                  if (verPrecioVenta3) _celdaHeader(texto: 'P. VENTA 3', flex: 14),
+                  if (verImpuesto) _celdaHeader(texto: 'ISV', flex: 16),
+                  if (verPrecioCompra)
+                    _celdaHeader(
+                      texto: 'P. COMPRA',
+                      flex: 14,
+                      columnaOrdenKey: 'precioCompra',
+                    ),
+                  if (verEstado) _celdaHeader(texto: 'ESTADO', flex: 11),
                   _celdaHeaderAcciones(headerKey: _keyColumnaAcciones),
                 ],
               ),
@@ -1229,6 +1321,22 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                                 ),
                               ),
                             ),
+                          if (verMarca)
+                            _celdaTabla(
+                              flex: 12,
+                              child: Text(producto.marca.isEmpty ? '-' : producto.marca, style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF3F434A))),
+                            ),
+                          if (verOrigen)
+                            _celdaTabla(
+                              flex: 12,
+                              child: Text(producto.origen.isEmpty ? '-' : producto.origen, style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF3F434A))),
+                            ),
+                          if (verCodigoBarras)
+                            _celdaTabla(
+                              flex: 15,
+                              child: Text(producto.codigoBarras.isEmpty ? '-' : producto.codigoBarras, style: GoogleFonts.poppins(fontSize: 11.5, color: const Color(0xFF3F434A))),
+                            ),
+                          if (verExistencia)
                           _celdaTabla(
                             flex: 17,
                             child: Align(
@@ -1267,6 +1375,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                               ),
                             ),
                           ),
+                          if (verPrecioVenta)
                           _celdaTabla(
                             flex: 14,
                             child: Text(
@@ -1279,6 +1388,47 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                               ),
                             ),
                           ),
+                          if (verPrecioVenta2)
+                            _celdaTabla(
+                              flex: 14,
+                              child: Text(
+                                producto.precioVenta2 > 0 ? formatearMoneda(producto.precioVenta2) : '-',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF3F434A)),
+                              ),
+                            ),
+                          if (verPrecioVenta3)
+                            _celdaTabla(
+                              flex: 14,
+                              child: Text(
+                                producto.precioVenta3 > 0 ? formatearMoneda(producto.precioVenta3) : '-',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF3F434A)),
+                              ),
+                            ),
+                          if (verImpuesto)
+                            _celdaTabla(
+                              flex: 16,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${producto.impuestoPorcentaje.toStringAsFixed(producto.impuestoPorcentaje == producto.impuestoPorcentaje.roundToDouble() ? 0 : 2)}%',
+                                    style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600, color: const Color(0xFF3F434A)),
+                                  ),
+                                  Text(
+                                    'incluye ${formatearMoneda(producto.precioVenta - producto.precioVenta / (1 + producto.impuestoPorcentaje / 100))}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade600),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          if (verPrecioCompra)
                           _celdaTabla(
                             flex: 14,
                             child: Text(
@@ -1291,6 +1441,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                               ),
                             ),
                           ),
+                          if (verEstado)
                           _celdaTabla(
                             flex: 11,
                             child: Align(

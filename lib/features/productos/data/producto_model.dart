@@ -38,6 +38,7 @@ class ProductoModel {
   final List<CompatibilidadModel> compatibilidad;
   final String marca;
   final String origen;
+  final double impuestoPorcentaje;
 
   ProductoModel({
     required this.id,
@@ -61,6 +62,7 @@ class ProductoModel {
     this.compatibilidad = const [],
     this.marca = '',
     this.origen = '',
+    this.impuestoPorcentaje = 15,
   });
 
   factory ProductoModel.fromMap(String id, Map<String, dynamic> data) {
@@ -90,6 +92,7 @@ class ProductoModel {
           .toList(),
       marca: data['marca'] ?? '',
       origen: data['origen'] ?? '',
+      impuestoPorcentaje: (data['impuesto_porcentaje'] ?? 15).toDouble(),
     );
   }
 

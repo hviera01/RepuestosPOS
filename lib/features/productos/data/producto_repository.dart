@@ -75,6 +75,7 @@ class ProductoRepository with ConRedMixin {
     List<CompatibilidadModel> compatibilidad = const [],
     String marca = '',
     String origen = '',
+    double impuestoPorcentaje = 15,
   }) {
     return conRedExito('Producto creado correctamente', () async {
       var codigoFinal = codigo.trim();
@@ -107,6 +108,7 @@ class ProductoRepository with ConRedMixin {
         'compatibilidad': compatibilidad.map((c) => c.toMap()).toList(),
         'marca': marca.trim(),
         'origen': origen.trim(),
+        'impuesto_porcentaje': impuestoPorcentaje,
       }).select().single();
       } on PostgrestException catch (e) {
         throw _traducirDuplicado(e);
@@ -146,6 +148,7 @@ class ProductoRepository with ConRedMixin {
         compatibilidad: compatibilidad,
         marca: marca.trim(),
         origen: origen.trim(),
+        impuestoPorcentaje: impuestoPorcentaje,
       );
     });
   }
@@ -171,6 +174,7 @@ class ProductoRepository with ConRedMixin {
     List<CompatibilidadModel>? compatibilidad,
     String? marca,
     String? origen,
+    double? impuestoPorcentaje,
   }) {
     return conRedExito('Producto actualizado correctamente', () async {
       final codigoFinal = codigo.trim().isEmpty ? _generarCodigo() : codigo.trim();
@@ -198,6 +202,7 @@ class ProductoRepository with ConRedMixin {
       if (compatibilidad != null) datos['compatibilidad'] = compatibilidad.map((c) => c.toMap()).toList();
       if (marca != null) datos['marca'] = marca.trim();
       if (origen != null) datos['origen'] = origen.trim();
+      if (impuestoPorcentaje != null) datos['impuesto_porcentaje'] = impuestoPorcentaje;
       _tabla.aplicarLocal({'id': id, ...datos});
       try {
         final fila = await _db.from('productos').update(datos).eq('id', id).select().single();
@@ -206,6 +211,31 @@ class ProductoRepository with ConRedMixin {
         unawaited(_tabla.sincronizar());
         throw _traducirDuplicado(e);
       }
+    });
+  }
+
+  Future<int> actualizarPreciosVenta(
+    List<({String id, double? precioVenta, double? precioVenta2, double? precioVenta3})> cambios, {
+    void Function(int hechos)? alAvanzar,
+  }) {
+    return conRedExito('Precios actualizados correctamente', () async {
+      var hechos = 0;
+      for (var i = 0; i < cambios.length; i += 10) {
+        final bloque = cambios.skip(i).take(10);
+        await Future.wait(bloque.map((c) async {
+          final datos = <String, dynamic>{};
+          if (c.precioVenta != null) datos['precio_venta'] = c.precioVenta;
+          if (c.precioVenta2 != null) datos['precio_venta2'] = c.precioVenta2;
+          if (c.precioVenta3 != null) datos['precio_venta3'] = c.precioVenta3;
+          if (datos.isEmpty) return;
+          final fila = await _db.from('productos').update(datos).eq('id', c.id).select().single();
+          _tabla.aplicarLocal(fila);
+          hechos++;
+          alAvanzar?.call(hechos);
+        }));
+      }
+      unawaited(_tabla.sincronizar());
+      return hechos;
     });
   }
 

@@ -141,9 +141,8 @@ class CarritoVentaState {
 
   double get totalAPagar {
     final t = _totalConImpuestoBase;
-    final base = t.floorToDouble();
-    final resto = t - base;
-    return resto >= 0.90 ? base + 1 : base;
+    final entero = t.roundToDouble();
+    return (t - entero).abs() <= 0.011 ? entero : t;
   }
 
   double get cantidadTotalProductos =>

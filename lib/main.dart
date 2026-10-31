@@ -1,4 +1,5 @@
 import 'core/utils/avisos.dart';
+import 'core/utils/columnas_tabla.dart';
 import 'core/utils/impresora_local.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -41,6 +42,7 @@ Future<void> main() async {
   await AlmacenLocal.iniciar();
   await Marca.cargarGuardado();
   await ImpresoraLocal.iniciar();
+  await ConfigColumnasTabla.iniciar();
   await OperacionesService.instancia.iniciar();
   ImagenProductoNetwork.precalentar();
   runApp(const ProviderScope(child: RepuestosApp()));

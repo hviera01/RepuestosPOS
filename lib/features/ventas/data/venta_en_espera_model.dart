@@ -59,9 +59,9 @@ class VentaEnEsperaModel {
       totalFinal += redondearMoneda(precioFinal * i.cantidad * (1 - i.descuentoPorcentaje / 100));
     }
     totalFinal *= (1 - descuentoGlobal / 100);
-    final base = totalFinal.floorToDouble();
-    final resto = totalFinal - base;
-    return resto >= 0.90 ? base + 1 : base;
+    totalFinal = redondearMoneda(totalFinal);
+    final entero = totalFinal.roundToDouble();
+    return (totalFinal - entero).abs() <= 0.011 ? entero : totalFinal;
   }
 
   factory VentaEnEsperaModel.fromMap(String id, Map<String, dynamic> data) {

@@ -15,6 +15,7 @@ import '../../../categorias/providers/categorias_provider.dart';
 import '../../../promociones/data/promocion_model.dart';
 import '../../../promociones/providers/promociones_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
+import '../../../../core/utils/columnas_tabla.dart';
 import '../../../../core/utils/codigo_barras_utils.dart';
 import '../../../../core/widgets/barcode_scanner_screen.dart';
 import '../../../../core/widgets/imagen_zoom_dialog.dart';
@@ -54,6 +55,7 @@ class BuscarProductoDialog extends ConsumerStatefulWidget {
 }
 
 class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
+  final _cols = ConfigColumnasTabla.buscarProducto;
   final _busquedaController = TextEditingController();
   final _vehiculoCtrl = TextEditingController();
   final _anioCtrl = TextEditingController();
@@ -88,6 +90,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   @override
   void initState() {
     super.initState();
+    _cols.visibles.addListener(_columnasCambiaron);
     _focusBusqueda.onKeyEvent = (nodo, evento) {
       if (evento is! KeyDownEvent) return KeyEventResult.ignored;
       if (evento.logicalKey == LogicalKeyboardKey.arrowDown) {
@@ -111,12 +114,17 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
 
   @override
   void dispose() {
+    _cols.visibles.removeListener(_columnasCambiaron);
     _busquedaController.dispose();
     _focusNodeLista.dispose();
     _focusBusqueda.dispose();
     _vehiculoCtrl.dispose();
     _anioCtrl.dispose();
     super.dispose();
+  }
+
+  void _columnasCambiaron() {
+    if (mounted) setState(() {});
   }
 
   List<ProductoModel> _filtrar(
@@ -297,6 +305,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   bool _coincideExacto(ProductoModel p, String texto) => coincideCodigoProducto(p, texto);
 
   void _buscar({bool exacta = false}) {
+    final desdeCamara = exacta;
     var texto = limpiarCodigoEscaneado(_busquedaController.text);
     final productos = ref.read(productosStreamProvider).value ?? [];
     if (!exacta && pareceCodigoDeBarras(texto) && productos.any((p) => p.estado && _coincideExacto(p, texto))) {
@@ -313,7 +322,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     final coincidencias = productos
         .where((p) => p.estado && _coincide(p, texto))
         .toList();
-    if (coincidencias.length == 1 && exacta) {
+    if (coincidencias.length == 1 && desdeCamara) {
       _confirmarSeleccion(coincidencias.first);
     }
   }
@@ -513,6 +522,26 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                   FiltroVehiculoCampos(vehiculoCtrl: _vehiculoCtrl, anioCtrl: _anioCtrl, onBuscar: _buscar, compacto: esMovil),
                   _selectorSeccion(),
                   _selectorNivelPrecio(),
+                  if (!esMovil)
+                    OutlinedButton.icon(
+                      onPressed: () => mostrarElegirColumnas(context, _cols, const {
+                        'marca': 'Marca',
+                        'origen': 'Origen',
+                        'codigoBarras': 'Código de barras',
+                        'categoria': 'Categoría',
+                        'ubicacion': 'Ubicación',
+                        'impuesto': 'ISV del producto',
+                        'existencia': 'Existencia',
+                      }),
+                      icon: const Icon(Icons.view_column_outlined, size: 18),
+                      label: Text('Columnas', style: GoogleFonts.poppins(fontSize: 13)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF1A1A1A),
+                        side: const BorderSide(color: Color(0xFFB6BCC7)),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
                   if (defaultTargetPlatform == TargetPlatform.android ||
                       defaultTargetPlatform == TargetPlatform.iOS)
                     OutlinedButton.icon(
@@ -780,16 +809,25 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
       children: [
         Expanded(flex: 2, child: Text('Código', style: estilo)),
         Expanded(flex: 6, child: Text('Descripción', style: estilo)),
-        Expanded(flex: 3, child: Text('Categoría', style: estilo)),
-        Expanded(flex: 3, child: Text('Ubicación', style: estilo)),
+        if (_cols.ver('marca')) Expanded(flex: 2, child: Text('Marca', style: estilo)),
+        if (_cols.ver('origen')) Expanded(flex: 2, child: Text('Origen', style: estilo)),
+        if (_cols.ver('codigoBarras')) Expanded(flex: 3, child: Text('Cód. barras', style: estilo)),
+        if (_cols.ver('categoria')) Expanded(flex: 3, child: Text('Categoría', style: estilo)),
+        if (_cols.ver('ubicacion')) Expanded(flex: 3, child: Text('Ubicación', style: estilo)),
         Expanded(
           flex: 3,
           child: Text('Precio', textAlign: TextAlign.right, style: estilo),
         ),
-        Expanded(
-          flex: 2,
-          child: _encabezadoOrdenable('Existencia', 'existencia', estilo),
-        ),
+        if (_cols.ver('impuesto'))
+          Expanded(
+            flex: 2,
+            child: Text('ISV', textAlign: TextAlign.right, style: estilo),
+          ),
+        if (_cols.ver('existencia'))
+          Expanded(
+            flex: 2,
+            child: _encabezadoOrdenable('Existencia', 'existencia', estilo),
+          ),
         const SizedBox(width: 80),
       ],
     );
@@ -980,6 +1018,31 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                   ),
                 ),
               ),
+              if (_cols.ver('marca'))
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: Text(p.marca.isEmpty ? '-' : p.marca, style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade700)),
+                  ),
+                ),
+              if (_cols.ver('origen'))
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: Text(p.origen.isEmpty ? '-' : p.origen, style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade700)),
+                  ),
+                ),
+              if (_cols.ver('codigoBarras'))
+                Expanded(
+                  flex: 3,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: Text(p.codigoBarras.isEmpty ? '-' : p.codigoBarras, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade700)),
+                  ),
+                ),
+              if (_cols.ver('categoria'))
               Expanded(
                 flex: 3,
                 child: Padding(
@@ -994,6 +1057,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                   ),
                 ),
               ),
+              if (_cols.ver('ubicacion'))
               Expanded(
                 flex: 3,
                 child: Padding(
@@ -1016,6 +1080,18 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                   child: _celdaPrecio(p),
                 ),
               ),
+              if (_cols.ver('impuesto'))
+                Expanded(
+                  flex: 2,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      '${p.impuestoPorcentaje.toStringAsFixed(p.impuestoPorcentaje == p.impuestoPorcentaje.roundToDouble() ? 0 : 2)}%',
+                      style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade700),
+                    ),
+                  ),
+                ),
+              if (_cols.ver('existencia'))
               Expanded(
                 flex: 2,
                 child: Center(

@@ -15,6 +15,7 @@ import '../../providers/carrito_compra_provider.dart';
 import '../../providers/compras_provider.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../productos/data/producto_model.dart';
+import '../../../productos/presentation/widgets/calculadora_precios_dialog.dart';
 import '../../../productos/data/pendiente_reposicion_model.dart';
 import '../../../productos/providers/productos_provider.dart';
 import '../../data/item_compra_model.dart';
@@ -516,6 +517,20 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     _sincronizarMargenControlador(index);
   }
 
+  Future<void> _abrirCalculadoraLinea(int index, dynamic item) async {
+    final productos = ref.read(productosStreamProvider).asData?.value ?? const <ProductoModel>[];
+    final impuesto = productos.where((p) => p.id == item.idProducto).map((p) => p.impuestoPorcentaje).firstOrNull ?? 15.0;
+    final costo = (item.precioCompra as double) * (1 - (item.descuentoPorcentaje as double) / 100);
+    final r = await showDialog<List<double?>>(
+      useRootNavigator: false,
+      context: context,
+      builder: (context) => CalculadoraPrecioProductoDialog(costo: costo, impuesto: impuesto, soloPrecio1: true),
+    );
+    if (r == null || r[0] == null || !mounted) return;
+    _actualizarPrecioVentaCompra(index, r[0]!);
+    _ctrlPrecioVenta[index]?.text = r[0]!.toStringAsFixed(2);
+  }
+
   void _actualizarMargenCompra(int index, double nuevoMargen) {
     final carrito = ref.read(carritoCompraProvider);
     if (index >= carrito.items.length) return;
@@ -802,6 +817,12 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
           style: _estiloBotonSecundario(),
         ),
         OutlinedButton.icon(
+          onPressed: _calcularPreciosCompra,
+          icon: const Icon(Icons.calculate_outlined, size: 18),
+          label: Text('Calcular precios de venta', style: GoogleFonts.poppins(fontSize: 13)),
+          style: _estiloBotonSecundario(),
+        ),
+        OutlinedButton.icon(
           onPressed: _verCompras,
           icon: const Icon(Icons.list_alt_outlined, size: 18),
           label: Text('Ver Compras', style: GoogleFonts.poppins(fontSize: 13)),
@@ -824,6 +845,36 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
         ),
       ],
     );
+  }
+
+  Future<void> _calcularPreciosCompra() async {
+    final items = ref.read(carritoCompraProvider).items;
+    if (items.isEmpty) {
+      _mostrarMensaje('Agrega productos a la compra primero');
+      return;
+    }
+    final productos = ref.read(productosStreamProvider).asData?.value ?? const <ProductoModel>[];
+    final porId = {for (final p in productos) p.id: p};
+    final lineas = [
+      for (final i in items)
+        LineaCalculoCompra(
+          nombre: i.nombreProducto,
+          codigo: porId[i.idProducto]?.codigo ?? '',
+          costo: i.precioCompra * (1 - i.descuentoPorcentaje / 100),
+          impuesto: porId[i.idProducto]?.impuestoPorcentaje ?? 15,
+          precioActual: i.precioVentaNuevo ?? 0,
+        ),
+    ];
+    final r = await showDialog<List<double>>(
+      useRootNavigator: false,
+      context: context,
+      builder: (context) => CalculadoraPreciosCompraDialog(lineas: lineas),
+    );
+    if (r == null || !mounted) return;
+    for (var i = 0; i < r.length; i++) {
+      _actualizarPrecioVentaCompra(i, r[i]);
+      _ctrlPrecioVenta[i]?.text = r[i].toStringAsFixed(2);
+    }
   }
 
   void _verCompras() {
@@ -2028,6 +2079,11 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
                     ),
                   ),
                 ),
+                IconButton(
+                  tooltip: 'Calculadora de precios',
+                  icon: Icon(Icons.calculate_outlined, size: 20, color: Marca.primario),
+                  onPressed: () => _abrirCalculadoraLinea(index, item),
+                ),
                 const Spacer(flex: 4),
                 const SizedBox(width: 40),
               ],
@@ -2174,6 +2230,11 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
                   prefijo: 'L.',
                   dosDecimales: true,
                 ),
+              ),
+              IconButton(
+                tooltip: 'Calculadora de precios',
+                icon: Icon(Icons.calculate_outlined, size: 20, color: Marca.primario),
+                onPressed: () => _abrirCalculadoraLinea(index, item),
               ),
             ],
           ),

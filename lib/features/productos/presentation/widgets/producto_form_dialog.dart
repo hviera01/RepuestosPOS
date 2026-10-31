@@ -2,7 +2,10 @@ import '../../../../core/theme/marca.dart';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'compatibilidad_editor.dart';
+import 'calculadora_precios_dialog.dart';
+import '../../../../core/utils/formato_moneda.dart';
 import '../../data/compatibilidad_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -64,6 +67,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
   final _precioVentaController = TextEditingController(text: '0');
   final _precioVenta2Controller = TextEditingController();
   final _precioVenta3Controller = TextEditingController();
+  final _impuestoController = TextEditingController(text: '15');
   final _focusNombre = FocusNode();
 
   final _keyCodigo = GlobalKey();
@@ -126,6 +130,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
       _stockController.text = p.stock.toString();
       _precioCompraController.text = p.precioCompra.toString();
       _precioVentaController.text = p.precioVenta.toString();
+      _impuestoController.text = p.impuestoPorcentaje == p.impuestoPorcentaje.roundToDouble() ? p.impuestoPorcentaje.toStringAsFixed(0) : p.impuestoPorcentaje.toString();
       if (p.precioVenta2 > 0)
         _precioVenta2Controller.text = p.precioVenta2.toString();
       if (p.precioVenta3 > 0)
@@ -178,6 +183,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
     _precioVentaController.dispose();
     _precioVenta2Controller.dispose();
     _precioVenta3Controller.dispose();
+    _impuestoController.dispose();
     _focusNombre.dispose();
     _busquedaComponenteController.dispose();
     for (final c in _componentesCombo) {
@@ -262,6 +268,35 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
     }
   }
 
+  double get _impuesto {
+    final v = double.tryParse(_impuestoController.text.trim().replaceAll(',', '.'));
+    if (v == null || v < 0) return 0;
+    return v;
+  }
+
+  Future<void> _abrirCalculadora() async {
+    final r = await showDialog<List<double?>>(
+      useRootNavigator: false,
+      context: context,
+      builder: (context) => CalculadoraPrecioProductoDialog(
+        costo: _esCombo ? _costoSumadoCombo : _parseDouble(_precioCompraController.text),
+        impuesto: _impuesto,
+      ),
+    );
+    if (r == null || !mounted) return;
+    setState(() {
+      if (r[0] != null) _precioVentaController.text = r[0]!.toStringAsFixed(2);
+      if (r[1] != null) {
+        _precioVenta2Controller.text = r[1]!.toStringAsFixed(2);
+        _mostrarNivelesExtra = true;
+      }
+      if (r[2] != null) {
+        _precioVenta3Controller.text = r[2]!.toStringAsFixed(2);
+        _mostrarNivelesExtra = true;
+      }
+    });
+  }
+
   double _parseDouble(String texto) {
     return double.tryParse(texto.replaceAll(',', '').trim()) ?? 0;
   }
@@ -333,6 +368,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
               compatibilidad: _compat,
               marca: _marcaController.text,
               origen: _origenController.text,
+              impuestoPorcentaje: _impuesto,
             )
             .timeout(const Duration(seconds: 12)),
       );
@@ -370,6 +406,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
             compatibilidad: _compat,
             marca: _marcaController.text,
             origen: _origenController.text,
+            impuestoPorcentaje: _impuesto,
           )
           .timeout(const Duration(seconds: 12));
       return true;
@@ -933,8 +970,47 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
           controller: _precioVentaController,
           keyboardType: TextInputType.number,
           style: GoogleFonts.poppins(fontSize: 14),
-          decoration: _decoracion('Precio Venta').copyWith(prefixText: 'L. '),
+          decoration: _decoracion('Precio Venta (final, con ISV)').copyWith(prefixText: 'L. '),
+          onChanged: (_) => setState(() {}),
         ),
+      ),
+      const SizedBox(height: 10),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 130,
+            child: TextField(
+              controller: _impuestoController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
+              onChanged: (_) => setState(() {}),
+              style: GoogleFonts.poppins(fontSize: 14),
+              decoration: _decoracion('Impuesto (ISV)').copyWith(suffixText: '%'),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: OutlinedButton.icon(
+            onPressed: _abrirCalculadora,
+            icon: const Icon(Icons.calculate_outlined, size: 18),
+            label: Text('Calculadora', style: GoogleFonts.poppins(fontSize: 12.5)),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF1A1A1A),
+              side: const BorderSide(color: Color(0xFFB6BCC7)),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 6),
+      Text(
+        _impuesto <= 0
+            ? 'Sin impuesto'
+            : 'Incluye ISV: ${formatearMoneda(_parseDouble(_precioVentaController.text) - _parseDouble(_precioVentaController.text) / (1 + _impuesto / 100))} · Base: ${formatearMoneda(_parseDouble(_precioVentaController.text) / (1 + _impuesto / 100))}',
+        style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600),
       ),
       const SizedBox(height: 8),
       InkWell(
