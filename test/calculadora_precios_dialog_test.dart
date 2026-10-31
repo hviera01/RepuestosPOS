@@ -61,12 +61,14 @@ void main() {
       final visibles = _filasVisibles(tester);
       // ignore: avoid_print
       print('${t.width.toInt()}x${t.height.toInt()}: $visibles filas visibles');
-      expect(visibles, greaterThanOrEqualTo(6));
+      expect(visibles, greaterThanOrEqualTo(t.height >= 768 ? 6 : 4));
     });
   }
 
   testWidgets('ocultar fórmula deja más filas', (tester) async {
-    await _abrir(tester, const Size(1366, 768));
+    await _abrir(tester, const Size(1366, 650));
+    expect(find.text('Ocultar fórmula'), findsOneWidget);
+    expect(find.textContaining('Precio = costo'), findsOneWidget);
     final antes = _filasVisibles(tester);
     await tester.tap(find.text('Ocultar fórmula'));
     await tester.pump(const Duration(milliseconds: 300));

@@ -119,7 +119,7 @@ class _PanelFormula extends StatelessWidget {
               decoration: InputDecoration(
                 isDense: true,
                 suffixText: '%',
-                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),
@@ -142,7 +142,7 @@ class _PanelFormula extends StatelessWidget {
     return LayoutBuilder(builder: (context, restr) {
       final ancho = restr.maxWidth >= 900;
       return Container(
-        padding: EdgeInsets.all(ancho ? 10 : 14),
+        padding: EdgeInsets.fromLTRB(ancho ? 10 : 14, ancho ? 6 : 14, ancho ? 10 : 14, ancho ? 4 : 14),
         decoration: BoxDecoration(color: const Color(0xFFF6F7F9), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE1E4EA))),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,9 +151,9 @@ class _PanelFormula extends StatelessWidget {
               ancho
                   ? 'Precio = costo × (1 + porcentaje) + ISV del producto. El precio final es el que se guarda y se cobra.'
                   : 'Precio = costo × (1 + porcentaje). Después se suma el ISV del producto y el resultado es el precio final, que es el que se guarda y se cobra.',
-              style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600),
+              style: GoogleFonts.poppins(fontSize: ancho ? 11.5 : 12, color: Colors.grey.shade600),
             ),
-            SizedBox(height: ancho ? 4 : 8),
+            SizedBox(height: ancho ? 2 : 8),
             if (ancho)
               Wrap(
                 spacing: 22,
@@ -451,7 +451,7 @@ class _CalculadoraPreciosDialogState extends ConsumerState<CalculadoraPreciosDia
   Widget build(BuildContext context) {
     final tamano = MediaQuery.of(context).size;
     final esMovil = tamano.width < 720;
-    final formulaVisible = _formulaManual ?? tamano.height >= 700;
+    final formulaVisible = _formulaManual ?? true;
     final productosAsync = ref.watch(productosStreamProvider);
     final categorias = ref.watch(categoriasStreamProvider).asData?.value ?? const [];
     final todos = productosAsync.asData?.value ?? const <ProductoModel>[];
@@ -460,23 +460,23 @@ class _CalculadoraPreciosDialogState extends ConsumerState<CalculadoraPreciosDia
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.all(16),
+      insetPadding: const EdgeInsets.all(8),
       child: Container(
-        width: tamano.width - 32,
-        constraints: BoxConstraints(maxHeight: tamano.height - 32),
+        width: tamano.width - 16,
+        constraints: BoxConstraints(maxHeight: tamano.height - 16),
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 22, 16, 0),
+              padding: const EdgeInsets.fromLTRB(24, 10, 12, 0),
               child: Row(
                 children: [
                   Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(color: Marca.primario.withOpacity(0.1), borderRadius: BorderRadius.circular(14)),
-                    child: Icon(Icons.calculate_outlined, color: Marca.primario),
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(color: Marca.primario.withOpacity(0.1), borderRadius: BorderRadius.circular(11)),
+                    child: Icon(Icons.calculate_outlined, color: Marca.primario, size: 20),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -495,7 +495,7 @@ class _CalculadoraPreciosDialogState extends ConsumerState<CalculadoraPreciosDia
                       children: [
                         if (formulaVisible)
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
+                            padding: const EdgeInsets.fromLTRB(24, 6, 24, 0),
                             child: _PanelFormula(
                               niveles: _niveles,
                               cantidadNiveles: 3,
@@ -505,9 +505,9 @@ class _CalculadoraPreciosDialogState extends ConsumerState<CalculadoraPreciosDia
                               onRedondeo: (v) => setState(() => _redondeo = v),
                             ),
                           ),
-                        Padding(padding: const EdgeInsets.fromLTRB(24, 8, 24, 0), child: _filtros(categorias, lista, esMovil)),
+                        Padding(padding: const EdgeInsets.fromLTRB(24, 6, 24, 0), child: _filtros(categorias, lista, esMovil)),
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 2, 16, 2),
+                          padding: const EdgeInsets.fromLTRB(24, 0, 16, 0),
                           child: Row(
                             children: [
                               Expanded(
@@ -540,7 +540,7 @@ class _CalculadoraPreciosDialogState extends ConsumerState<CalculadoraPreciosDia
                 ),
               ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 14),
+              padding: const EdgeInsets.fromLTRB(24, 6, 24, 10),
               child: _resultado != null
                   ? Align(
                       alignment: Alignment.centerRight,
@@ -570,13 +570,13 @@ class _CalculadoraPreciosDialogState extends ConsumerState<CalculadoraPreciosDia
                         ),
                         OutlinedButton(
                           onPressed: _aplicando ? null : () => Navigator.pop(context),
-                          style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                          style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 11), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                           child: Text('Cancelar', style: GoogleFonts.poppins(fontSize: 13)),
                         ),
                         const SizedBox(width: 10),
                         FilledButton(
                           onPressed: (_aplicando || _hayNivelIncompleto || !_hayNivelValido || _seleccion.isEmpty) ? null : () => _aplicar(todos),
-                          style: FilledButton.styleFrom(backgroundColor: Marca.primario, padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                          style: FilledButton.styleFrom(backgroundColor: Marca.primario, padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 11), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                           child: Text(_seleccion.isEmpty ? 'Aplicar' : 'Aplicar a ${_seleccion.length}', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
                         ),
                       ],
@@ -612,7 +612,7 @@ class _CalculadoraPreciosDialogState extends ConsumerState<CalculadoraPreciosDia
         isDense: true,
         hintText: 'Buscar por código, nombre o marca',
         prefixIcon: const Icon(Icons.search, size: 18),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
@@ -620,7 +620,7 @@ class _CalculadoraPreciosDialogState extends ConsumerState<CalculadoraPreciosDia
       key: ValueKey(_idCategoria),
       initialValue: _idCategoria,
       isExpanded: true,
-      decoration: InputDecoration(isDense: true, contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10), border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+      decoration: InputDecoration(isDense: true, contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
       items: [
         const DropdownMenuItem(value: '', child: Text('Todas las categorías')),
         ...categorias.map((c) => DropdownMenuItem<String>(value: c.id as String, child: Text(c.descripcion as String, overflow: TextOverflow.ellipsis))),
@@ -632,10 +632,12 @@ class _CalculadoraPreciosDialogState extends ConsumerState<CalculadoraPreciosDia
       children: [
         OutlinedButton(
           onPressed: _aplicando ? null : () => setState(() => _seleccion.addAll(lista.map((p) => p.id))),
+          style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
           child: Text('Marcar los ${lista.length} de la lista', style: GoogleFonts.poppins(fontSize: 12)),
         ),
         OutlinedButton(
           onPressed: _aplicando ? null : () => setState(() => _seleccion.clear()),
+          style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
           child: Text('Quitar todo', style: GoogleFonts.poppins(fontSize: 12)),
         ),
       ],
@@ -697,9 +699,9 @@ class _CalculadoraPreciosDialogState extends ConsumerState<CalculadoraPreciosDia
     final anchoProducto = (disponible - anchoFijo - activos.length * _anchoNivel).clamp(260.0, 1000.0);
     final anchoTotal = anchoFijo + anchoProducto + activos.length * _anchoNivel;
     final encabezado = Container(
-      constraints: const BoxConstraints(minHeight: 52),
+      constraints: const BoxConstraints(minHeight: 44),
       color: const Color(0xFFECEEF3),
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           const SizedBox(width: 48),
@@ -732,8 +734,8 @@ class _CalculadoraPreciosDialogState extends ConsumerState<CalculadoraPreciosDia
                       return InkWell(
                         onTap: _aplicando ? null : () => setState(() => marcado ? _seleccion.remove(p.id) : _seleccion.add(p.id)),
                         child: Container(
-                          constraints: const BoxConstraints(minHeight: 44),
-                          padding: const EdgeInsets.symmetric(vertical: 3),
+                          constraints: const BoxConstraints(minHeight: 40),
+                          padding: const EdgeInsets.symmetric(vertical: 2),
                           decoration: BoxDecoration(color: marcado ? Marca.primario.withOpacity(0.05) : null, border: Border(bottom: BorderSide(color: Colors.grey.shade200))),
                           child: Row(
                             children: [
