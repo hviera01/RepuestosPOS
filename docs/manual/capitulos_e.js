@@ -26,6 +26,10 @@ ${datos(['Palabra', 'Qué significa'], [
   ['PC principal', 'La computadora con la impresora conectada, marcada con la estrella en Dispositivos, que imprime los tickets pedidos desde otros equipos.'],
   ['ESC/POS', 'Idioma que entienden las impresoras térmicas de tickets. El sistema lo manda directo a la impresora, sin pasar por un PDF.'],
   ['Impresión remota', 'Cuando un equipo sin impresora (celular, navegador) le pide a la PC principal que imprima.'],
+  ['Calculadora de precios', 'Herramienta del Inventario que calcula el precio de venta de uno o varios repuestos a partir del costo, un porcentaje de ganancia, el ISV y un redondeo opcional.'],
+  ['Se guardará', 'Columna de la calculadora con el precio final que quedará guardado en el repuesto al aplicar. Debajo dice «redondeado» si el redondeo lo cambió.'],
+  ['Redondeo del precio final', 'Ajuste opcional del precio calculado: hacia arriba al 5 (33 pasa a 35), hacia arriba al entero o sin redondear.'],
+  ['Impuesto (ISV) del repuesto', 'Porcentaje de impuesto que se escribe en la ficha del repuesto (15 de fábrica). La calculadora lo suma al precio.'],
   ['Vehículo compatible', 'Marca, modelo y años de los vehículos para los que sirve un repuesto.'],
   ['CAI', 'Código de autorización de impresión que da el SAR para emitir facturas dentro de un rango de numeración y hasta una fecha límite.'],
 ])}

@@ -7,9 +7,9 @@ const cap5 = `
 <p>Al abrir la pantalla la lista aparece vacía con el mensaje «Escribí algo y presioná buscar»: escriba lo que busca, o elija <b>Mostrar todos</b> en el selector de vista.</p>
 
 ${figura(
-  captura('inventario_resultados.png', [{ n: 1, x: 188, y: 150 }, { n: 2, x: 130, y: 204 }, { n: 3, x: 340, y: 204 }, { n: 4, x: 560, y: 204 }, { n: 5, x: 910, y: 204 }, { n: 6, x: 230, y: 253 }, { n: 7, x: 540, y: 253 }, { n: 8, x: 1375, y: 378 }]),
-  'Inventario después de buscar «FILTRO».',
-  ['Cantidad de productos y valor del inventario a precio de compra y a precio de venta. A la derecha, el cambio entre productos <b>Activos</b> e <b>Inactivos</b>.', '<b>Vista</b>: Productos filtrados (lo que usted busca), Mostrar todos o Bajo existencia.', '<b>Filtrar por</b>: dónde buscar el texto: Todo, Código, Código de barras, Nombre, Descripción o Categoría.', 'Búsqueda por texto o escaneando un código de barras; presione Enter o la flecha.', 'Filtro por <b>vehículo</b> y <b>año</b>: se aplica junto con el texto al presionar Enter.', 'Exportar a Excel o PDF, imprimir un ticket con la lista y las etiquetas con código de barras.', '<b>Nuevo Producto</b> (si su usuario tiene permiso).', 'Menú de acciones de cada repuesto.']
+  captura('inventario_resultados.png', [{ n: 1, x: 186, y: 150 }, { n: 2, x: 130, y: 204 }, { n: 3, x: 336, y: 204 }, { n: 4, x: 550, y: 204 }, { n: 5, x: 900, y: 204 }, { n: 6, x: 44, y: 240 }, { n: 7, x: 176, y: 240 }, { n: 8, x: 376, y: 240 }, { n: 9, x: 814, y: 240 }, { n: 10, x: 1376, y: 378 }]),
+  'Inventario después de buscar «AMORTIGUADOR DELANTERO».',
+  ['Cantidad de productos y valor del inventario a precio de compra y a precio de venta. A la derecha, el cambio entre productos <b>Activos</b> e <b>Inactivos</b>.', '<b>Vista</b>: Productos filtrados (lo que usted busca), Mostrar todos o Bajo existencia.', '<b>Filtrar por</b>: dónde buscar el texto: Todo, Código, Código de barras, Nombre, Descripción o Categoría.', 'Búsqueda por texto o escaneando un código de barras; presione Enter o la flecha.', 'Filtro por <b>vehículo</b> y <b>año</b>: se aplica junto con el texto al presionar Enter.', '<b>Columnas</b>: elige qué columnas se ven en la tabla (ver «Elegir las columnas de la tabla»).', '<b>Calculadora de precios</b>: calcula y cambia los precios de venta de varios repuestos a la vez (ver «Calculadora de precios»).', 'Exportar a Excel o PDF, imprimir un ticket con la lista y las etiquetas con código de barras.', '<b>Nuevo Producto</b> (si su usuario tiene permiso).', 'Menú de acciones de cada repuesto.']
 )}
 <p>Las columnas Código, Nombre, Existencia, Precio de venta y Precio de compra se pueden ordenar tocando su encabezado. La existencia baja aparece en rojo y la normal en azul. Los nombres de los repuestos se ven siempre completos, sin cortarse con «…».</p>
 
@@ -46,7 +46,10 @@ ${datos(['Campo', 'Qué escribir'], [
   ['Categoría', 'Obligatoria. Las categorías se crean en Mantenedor ▸ Categorías.'],
   ['Existencia inicial', 'Cuántas unidades hay hoy. Se crea el primer lote de costo con el precio de compra.'],
   ['Precio de compra', 'Lo que le cuesta cada unidad.'],
-  ['Precio de venta (hasta 3 niveles)', 'Precio normal y, si lo necesita, dos precios alternativos. En una venta se elige con qué nivel buscar.'],
+  ['Precio de venta (final, con ISV)', 'El precio que paga el cliente, con el ISV ya incluido. Puede escribirlo o calcularlo con el botón Calculadora.'],
+  ['Niveles de precio adicionales', 'Precio de venta 2 y 3, si los necesita. En una venta se elige con qué nivel buscar.'],
+  ['Impuesto (ISV)', 'Porcentaje de impuesto del repuesto. Viene en 15 y puede ponerse en 0 u otro porcentaje. Debajo del campo el sistema muestra cuánto ISV incluye el precio y cuál es la base.'],
+  ['Calculadora', 'Abre la calculadora de precios con el precio de compra que escribió, para calcular el precio de venta 1, 2 y 3 (ver «Calculadora de precios»).'],
 ])}
 <h4>Reglas del nombre automático</h4>
 <ul>
@@ -56,6 +59,87 @@ ${datos(['Campo', 'Qué escribir'], [
   <li>Una fila de vehículo que todavía no tiene años no se agrega al nombre hasta completarse.</li>
   <li>Los repuestos que ya existían sin vehículos siguen funcionando: el filtro por vehículo intenta leer las marcas y años que estén escritos en su nombre.</li>
 </ul>
+
+<h3>Elegir las columnas de la tabla</h3>
+<p>El botón <b>Columnas</b> (junto a Calculadora de precios) permite elegir qué columnas se ven en la tabla del inventario. Marque o desmarque cada una y presione <b>Listo</b>; el cambio se aplica al instante. <b>Restablecer</b> vuelve a las columnas de siempre.</p>
+${figura(
+  captura('inv_columnas.png', [{ n: 1, x: 505, y: 400 }, { n: 2, x: 700, y: 806 }, { n: 3, x: 895, y: 806 }], { zona: [440, 160, 560, 700] }),
+  'Ventana Columnas de la tabla del inventario.',
+  ['Cada casilla marcada es una columna visible. Código y Nombre siempre se ven.', '<b>Restablecer</b>: deja las columnas como vienen de fábrica.', '<b>Listo</b>: cierra la ventana.']
+)}
+${datos(['Columna', 'Qué muestra'], [
+  ['Descripción, Categoría, Ubicación', 'Los datos del repuesto. Se ocultan solas en pantallas angostas.'],
+  ['Marca y Origen', 'Fabricante y país de origen del repuesto (por ejemplo KYB y JAPÓN).'],
+  ['Código de barras', 'El código de barras del repuesto.'],
+  ['Existencia', 'Unidades disponibles; en rojo cuando quedan pocas.'],
+  ['Precio de venta (final)', 'El precio 1 con ISV incluido, el que se cobra.'],
+  ['Precio de venta 2 y 3', 'Los niveles de precio adicionales (aparece «-» si el repuesto no los tiene).'],
+  ['ISV', 'El porcentaje de impuesto del repuesto y, debajo, cuánto ISV incluye su precio de venta.'],
+  ['Precio de compra', 'Lo que le cuesta cada unidad.'],
+  ['Estado', 'Activo o inactivo.'],
+])}
+${figura(
+  captura('inv_columnas_tabla.png', [{ n: 1, x: 584, y: 292 }, { n: 2, x: 658, y: 292 }, { n: 3, x: 738, y: 292 }, { n: 4, x: 1004, y: 292 }, { n: 5, x: 1074, y: 292 }]),
+  'La misma tabla con Marca, Origen, Código de barras, Precio de venta 2 e ISV activados.',
+  ['<b>Marca</b>.', '<b>Origen</b>.', '<b>Código de barras</b>.', '<b>Precio de venta 2</b> (y 3, si se activa).', '<b>ISV</b>: porcentaje y cuánto impuesto incluye el precio.']
+)}
+${consejo('La elección de columnas se guarda solo en ese equipo: cada computadora, celular o tableta tiene la suya. La ventana <b>Buscar Producto</b> de ventas también tiene su botón Columnas (ver «Buscar repuestos al vender»).')}
+
+<h3>Calculadora de precios</h3>
+<p>La <b>Calculadora de precios</b> (botón junto a Columnas) calcula el precio de venta de uno o muchos repuestos a partir de su <b>costo</b> y de cuánto quiere ganar. Sirve para cambiar los precios en masa, sin hacer cuentas a mano.</p>
+${datos(['Paso del cálculo', 'Ejemplo con un repuesto que cuesta L 1,050.00'], [
+  ['Costo del repuesto', 'L 1,050.00'],
+  ['Más el porcentaje de ganancia que usted elige (45%)', 'L 1,050.00 × 1.45 = L 1,522.50 (precio sin impuesto)'],
+  ['Más el ISV del repuesto (15%)', 'L 1,522.50 + L 228.38 = L 1,750.88 (precio final)'],
+  ['Redondeo (opcional, hacia arriba al 5)', 'L 1,750.88 pasa a L 1,755.00, que es lo que se guarda'],
+])}
+<p>El precio que se guarda es siempre el <b>precio final, con el ISV incluido</b>: el mismo precio que cobra Registrar Venta.</p>
+${figura(
+  captura('calc_tabla_redondeo5.png', [{ n: 1, x: 47, y: 262 }, { n: 2, x: 296, y: 246 }, { n: 3, x: 44, y: 297 }, { n: 4, x: 350, y: 377 }, { n: 5, x: 1100, y: 377 }, { n: 6, x: 30, y: 513 }, { n: 7, x: 890, y: 458 }, { n: 8, x: 980, y: 458 }, { n: 9, x: 1380, y: 833 }]),
+  'Calculadora de precios con tres precios, redondeo al 5 y un repuesto marcado.',
+  ['Marque los precios que quiere calcular: <b>Precio 1</b>, <b>2</b> y/o <b>3</b>. Los que no marque no se tocan.', '<b>Porcentaje de ganancia</b> sobre el costo de cada precio (por ejemplo 45, 30 y 20).', '<b>Redondeo del precio final</b>: hacia arriba al 5, hacia arriba al entero o sin redondear.', 'Busque por código, nombre o marca (y por categoría, al lado).', '<b>Marcar los N de la lista</b> selecciona todos los que ve; <b>Quitar todo</b> limpia la selección.', 'Marque cada repuesto cuyo precio va a cambiar.', '<b>Se guardará</b>: el precio que quedará guardado (en negrita). Debajo dice «redondeado» cuando el redondeo lo cambió.', '<b>Actual</b>: el precio que tiene hoy el repuesto, para comparar.', '<b>Aplicar a N</b>: guarda los nuevos precios en los N repuestos marcados.']
+)}
+<h4>Cómo usarla</h4>
+${pasos([
+  ['Abra Mantenedor ▸ Inventario y presione Calculadora de precios.', 'Pide la misma clave que editar un producto.'],
+  ['Marque los precios y escriba el porcentaje de cada uno.', 'Para cambiar solo el precio principal deje marcado únicamente el Precio 1.'],
+  ['Elija el redondeo.', 'Si el precio ya debe quedar tal cual, elija Sin redondear: se guardan los centavos exactos.'],
+  ['Busque y marque los repuestos.', 'Puede marcar uno por uno o usar Marcar los N de la lista después de buscar o elegir una categoría.'],
+  ['Revise la tabla y presione Aplicar.', 'El sistema pide confirmación y muestra el avance; al terminar dice cuántos repuestos se actualizaron.'],
+])}
+<p>Para cada precio la tabla muestra, de izquierda a derecha, el <b>Precio</b> (costo más ganancia), el <b>ISV</b>, el <b>Precio final</b>, <b>Se guardará</b> y <b>Actual</b>. Cuando hay tres precios activos la tabla es más ancha que la pantalla: use la barra de desplazamiento de abajo para ver los demás.</p>
+${figura(
+  captura('calc_redondeo_menu.png', [{ n: 1, x: 1380, y: 318 }, { n: 2, x: 30, y: 318 }, { n: 3, x: 30, y: 366 }, { n: 4, x: 30, y: 414 }]),
+  'Opciones de redondeo.',
+  ['<b>Redondeo del precio final</b>: al abrirlo aparecen las tres opciones.', '<b>Hacia arriba al 5</b>: 33 pasa a 35 y 27 pasa a 30. Es la opción que viene marcada.', '<b>Hacia arriba al entero</b>: 33.40 pasa a 34.', '<b>Sin redondear</b>: se guarda el precio con sus centavos, tal cual sale de la cuenta.']
+)}
+${aviso('Nada se guarda hasta que presione <b>Aplicar</b> y confirme. Al aplicar, el precio nuevo <b>reemplaza</b> al precio actual de los repuestos marcados y no hay un botón para deshacerlo: revise la columna Se guardará antes de aplicar. Los repuestos sin precio de compra y los combos no aparecen en la lista porque no se puede calcular su precio.', 'Antes de aplicar')}
+${consejo('Puede cambiar solo los Precios 2 y 3 sin tocar el Precio 1: deje marcados únicamente esos dos. Cada precio tiene su propio porcentaje, por ejemplo 45% para el público, 30% para talleres y 20% para mayoristas.')}
+
+<h4>Calculadora dentro de la ficha del repuesto</h4>
+<p>Al crear o editar un repuesto, escriba primero el <b>Precio Compra</b> y presione <b>Calculadora</b> (debajo del Precio Venta). Se abre la misma calculadora para ese repuesto, con una sola fila. Al presionar <b>Usar estos precios</b> se llenan Precio Venta y, si los calculó, los niveles 2 y 3. Después presione <b>Guardar</b> para que queden en el repuesto.</p>
+${figura(
+  captura('producto_calc_boton.png', [{ n: 1, x: 1050, y: 429 }, { n: 2, x: 1000, y: 480 }, { n: 3, x: 940, y: 549 }, { n: 4, x: 1012, y: 549 }]),
+  'Ficha de un repuesto nuevo con el precio de compra escrito.',
+  ['<b>Precio Compra</b>: el costo del repuesto.', '<b>Precio Venta (final, con ISV)</b>.', '<b>Impuesto (ISV)</b>: 15 de fábrica. Debajo se lee cuánto ISV incluye el precio y cuál es la base.', '<b>Calculadora</b>: calcula los precios con el costo escrito.']
+)}
+${figura(
+  captura('producto_calc_dialogo.png', [{ n: 1, x: 370, y: 428 }, { n: 2, x: 620, y: 412 }, { n: 3, x: 368, y: 498 }, { n: 4, x: 900, y: 588 }, { n: 5, x: 868, y: 698 }], { zona: [350, 250, 770, 520] }),
+  'Calculadora dentro de la ficha del repuesto.',
+  ['Precios que quiere calcular.', 'Porcentaje de ganancia de cada precio.', 'Redondeo del precio final.', '<b>Se guardará</b>: el precio que se copiará a la ficha.', '<b>Usar estos precios</b>: los copia a los campos de Precio Venta.']
+)}
+
+<h4>Calculadora en el celular y la tableta</h4>
+<p>En pantallas pequeñas la tabla se convierte en una <b>tarjeta por repuesto</b>, con los mismos datos uno debajo de otro: Precio, ISV, Precio final, Se guardará y Actual. Todo lo demás funciona igual.</p>
+${parMovil([
+  ['m_calc_inicio.png', [{ n: 1, x: 112, y: 592 }, { n: 2, x: 600, y: 592 }, { n: 3, x: 390, y: 850 }], 58],
+  ['m_calc_tarjeta.png', [{ n: 1, x: 114, y: 1084 }, { n: 2, x: 400, y: 1250 }, { n: 3, x: 600, y: 1420 }], 58],
+])}
+<div class="pie-par">Izquierda: 1 precios que se calculan, 2 porcentaje de ganancia de cada uno, 3 redondeo. Derecha: cada repuesto es una tarjeta; 1 casilla para incluirlo, 2 el cálculo de cada precio, 3 <b>Se guardará</b>, el precio que quedará guardado.</div>
+
+<h4>Impuesto (ISV) de cada repuesto</h4>
+<p>Cada repuesto tiene su porcentaje de impuesto, <b>15</b> de fábrica, que se cambia en la ficha (<b>Impuesto (ISV)</b>). La calculadora lo usa para sacar el precio final, y la columna ISV de la tabla lo muestra. Si un repuesto lleva otro porcentaje, escríbalo en su ficha antes de calcular.</p>
+${aviso('Por ahora las <b>facturas</b> separan el ISV con el 15% para todos los repuestos. El porcentaje propio de cada repuesto se usa en la calculadora y en el inventario, pero todavía no cambia el desglose de la factura.', 'Facturas')}
 
 <h3>Ajustar existencias</h3>
 ${figura(
@@ -198,9 +282,18 @@ ${datos(['Forma', 'Cómo se usa'], [
 
 <h3>Buscar repuestos al vender</h3>
 ${figura(
-  captura('venta_buscar_resultados.png', [{ n: 1, x: 225, y: 235 }, { n: 2, x: 570, y: 235 }, { n: 3, x: 840, y: 235 }, { n: 4, x: 1098, y: 235 }, { n: 5, x: 1303, y: 235 }, { n: 6, x: 720, y: 356 }, { n: 7, x: 1239, y: 356 }, { n: 8, x: 1325, y: 356 }]),
-  'Buscar Producto, con «FILTRO» escrito y el primer resultado resaltado.',
-  ['Texto de búsqueda (todas las palabras deben aparecer). Enter busca.', 'Filtro por <b>vehículo</b> y <b>año</b>.', '<b>Productos</b> o <b>Combos</b>.', 'Con qué precio se agrega el repuesto: <b>Precio 1</b>, <b>2</b> o <b>3</b>.', '<b>Producto Nuevo</b>: crea el repuesto desde aquí mismo.', 'El resultado resaltado. Doble clic, o Enter con la lista seleccionada, lo agrega a la venta. Si el texto es un código de barras exacto y hay un solo resultado, se agrega solo.', '<b>Existencia</b> (verde: hay; rojo: poca o ninguna). Se puede ordenar tocando el encabezado.', 'Lápiz para editar el repuesto sin salir de la venta.']
+  captura('venta_buscar_un_resultado.png', [{ n: 1, x: 220, y: 208 }, { n: 2, x: 554, y: 208 }, { n: 3, x: 880, y: 208 }, { n: 4, x: 1096, y: 208 }, { n: 5, x: 1286, y: 208 }, { n: 6, x: 200, y: 286 }, { n: 7, x: 30, y: 398 }, { n: 8, x: 1238, y: 372 }]),
+  'Buscar Producto, con «331048» escrito: un solo resultado, resaltado pero todavía sin agregar.',
+  ['Texto de búsqueda (todas las palabras deben aparecer). Enter busca.', 'Filtro por <b>vehículo</b> y <b>año</b>.', '<b>Productos</b> o <b>Combos</b>.', 'Con qué precio se agrega el repuesto: <b>Precio 1</b>, <b>2</b> o <b>3</b>.', '<b>Columnas</b>: elige qué columnas ver en esta tabla.', '<b>Producto Nuevo</b>: crea el repuesto desde aquí mismo.', 'El resultado resaltado. Doble clic, o un segundo Enter con la lista seleccionada, lo agrega a la venta.', '<b>Existencia</b> (verde con unidades, rojo en cero).']
+)}
+<p>Las flechas ↑ ↓ mueven la selección y la tecla Esc cierra la ventana. En un celular o tableta, al buscar se baja el teclado para ver los resultados.</p>
+${aviso('Aunque la búsqueda dé <b>un solo resultado</b>, el repuesto <b>no se agrega solo</b> a la venta: queda resaltado y usted decide. Presione Enter otra vez (o haga doble clic) para agregarlo. Así, un código mal escrito no mete un repuesto por error. Solo cuando escanea con la cámara del celular se agrega de inmediato.', 'Un solo resultado')}
+<h4>Elegir las columnas de Buscar Producto</h4>
+<p>El botón <b>Columnas</b> de esta ventana elige qué datos se ven al buscar: Marca, Origen, Código de barras, Categoría, Ubicación, ISV del producto y Existencia. La elección se guarda en ese equipo y <b>Restablecer</b> deja lo de siempre.</p>
+${figura(
+  captura('venta_buscar_columnas.png', [{ n: 1, x: 300, y: 450 }, { n: 2, x: 440, y: 634 }, { n: 3, x: 600, y: 660 }], { zona: [200, 220, 560, 480] }),
+  'Ventana Columnas de Buscar Producto.',
+  ['Marque las columnas que quiere ver.', '<b>Restablecer</b>.', '<b>Listo</b>.']
 )}
 <p>Las flechas ↑ ↓ mueven la selección y la tecla Esc cierra la ventana. En un celular o tableta, al buscar se baja el teclado para ver los resultados.</p>
 ${aviso('Por defecto, un repuesto que no tiene existencia NO se puede agregar a una venta: el sistema muestra un mensaje y no lo deja seleccionar. En una cotización sí se puede, porque no descuenta existencias. Solo si el administrador activó «Permitir vender un producto sin existencia (con clave)» en Configuración y existe clave especial, se podrá agregar pidiendo esa clave.', 'Sin existencia')}
@@ -211,6 +304,8 @@ ${datos(['Documento', 'Qué se ve en los totales', 'Ejemplo con un repuesto de L
   ['Venta / Cotización sin ISV', 'Solo el total (y los descuentos, si los hay). No hay filas de ISV.', 'Total L 1,150.00'],
   ['Factura / Cotización con ISV', 'Subtotal, Descuentos y rebajas (si hay), ISV 15% y Total a pagar. El ISV se separa del precio.', 'Subtotal L 1,000.00 + ISV L 150.00 = Total L 1,150.00'],
 ])}
+<h4>El total se cobra con centavos</h4>
+<p>El total a pagar es la suma exacta de los precios: si un repuesto vale L 1,750.88, la venta dice L 1,750.88. El sistema <b>ya no redondea el total al lempira</b>. Lo único que ajusta es una diferencia de un centavo causada por la división del ISV, para que un precio entero como L 1,575.00 no aparezca como L 1,574.99 ni L 1,575.01.</p>
 <p>Si cambia el tipo de documento a mitad de la venta, el <b>total no cambia</b>: solo cambia la forma de mostrarlo. En la factura, las columnas se llaman «Precio (c/ISV)» e «Importe (c/ISV)».</p>
 
 <h3>Descuentos y rebajas</h3>
@@ -308,13 +403,33 @@ ${figura(
 ${pasos([
   ['Elija el proveedor y escriba el número de factura del proveedor.', 'La condición Crédito pide fecha de vencimiento y crea la cuenta por pagar.'],
   ['Agregue los repuestos.', 'Cantidad, costo unitario y descuento. Puede crear un repuesto nuevo desde el mismo buscador.'],
-  ['Revise el precio de venta (opcional).', 'Si el costo cambió, puede ajustar el precio de venta ahí mismo.'],
+  ['Revise el precio de venta (opcional).', 'Si el costo cambió, puede ajustar el precio de venta ahí mismo, o calcularlo con el botón Calcular precios de venta (ver más abajo).'],
   ['Registre la compra.', 'Las existencias suben y cada línea queda como un lote con su costo para el cálculo de utilidades.'],
 ])}
 <ul>
   <li><b>Compras en espera:</b> guarda el borrador para continuar después.</li>
   <li><b>Ver Compras:</b> lista las compras registradas.</li>
 </ul>
+
+<h3>Calcular los precios de venta de la compra</h3>
+<p>Cuando llega mercadería nueva, el botón <b>Calcular precios de venta</b> (arriba, junto a Limpiar Compra) calcula y aplica el precio de venta de <b>todos los repuestos de la compra</b> de una vez, con la misma fórmula de la calculadora de precios: costo más porcentaje de ganancia, más el ISV del repuesto.</p>
+${figura(
+  captura('compra_calc_boton.png', [{ n: 1, x: 475, y: 172 }, { n: 2, x: 760, y: 471 }, { n: 3, x: 996, y: 463 }]),
+  'Registrar Compra con un repuesto agregado.',
+  ['<b>Calcular precios de venta</b>: abre la calculadora con todos los repuestos de la compra.', '<b>Precio de venta (c/ISV)</b> de la línea: el que se guardará en el repuesto al registrar la compra.', 'Calculadora de esa sola línea: calcula el precio de ese repuesto.']
+)}
+${figura(
+  captura('compra_calc_dialogo.png', [{ n: 1, x: 50, y: 262 }, { n: 2, x: 40, y: 296 }, { n: 3, x: 808, y: 382 }, { n: 4, x: 1138, y: 382 }, { n: 5, x: 1210, y: 382 }, { n: 6, x: 1340, y: 382 }, { n: 7, x: 880, y: 848 }]),
+  'Calcular precios de venta de la compra.',
+  ['Porcentaje de ganancia del Precio 1.', 'Redondeo del precio final.', '<b>Costo</b> de la línea: el costo unitario menos su descuento, sin ISV de la compra.', '<b>Precio final</b>: costo más ganancia y más ISV.', '<b>Se guardará</b>: el precio de venta que se pondrá en la línea.', '<b>Actual</b>: el precio de venta que tiene hoy el repuesto.', '<b>Aplicar a los N productos</b>: pone esos precios en las líneas de la compra.']
+)}
+${pasos([
+  ['Agregue los repuestos a la compra.', 'Con sus cantidades y costos.'],
+  ['Presione Calcular precios de venta.', 'Escriba el porcentaje de ganancia y elija el redondeo.'],
+  ['Revise la columna Se guardará y presione Aplicar a los N productos.', 'Los precios quedan escritos en cada línea (puede cambiar cualquiera a mano después).'],
+  ['Registre la compra.', 'Recién ahí los precios de venta se guardan en los repuestos.'],
+])}
+${consejo('En una compra la calculadora solo calcula el <b>Precio 1</b>. Para los precios 2 y 3 use la Calculadora de precios del Inventario.')}
 
 <h3>Ver compras y ver detalle</h3>
 ${figura(
